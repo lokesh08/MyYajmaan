@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #2d1117;
+  background-color: #fff7ed;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(220, 148, 24, 0.14), transparent 28%),
+    linear-gradient(135deg, #fff7ed 0%, #fffaf2 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* small utility tweaks for mockup fidelity */
+.card-puja { border-radius: 1.25rem; overflow: hidden; box-shadow: 0 16px 38px rgba(122,31,45,0.08); }
+.rating-pill { background: linear-gradient(90deg,#fbbf24,#f59e0b); color: #50110f; padding: 0.3rem 0.65rem; border-radius: 999px; font-weight:600; }
+.dot-shubh { width:8px; height:8px; border-radius:999px; background:#f59e0b; display:inline-block; margin-left:6px; }
+
+.shadow-divine {
+  box-shadow: 0 24px 60px rgba(90, 13, 26, 0.18);
+}
+
