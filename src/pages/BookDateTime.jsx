@@ -3,16 +3,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import { getAvailability } from '../services/availability';
+import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 
 export default function BookDateTime() {
   const { state } = useLocation();
-  const puja = state?.puja || { id: 1, title: 'Grah Shanti' };
-  const [date, setDate] = useState(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-  });
+  const draft = getBookingDraft();
+  const preserved = state?.puja ? state : draft;
+  const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
+  const [date, setDate] = useState(() => preserved?.date || new Date().toISOString().slice(0, 10));
   const [availability, setAvailability] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(() => preserved?.slot || null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +22,10 @@ export default function BookDateTime() {
     });
     return () => (mounted = false);
   }, [date, puja.id]);
+
+  useEffect(() => {
+    saveBookingDraft({ puja, date, slot: selectedSlot });
+  }, [puja, date, selectedSlot]);
 
   function isPast(selectedDate) {
     const today = new Date();
@@ -85,7 +89,10 @@ export default function BookDateTime() {
         <div className="mt-6 flex items-center gap-3">
           <button
             disabled={!selectedSlot || isPast(date)}
-            onClick={() => navigate('/book/select-pandit', { state: { date, slot: selectedSlot, puja } })}
+            onClick={() => {
+              saveBookingDraft({ puja, date, slot: selectedSlot });
+              navigate('/book/select-pandit', { state: { date, slot: selectedSlot, puja } });
+            }}
             className={`rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
           >
             Next

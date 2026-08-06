@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Griha Pravesh Puja illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2a425b" />
+      <stop offset="100%" stop-color="#d48a2d" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <rect x="90" y="90" width="1020" height="620" rx="32" fill="#fff8ef" opacity="0.14" stroke="#ffe7bd" stroke-width="2" />
+  <text x="120" y="150" fill="#fff9ec" font-size="44" font-family="Arial, sans-serif" font-weight="700">गृह प्रवेश पूजा</text>
+  <text x="120" y="210" fill="#ffe8ba" font-size="24" font-family="Arial, sans-serif">Blessings for a new home and new beginnings</text>
+  <rect x="365" y="270" width="470" height="260" rx="30" fill="#fff8ef" opacity="0.92" />
+  <path d="M455 455 L600 320 L745 455" fill="none" stroke="#9f2336" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="525" y="455" width="150" height="90" rx="10" fill="#9f2336" opacity="0.9" />
+  <circle cx="600" cy="390" r="48" fill="#f0b24d" />
+  <text x="600" y="405" text-anchor="middle" fill="#5f1321" font-size="40" font-family="serif">ॐ</text>
+  <text x="600" y="620" text-anchor="middle" fill="#fff8ef" font-size="44" font-family="Arial, sans-serif" font-weight="700">शुभ गृह प्रवेश</text>
+</svg>

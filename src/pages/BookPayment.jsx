@@ -2,9 +2,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
+import SelectionCard from '../components/SelectionCard';
 import ThemeDialog from '../components/ThemeDialog';
 import { initiatePayment, verifyPayment } from '../services/payments';
 import { createBooking } from '../services/bookings';
+import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 
 export default function BookPayment() {
   const { state } = useLocation();
@@ -12,8 +14,10 @@ export default function BookPayment() {
   const [method, setMethod] = useState('upi');
   const [loading, setLoading] = useState(false);
   const [dialog, setDialog] = useState({ open: false, title: '', message: '' });
+  const draft = getBookingDraft();
+  const preserved = state?.date ? state : draft;
 
-  const { date, slot, puja, pandit, address } = state || {};
+  const { date, slot, puja, pandit, address } = preserved || {};
 
   if (!date || !slot || !pandit) {
     return (
@@ -33,6 +37,7 @@ export default function BookPayment() {
       const verification = await verifyPayment(session.sessionId);
       if (verification.status === 'success') {
         const booking = await createBooking({ pujaId: puja?.id || 1, panditId: pandit.id, date, timeslot: slot.time, amount, paymentRef: verification.sessionId });
+        saveBookingDraft({ date, slot, puja, pandit, address, booking });
         navigate('/book/confirmation', { state: { booking, address, puja, pandit } });
       } else {
         setDialog({ open: true, title: 'Payment failed', message: 'The payment did not complete successfully. Please try again.' });
@@ -72,10 +77,23 @@ export default function BookPayment() {
 
         <div className="mt-4">
           <label className="block text-sm font-medium text-slate-700">Payment Method</label>
-          <div className="mt-2 flex gap-2">
-            <button onClick={() => setMethod('upi')} className={`rounded-full px-3 py-2 font-medium ${method === 'upi' ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700'}`}>UPI</button>
-            <button onClick={() => setMethod('card')} className={`rounded-full px-3 py-2 font-medium ${method === 'card' ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700'}`}>Card</button>
-            <button onClick={() => setMethod('wallet')} className={`rounded-full px-3 py-2 font-medium ${method === 'wallet' ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700'}`}>Wallet</button>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            {[
+              { key: 'upi', label: 'UPI' },
+              { key: 'card', label: 'Card' },
+              { key: 'wallet', label: 'Wallet' },
+            ].map((option) => (
+              <SelectionCard
+                key={option.key}
+                ariaLabel={`Select ${option.label} payment`}
+                ariaPressed={method === option.key}
+                selected={method === option.key}
+                onClick={() => setMethod(option.key)}
+                className="px-3 py-3"
+              >
+                <p className="text-sm font-semibold text-slate-700">{option.label}</p>
+              </SelectionCard>
+            ))}
           </div>
         </div>
 

@@ -2,18 +2,22 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
+import SelectionCard from '../components/SelectionCard';
 import { fetchAvailablePandits } from '../services/pandits';
+import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 
 export default function SelectPandit() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [pandits, setPandits] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(() => getBookingDraft().pandit || null);
 
-  const date = state?.date;
-  const slot = state?.slot;
-  const puja = state?.puja || { id: 1, title: 'Grah Shanti' };
+  const draft = getBookingDraft();
+  const preserved = state?.date ? state : draft;
+  const date = preserved?.date;
+  const slot = preserved?.slot;
+  const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
 
   useEffect(() => {
     let mounted = true;
@@ -25,7 +29,11 @@ export default function SelectPandit() {
       }
     });
     return () => (mounted = false);
-  }, [date, slot]);
+  }, [date, slot, puja.id]);
+
+  useEffect(() => {
+    saveBookingDraft({ puja, date, slot, pandit: selected });
+  }, [puja, date, slot, selected]);
 
   if (!date || !slot) {
     return (
@@ -55,33 +63,43 @@ export default function SelectPandit() {
         {loading && <p className="text-sm text-slate-500">Loading available pandits…</p>}
 
         {!loading && pandits.map((p) => (
-          <div key={p.id} className={`flex items-center justify-between gap-4 rounded-[1.25rem] border p-4 transition ${selected?.id === p.id ? 'border-maroon bg-amber-50/70 shadow-sm' : 'border-amber-100 bg-white'}`}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-maroon to-saffron text-xl font-semibold text-white">👳</div>
-              <div>
-                <p className="font-semibold">{p.name}</p>
-                <p className="text-sm text-slate-500">{p.languages.join(', ')} • {p.experience} yrs</p>
+          <SelectionCard
+            key={p.id}
+            ariaLabel={`Select ${p.name}`}
+            ariaPressed={selected?.id === p.id}
+            selected={selected?.id === p.id}
+            onClick={() => setSelected(p)}
+            className="p-4"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-maroon to-saffron text-xl font-semibold text-white">👳</div>
+                <div>
+                  <p className="font-semibold">{p.name}</p>
+                  <p className="text-sm text-slate-500">{p.languages.join(', ')} • {p.experience} yrs</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="font-semibold text-maroon">₹{p.price}</p>
-                <p className="text-sm text-amber-500">⭐ {p.rating}</p>
-              </div>
-              <div>
-                <button onClick={() => setSelected(p)} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${selected?.id === p.id ? 'bg-maroon text-white' : 'border border-amber-200 bg-white text-slate-700'}`}>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-semibold text-maroon">₹{p.price}</p>
+                  <p className="text-sm text-amber-500">⭐ {p.rating}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${selected?.id === p.id ? 'bg-maroon text-white shadow-sm' : 'bg-amber-50 text-slate-700 group-hover:bg-maroon group-hover:text-white'}`}>
                   {selected?.id === p.id ? 'Selected' : 'Select'}
-                </button>
+                </span>
               </div>
             </div>
-          </div>
+          </SelectionCard>
         ))}
       </div>
 
       <div className="mt-6 flex gap-3">
         <button
           disabled={!selected}
-          onClick={() => navigate('/book/address', { state: { date, slot, puja, pandit: selected } })}
+          onClick={() => {
+            saveBookingDraft({ puja, date, slot, pandit: selected });
+            navigate('/book/address', { state: { date, slot, puja, pandit: selected } });
+          }}
           className={`rounded-full px-5 py-2 font-semibold text-white shadow-sm ${!selected ? 'bg-gray-300' : 'bg-saffron'}`}
         >
           Next: Address

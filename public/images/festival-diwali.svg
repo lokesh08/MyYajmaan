@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Diwali festival illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2d1340" />
+      <stop offset="100%" stop-color="#efb13a" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <rect x="75" y="80" width="1050" height="640" rx="32" fill="#fff8ef" opacity="0.12" stroke="#fff0c9" stroke-width="2" />
+  <text x="120" y="150" fill="#fff7e8" font-size="44" font-family="Arial, sans-serif" font-weight="700">दीपावली</text>
+  <text x="120" y="210" fill="#f6deae" font-size="24" font-family="Arial, sans-serif">Festival of lights • divine celebration</text>
+  <g opacity="0.95">
+    <circle cx="280" cy="420" r="44" fill="#ffd770" />
+    <circle cx="420" cy="330" r="28" fill="#ffdd87" />
+    <circle cx="560" cy="430" r="36" fill="#ffd770" />
+    <circle cx="760" cy="340" r="24" fill="#ffe19c" />
+    <circle cx="905" cy="430" r="42" fill="#ffd770" />
+  </g>
+  <text x="600" y="610" text-anchor="middle" fill="#fff8ef" font-size="48" font-family="Arial, sans-serif" font-weight="700">Shubh Deepawali</text>
+</svg>

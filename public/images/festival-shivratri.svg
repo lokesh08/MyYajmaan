@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Maha Shivratri illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2a0f23" />
+      <stop offset="100%" stop-color="#c58327" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <rect x="85" y="85" width="1030" height="630" rx="34" fill="#fff8ef" opacity="0.14" stroke="#f9e1b0" stroke-width="2" />
+  <text x="120" y="150" fill="#fff9ea" font-size="44" font-family="Arial, sans-serif" font-weight="700">महाशिवरात्रि</text>
+  <text x="120" y="210" fill="#f5deb2" font-size="24" font-family="Arial, sans-serif">Night of devotion • divine worship • timeless peace</text>
+  <circle cx="600" cy="430" r="150" fill="#f5d081" opacity="0.94" />
+  <text x="600" y="475" text-anchor="middle" fill="#671830" font-size="150" font-family="serif">ॐ</text>
+  <text x="600" y="620" text-anchor="middle" fill="#fff8ef" font-size="46" font-family="Arial, sans-serif" font-weight="700">Maha Shivratri</text>
+</svg>

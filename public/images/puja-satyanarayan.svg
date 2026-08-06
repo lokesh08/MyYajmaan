@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Satyanarayan Puja illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3f0d4a" />
+      <stop offset="100%" stop-color="#cf8d20" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <rect x="95" y="92" width="1010" height="616" rx="32" fill="#fff9f2" opacity="0.12" stroke="#f8deae" stroke-width="2" />
+  <text x="120" y="150" fill="#fff7e8" font-size="44" font-family="Arial, sans-serif" font-weight="700">सत्यनारायण पूजा</text>
+  <text x="120" y="210" fill="#f6dfb1" font-size="24" font-family="Arial, sans-serif">Faith • gratitude • vrata observance</text>
+  <circle cx="620" cy="410" r="138" fill="#f8d48d" opacity="0.92" />
+  <text x="620" y="460" text-anchor="middle" fill="#7f1930" font-size="146" font-family="serif">ॐ</text>
+  <rect x="420" y="560" width="400" height="70" rx="35" fill="#fff8ef" opacity="0.94" />
+  <text x="620" y="607" text-anchor="middle" fill="#7f1930" font-size="30" font-family="Arial, sans-serif" font-weight="700">श्री सत्यनारायण व्रत</text>
+</svg>

@@ -1,6 +1,8 @@
 import { useLocation, Link } from 'react-router-dom';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
+import SummaryTile from '../components/SummaryTile';
+import { clearBookingDraft } from '../utils/bookingFlowStorage';
 
 export default function BookingConfirmation() {
   const { state } = useLocation();
@@ -40,25 +42,13 @@ export default function BookingConfirmation() {
 
         <div className="mt-6 rounded-[1.4rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-5 text-left shadow-sm">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/80 bg-white/80 p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Ritual</p>
-              <p className="mt-1 font-semibold text-slate-800">{puja?.title || 'Selected puja'}</p>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/80 p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Amount</p>
-              <p className="mt-1 font-semibold text-slate-800">₹{booking.amount}</p>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/80 p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Date / Time</p>
-              <p className="mt-1 font-semibold text-slate-800">{booking.date} • {booking.timeslot}</p>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/80 p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Pandit</p>
-              <p className="mt-1 font-semibold text-slate-800">{pandit?.name || `ID ${booking.panditId}`}</p>
-            </div>
+            <SummaryTile label="Ritual" value={puja?.title || 'Selected puja'} />
+            <SummaryTile label="Amount" value={`₹${booking.amount}`} />
+            <SummaryTile label="Date / Time" value={`${booking.date} • ${booking.timeslot}`} />
+            <SummaryTile label="Pandit" value={pandit?.name || `ID ${booking.panditId}`} />
           </div>
 
-          <div className="mt-4 rounded-2xl border border-amber-100 bg-white/90 p-3 text-sm text-slate-600">
+          <div className="mt-4 rounded-2xl border border-amber-100 bg-white/90 p-3 text-sm text-slate-600 shadow-sm">
             <p><strong>Address:</strong> {address?.address || 'Not provided'}</p>
             <p className="mt-1"><strong>Contact:</strong> {address?.name} • {address?.phone}</p>
           </div>
@@ -66,7 +56,7 @@ export default function BookingConfirmation() {
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link to="/dashboard" className="rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm transition hover:opacity-90">Go to My Bookings</Link>
-          <Link to="/book" className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700">Book Another Puja</Link>
+          <Link to="/book" onClick={clearBookingDraft} className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700">Book Another Puja</Link>
           <button onClick={() => window.print()} className="rounded-full border border-slate-200 bg-slate-50 px-5 py-2.5 font-semibold text-slate-700">Download Invoice</button>
         </div>
       </div>

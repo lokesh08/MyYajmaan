@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { getServiceMode, getServiceModeLabel, SERVICE_MODES, setServiceMode } from '../services/apiClient';
+import { clearBookingDraft } from '../utils/bookingFlowStorage';
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -12,6 +13,8 @@ const navItems = [
 
 export default function Layout({ children }) {
   const [serviceMode, setServiceModeState] = useState(getServiceMode());
+
+  console.log(serviceMode,"serviceMode")
 
   const handleServiceModeChange = (event) => {
     const nextMode = event.target.value;
@@ -38,6 +41,11 @@ export default function Layout({ children }) {
               <NavLink
                 key={item.to}
                 to={item.to}
+                onClick={() => {
+                  if (item.to === '/book') {
+                    clearBookingDraft();
+                  }
+                }}
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-sm font-medium transition ${isActive ? 'bg-maroon text-white' : 'text-slate-600 hover:bg-amber-100'}`
                 }

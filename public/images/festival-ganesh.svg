@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Ganesh Chaturthi illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#601021" />
+      <stop offset="100%" stop-color="#e4a532" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <rect x="85" y="85" width="1030" height="630" rx="34" fill="#fff8ef" opacity="0.14" stroke="#f9e1b0" stroke-width="2" />
+  <text x="120" y="152" fill="#fff9ea" font-size="44" font-family="Arial, sans-serif" font-weight="700">गणेश चतुर्थी</text>
+  <text x="120" y="212" fill="#f5deb2" font-size="24" font-family="Arial, sans-serif">A vibrant festival of devotion and joy</text>
+  <circle cx="600" cy="420" r="145" fill="#f4d181" opacity="0.94" />
+  <text x="600" y="470" text-anchor="middle" fill="#7d1f2d" font-size="140" font-family="serif">ॐ</text>
+  <text x="600" y="620" text-anchor="middle" fill="#fff8ef" font-size="46" font-family="Arial, sans-serif" font-weight="700">Ganesh Chaturthi</text>
+</svg>

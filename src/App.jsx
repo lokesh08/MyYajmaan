@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import BookingPage from './pages/BookingPage';
+import PujaDetailPage from './pages/PujaDetailPage';
 import BookDateTime from './pages/BookDateTime';
 import SelectPandit from './pages/SelectPandit';
 import BookAddress from './pages/BookAddress';
@@ -9,6 +10,7 @@ import BookingConfirmation from './pages/BookingConfirmation';
 import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
 import PanditPage from './pages/PanditPage';
+import PanditDetailPage from './pages/PanditDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Layout from './components/Layout';
@@ -19,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/book" element={<BookingPage />} />
+        <Route path="/book/:id" element={<PujaDetailPage />} />
         <Route path="/book/datetime" element={<BookDateTime />} />
         <Route path="/book/select-pandit" element={<SelectPandit />} />
         <Route path="/book/address" element={<BookAddress />} />
@@ -27,6 +30,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/pandit" element={<PanditPage />} />
+        <Route path="/pandit/:id" element={<PanditDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Routes>

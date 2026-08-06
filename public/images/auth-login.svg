@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Login background illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6b1330" />
+      <stop offset="100%" stop-color="#efb54d" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <rect x="90" y="90" width="1420" height="720" rx="36" fill="#fff8ef" opacity="0.14" stroke="#f9e8bd" stroke-width="2" />
+  <text x="140" y="165" fill="#fff9ec" font-size="54" font-family="Arial, sans-serif" font-weight="700">Log in to continue your spiritual journey</text>
+  <text x="140" y="230" fill="#f5dfb5" font-size="28" font-family="Arial, sans-serif">Find trusted pandits and book pujas with confidence</text>
+  <circle cx="1220" cy="300" r="140" fill="#f7d587" opacity="0.9" />
+  <text x="1220" y="350" text-anchor="middle" fill="#721a32" font-size="140" font-family="serif">ॐ</text>
+</svg>

@@ -4,22 +4,25 @@ import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import ThemeDialog from '../components/ThemeDialog';
 import ThemeNotice from '../components/ThemeNotice';
+import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 
 export default function BookAddress() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    city: 'Varanasi',
-    pin: '',
-    note: '',
-  });
+  const draft = getBookingDraft();
+  const preserved = state?.date ? state : draft;
+  const [form, setForm] = useState(() => ({
+    name: preserved?.address?.name || '',
+    phone: preserved?.address?.phone || '',
+    address: preserved?.address?.address || '',
+    city: preserved?.address?.city || 'Varanasi',
+    pin: preserved?.address?.pin || '',
+    note: preserved?.address?.note || '',
+  }));
   const [dialog, setDialog] = useState({ open: false, title: '', message: '' });
   const [notice, setNotice] = useState('');
 
-  const { date, slot, puja, pandit } = state || {};
+  const { date, slot, puja, pandit } = preserved || {};
 
   if (!date || !slot || !pandit) {
     return (
@@ -40,13 +43,15 @@ export default function BookAddress() {
       return;
     }
 
+    const bookingAddress = { ...form };
+    saveBookingDraft({ date, slot, puja, pandit, address: bookingAddress });
     navigate('/book/payment', {
       state: {
         date,
         slot,
         puja,
         pandit,
-        address: form,
+        address: bookingAddress,
       },
     });
   }
@@ -68,24 +73,24 @@ export default function BookAddress() {
 
       <div className="mt-6">
         <div className="grid gap-4 md:grid-cols-2">
-          <input value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Full name" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm" />
-          <input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder="Mobile number" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm" />
-          <input value={form.city} onChange={(e) => updateField('city', e.target.value)} placeholder="City" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm" />
-          <input value={form.pin} onChange={(e) => updateField('pin', e.target.value)} placeholder="Pin code" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm" />
+          <input value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Full name" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+          <input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder="Mobile number" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+          <input value={form.city} onChange={(e) => updateField('city', e.target.value)} placeholder="City" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+          <input value={form.pin} onChange={(e) => updateField('pin', e.target.value)} placeholder="Pin code" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
         </div>
 
         <textarea
           value={form.address}
           onChange={(e) => updateField('address', e.target.value)}
           placeholder="House/Flat number, street, locality"
-          className="mt-4 min-h-28 w-full rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm"
+          className="mt-4 min-h-28 w-full rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none"
         />
 
         <textarea
           value={form.note}
           onChange={(e) => updateField('note', e.target.value)}
           placeholder="Special instructions for the priest / puja timing"
-          className="mt-4 min-h-24 w-full rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm"
+          className="mt-4 min-h-24 w-full rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none"
         />
 
         {notice && <ThemeNotice type="error" title="Need a quick check" message={notice} />}

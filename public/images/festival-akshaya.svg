@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Akshaya Tritiya illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c4650" />
+      <stop offset="100%" stop-color="#d39431" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <rect x="85" y="85" width="1030" height="630" rx="34" fill="#fff8ef" opacity="0.14" stroke="#f9e1b0" stroke-width="2" />
+  <text x="120" y="150" fill="#fff9ea" font-size="44" font-family="Arial, sans-serif" font-weight="700">अक्षय तृतीया</text>
+  <text x="120" y="210" fill="#f5deb2" font-size="24" font-family="Arial, sans-serif">A day of abundance and auspiciousness</text>
+  <g>
+    <circle cx="305" cy="428" r="44" fill="#f5db86" />
+    <circle cx="430" cy="348" r="28" fill="#ffe4a2" />
+    <circle cx="573" cy="430" r="38" fill="#f5db86" />
+    <circle cx="748" cy="334" r="30" fill="#ffe9b2" />
+    <circle cx="885" cy="430" r="40" fill="#f5db86" />
+  </g>
+  <text x="600" y="620" text-anchor="middle" fill="#fff8ef" font-size="46" font-family="Arial, sans-serif" font-weight="700">Akshaya Tritiya</text>
+</svg>
