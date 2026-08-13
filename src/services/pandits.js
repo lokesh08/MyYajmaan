@@ -1,25 +1,50 @@
 import { isConfigured, fetchPandits as fetchPanditsFromSupabase } from './supabaseClient';
 import { getServiceMode, requestJson } from './apiClient';
 
-export function fetchAvailablePandits(pujaId, date, timeslot) {
+export async function fetchAvailablePandits(pujaId, date, timeslot, { signal } = {}) {
   const serviceMode = getServiceMode();
 
+  // If API mode, call requestJson with params and optional signal
   if (serviceMode === 'api') {
-    return requestJson(`/pandits?pujaId=${pujaId}&date=${date}&timeslot=${encodeURIComponent(timeslot)}`)
-      .then((payload) => {
-        const pandits = Array.isArray(payload?.pandits) ? payload.pandits : Array.isArray(payload?.rows) ? payload.rows : Array.isArray(payload) ? payload : [];
-        return { date, timeslot, pandits };
-      })
-      .catch((err) => {
-        console.warn('API pandits failed, falling back to mock', err);
-        return fetchAvailablePanditsMock(pujaId, date, timeslot);
+    try {
+      const payload = await requestJson('/pandits', {
+        method: 'GET',
+        params: { pujaId, date, timeslot },
+        signal,
       });
+
+      // Normalize response shape as before
+      const pandits = Array.isArray(payload?.pandits)
+        ? payload.pandits
+        : Array.isArray(payload?.rows)
+        ? payload.rows
+        : Array.isArray(payload)
+        ? payload
+        : [];
+
+      return { date, timeslot, pandits };
+    } catch (err) {
+      // Rethrow canceled requests so callers can ignore during cleanup
+      if (err?.name === 'CanceledError' || err?.isCanceled) {
+        throw err;
+      }
+      console.warn('API pandits failed, falling back to mock', err);
+      return fetchAvailablePanditsMock(pujaId, date, timeslot);
+    }
   }
 
+  // Supabase mode fallback
   if (serviceMode === 'supabase' && isConfigured) {
-    return fetchPanditsFromSupabase(pujaId, date, timeslot).then((rows) => ({ date, timeslot, pandits: rows }));
+    try {
+      const rows = await fetchPanditsFromSupabase(pujaId, date, timeslot);
+      return { date, timeslot, pandits: Array.isArray(rows) ? rows : [] };
+    } catch (err) {
+      console.warn('Supabase pandits failed, falling back to mock', err);
+      return fetchAvailablePanditsMock(pujaId, date, timeslot);
+    }
   }
 
+  // Default: mock
   return fetchAvailablePanditsMock(pujaId, date, timeslot);
 }
 

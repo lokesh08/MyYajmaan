@@ -1,0 +1,66 @@
+﻿-- fix_pandits_add_missing_columns.sql
+-- Adds any missing columns and indexes to the pandits table safely (IF NOT EXISTS).
+ALTER TABLE IF EXISTS pandits
+  ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE,
+  ADD COLUMN IF NOT EXISTS display_name TEXT,
+  ADD COLUMN IF NOT EXISTS languages TEXT[],
+  ADD COLUMN IF NOT EXISTS experience_years INTEGER,
+  ADD COLUMN IF NOT EXISTS rating NUMERIC(2,1) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS price NUMERIC,
+  ADD COLUMN IF NOT EXISTS about TEXT,
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+  ADD COLUMN IF NOT EXISTS address TEXT,
+  ADD COLUMN IF NOT EXISTS city TEXT,
+  ADD COLUMN IF NOT EXISTS pin TEXT,
+  ADD COLUMN IF NOT EXISTS latitude NUMERIC,
+  ADD COLUMN IF NOT EXISTS longitude NUMERIC,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- Ensure foreign key exists for user_id (add constraint if missing)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints tc
+    JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+    WHERE tc.table_name = 'pandits' AND tc.constraint_type = 'FOREIGN KEY' AND kcu.column_name = 'user_id'
+  ) THEN
+    BEGIN
+      -- Try to add FK; if users table missing, this will fail at runtime, but in reset ordering users exists.
+      ALTER TABLE pandits
+      ADD CONSTRAINT pandits_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+    EXCEPTION WHEN duplicate_object THEN
+      -- ignore if constraint already present concurrently
+      NULL;
+    END;
+  END IF;
+END;
+$$;
+
+-- Ensure trigger and trigger function for updated_at exist (trigger_set_timestamp expected)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_proc WHERE proname = 'trigger_set_timestamp') THEN
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger WHERE tgname = 'set_timestamp_pandits'
+      ) THEN
+        EXECUTE $q$DROP TRIGGER IF EXISTS set_timestamp_pandits ON pandits; CREATE TRIGGER set_timestamp_pandits BEFORE UPDATE ON pandits FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();$q$;
+      END IF;
+    END;
+END;
+$$;
+
+-- Create indexes safely
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='pandits' AND column_name='city') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_pandits_city ON pandits(city)';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='pandits' AND column_name='is_active') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_pandits_is_active ON pandits(is_active)';
+  END IF;
+END;
+$$;

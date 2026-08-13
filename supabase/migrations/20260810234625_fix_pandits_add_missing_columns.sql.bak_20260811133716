@@ -1,0 +1,47 @@
+﻿-- fix_pandits_add_missing_columns.sql
+-- Adds any missing columns and indexes to the pandits table safely (IF NOT EXISTS).
+ALTER TABLE IF EXISTS pandits
+  ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE,
+  ADD COLUMN IF NOT EXISTS display_name TEXT,
+  ADD COLUMN IF NOT EXISTS languages TEXT[],
+  ADD COLUMN IF NOT EXISTS experience_years INTEGER,
+  ADD COLUMN IF NOT EXISTS rating NUMERIC(2,1) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS price NUMERIC,
+  ADD COLUMN IF NOT EXISTS about TEXT,
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+  ADD COLUMN IF NOT EXISTS address TEXT,
+  ADD COLUMN IF NOT EXISTS city TEXT,
+  ADD COLUMN IF NOT EXISTS pin TEXT,
+  ADD COLUMN IF NOT EXISTS latitude NUMERIC,
+  ADD COLUMN IF NOT EXISTS longitude NUMERIC,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- Ensure foreign key exists for user_id (add constraint if missing)
+DO $$
+BEGIN
+  -- If the trigger function exists and the trigger is missing, create it.
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_proc WHERE proname = 'trigger_set_timestamp') THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_timestamp_pandits') THEN
+      -- Execute statements separately to avoid parser issues with semicolons inside a quoted string
+      EXECUTE 'DROP TRIGGER IF EXISTS set_timestamp_pandits ON pandits';
+      EXECUTE 'CREATE TRIGGER set_timestamp_pandits BEFORE UPDATE ON pandits FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()';
+    END IF;
+  END IF;
+END;
+$$;
+
+-- Create indexes safely
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='pandits' AND column_name='city') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_pandits_city ON pandits(city)';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='pandits' AND column_name='is_active') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_pandits_is_active ON pandits(is_active)';
+  END IF;
+END;
+$$;
+

@@ -9,9 +9,6 @@ import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 export default function SelectPandit() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [pandits, setPandits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(() => getBookingDraft().pandit || null);
 
   const draft = getBookingDraft();
   const preserved = state?.date ? state : draft;
@@ -19,17 +16,66 @@ export default function SelectPandit() {
   const slot = preserved?.slot;
   const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
 
+  const [pandits, setPandits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selected, setSelected] = useState(() => draft.pandit || null);
+
+  // Load available pandits for date & slot (with cancellation)
   useEffect(() => {
+    const controller = new AbortController();
     let mounted = true;
-    if (!date || !slot) return;
-    fetchAvailablePandits(puja.id, date, slot.time).then((res) => {
-      if (mounted) {
-        setPandits(res.pandits);
-        setLoading(false);
+
+    async function load() {
+      // If no date/slot, nothing to fetch
+      if (!date || !slot) {
+        if (mounted) {
+          setPandits([]);
+          setLoading(false);
+        }
+        return;
       }
-    });
-    return () => (mounted = false);
-  }, [date, slot, puja.id]);
+
+      setLoading(true);
+      setError(null);
+      setPandits([]);
+
+      try {
+        const res = await fetchAvailablePandits(puja.id, date, slot.time, { signal: controller.signal });
+        if (!mounted) return;
+
+        const rows = Array.isArray(res?.pandits) ? res.pandits : [];
+        setPandits(rows);
+        setLoading(false);
+
+        // If current selection is not in the new list, clear it
+        if (selected && !rows.some((p) => p.id === selected.id)) {
+          setSelected(null);
+        }
+      } catch (err) {
+        if (err?.name === 'CanceledError' || err?.isCanceled) {
+          // request aborted - ignore
+          return;
+        }
+        console.error('Failed to fetch available pandits', err);
+        if (mounted) {
+          // Fall back to mock may already be returned by service; if not, show error
+          setPandits((prev) => prev || []);
+          setError(err);
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+    // Note: selected intentionally not in deps to avoid clearing selection while user interacts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, slot?.time, puja.id]);
 
   useEffect(() => {
     saveBookingDraft({ puja, date, slot, pandit: selected });
@@ -62,6 +108,14 @@ export default function SelectPandit() {
       <div className="mt-6 space-y-4">
         {loading && <p className="text-sm text-slate-500">Loading available pandits…</p>}
 
+        {!loading && error && (
+          <p className="text-sm text-red-600">Failed to load available pandits. Please try again.</p>
+        )}
+
+        {!loading && !error && pandits.length === 0 && (
+          <p className="text-sm text-slate-500">No pandits available for the selected date/time.</p>
+        )}
+
         {!loading && pandits.map((p) => (
           <SelectionCard
             key={p.id}
@@ -76,7 +130,7 @@ export default function SelectPandit() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-maroon to-saffron text-xl font-semibold text-white">👳</div>
                 <div>
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-sm text-slate-500">{p.languages.join(', ')} • {p.experience} yrs</p>
+                  <p className="text-sm text-slate-500">{(p.languages || []).join(', ')} • {p.experience} yrs</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

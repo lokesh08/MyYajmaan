@@ -1,3 +1,5 @@
+// adjust the import path to where your axios instance lives in your project
+import api from '../api/axiosClient'; 
 const STORAGE_KEY = 'myyajmaan.serviceMode';
 export const SERVICE_MODES = ['mock', 'api', 'supabase'];
 
@@ -61,19 +63,59 @@ export async function requestJson(path, options = {}) {
     throw new Error(`API requests are unavailable while service mode is ${mode}`);
   }
 
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-  const url = `${baseUrl}${path}`;
-  const response = await fetch(url, {
+  // options supported:
+  // { method, headers, body, params, signal, timeout }
+  const {
+    method = 'GET',
+    headers = {},
+    body,
+    params,
+    signal,
+    timeout,
+    // any other axios config can be passed through via options.extraConfig
+    extraConfig = {},
+  } = options;
+
+  // Build axios request config. Use the axios instance's baseURL (configured in axiosClient).
+  const axiosConfig = {
+    url: path,               // relative path; axios instance baseURL will be applied
+    method: method.toLowerCase(),
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {}),
+      ...(headers || {}),
     },
-    ...options,
-  });
+    params: params || undefined,
+    timeout: timeout || undefined,
+    signal: signal || undefined, // AbortController.signal
+    ...extraConfig,
+  };
 
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+  // Attach body for non-GET methods. Axios will JSON.stringify automatically for objects.
+  if (body !== undefined && method.toUpperCase() !== 'GET') {
+    axiosConfig.data = body;
   }
 
-  return response.json();
+  try {
+    const resp = await api.request(axiosConfig);
+    return resp.data;
+  } catch (err) {
+    // normalize axios error:
+    // - canceled requests have code 'ERR_CANCELED' (axios v1+)
+    if (err?.code === 'ERR_CANCELED') {
+      const canceled = new Error('Request canceled');
+      canceled.name = 'CanceledError';
+      canceled.isCanceled = true;
+      throw canceled;
+    }
+
+    // HTTP error response
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+    const message = data?.message || err.message || `Request failed${status ? `: ${status}` : ''}`;
+
+    const error = new Error(message);
+    error.status = status;
+    error.data = data;
+    throw error;
+  }
 }

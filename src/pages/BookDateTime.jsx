@@ -10,17 +10,60 @@ export default function BookDateTime() {
   const draft = getBookingDraft();
   const preserved = state?.puja ? state : draft;
   const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
+
   const [date, setDate] = useState(() => preserved?.date || new Date().toISOString().slice(0, 10));
   const [availability, setAvailability] = useState(null);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(null);
+
   const [selectedSlot, setSelectedSlot] = useState(() => preserved?.slot || null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const controller = new AbortController();
     let mounted = true;
-    getAvailability(puja.id, date).then((res) => {
-      if (mounted) setAvailability(res.slots);
-    });
-    return () => (mounted = false);
+
+    async function loadAvailability() {
+      setLoadingAvailability(true);
+      setAvailability(null);
+      setAvailabilityError(null);
+
+      try {
+        const res = await getAvailability(puja.id, date, { signal: controller.signal });
+        if (!mounted) return;
+        // getAvailability returns { date, pujaId, slots }
+        setAvailability(res?.slots ?? null);
+
+        // Optionally: if previously selected slot is not available on new date, clear it
+        if (selectedSlot) {
+          const found = Object.values(res?.slots ?? {}).some((group) =>
+            group.some((s) => s.id === selectedSlot.id)
+          );
+          if (!found) {
+            setSelectedSlot(null);
+          }
+        }
+      } catch (err) {
+        if (err?.name === 'CanceledError' || err?.isCanceled) {
+          // request was aborted - ignore
+          return;
+        }
+        console.error('Failed to load availability', err);
+        setAvailabilityError(err);
+        // If getAvailability falls back to mock internally, availability will be set above.
+        // If it threw, we keep availability null so UI shows an error or empty state.
+      } finally {
+        if (mounted) setLoadingAvailability(false);
+      }
+    }
+
+    loadAvailability();
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, puja.id]);
 
   useEffect(() => {
@@ -62,7 +105,13 @@ export default function BookDateTime() {
 
         <div className="mt-6">
           <h3 className="font-semibold text-slate-700">Available Time Slots</h3>
-          {!availability && <p className="mt-2 text-sm text-slate-500">Loading availability…</p>}
+
+          {loadingAvailability && <p className="mt-2 text-sm text-slate-500">Loading availability…</p>}
+
+          {!loadingAvailability && availabilityError && (
+            <p className="mt-2 text-sm text-red-600">Failed to load availability. Please try again.</p>
+          )}
+
           {availability && (
             <div className="mt-3 space-y-4">
               {Object.entries(availability).map(([group, slots]) => (
@@ -83,6 +132,10 @@ export default function BookDateTime() {
                 </div>
               ))}
             </div>
+          )}
+
+          {!loadingAvailability && !availability && !availabilityError && (
+            <p className="mt-2 text-sm text-slate-500">No slots available for the selected date.</p>
           )}
         </div>
 

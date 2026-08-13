@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
 import PanditPage from './pages/PanditPage';
 import PanditDetailPage from './pages/PanditDetailPage';
+import BrowsePanditsMap from './pages/BrowsePanditsMap';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Layout from './components/Layout';
@@ -31,6 +32,7 @@ function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/pandit" element={<PanditPage />} />
         <Route path="/pandit/:id" element={<PanditDetailPage />} />
+        <Route path="/browse-pandits" element={<BrowsePanditsMap />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Routes>

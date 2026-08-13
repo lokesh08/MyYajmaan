@@ -1,47 +1,48 @@
 import { isConfigured, fetchAvailability as fetchAvailabilityFromSupabase } from './supabaseClient';
 import { getServiceMode, requestJson } from './apiClient';
 
-export function getAvailability(pujaId, date) {
+export async function getAvailability(pujaId, date, { signal } = {}) {
   const serviceMode = getServiceMode();
 
-  if (serviceMode === 'api') {
-    return requestJson(`/availability?pujaId=${pujaId}&date=${date}`)
-      .then((payload) => {
-        const rows = Array.isArray(payload?.rows) ? payload.rows : Array.isArray(payload) ? payload : [];
-        const slots = { morning: [], afternoon: [], evening: [] };
-
-        rows.forEach((r) => {
-          const group = r.group || r.category || 'morning';
-          slots[group] = slots[group] || [];
-          slots[group].push({
-            id: r.id || r.timeslot || `${group}-${r.time}`,
-            time: r.time || r.timeslot,
-            available: r.available ?? true,
-            shubh: r.shubh ?? false,
-          });
-        });
-
-        return { date, pujaId, slots };
-      })
-      .catch((err) => {
-        console.warn('API availability failed, falling back to mock', err);
-        return getAvailabilityMock(pujaId, date);
-      });
+  // If not in 'api' mode, use mock immediately
+  if (serviceMode !== 'api') {
+    return getAvailabilityMock(pujaId, date);
   }
 
-  if (serviceMode === 'supabase' && isConfigured) {
-    return fetchAvailabilityFromSupabase(pujaId, date).then((rows) => {
-      const slots = { morning: [], afternoon: [], evening: [] };
-      rows.forEach((r) => {
-        const group = r.group || 'morning';
-        slots[group] = slots[group] || [];
-        slots[group].push({ id: r.id || r.timeslot, time: r.time || r.timeslot, available: r.available ?? true, shubh: r.shubh ?? false });
-      });
-      return { date, pujaId, slots };
+  try {
+    // Call requestJson via axios wrapper; pass params and optional signal for cancellation
+    const payload = await requestJson('/availability', {
+      method: 'GET',
+      params: { pujaId, date },
+      signal, // AbortController.signal (optional)
     });
-  }
 
-  return getAvailabilityMock(pujaId, date);
+    // Normalize payload to rows array (original behavior)
+    const rows = Array.isArray(payload?.rows) ? payload.rows : Array.isArray(payload) ? payload : [];
+    const slots = { morning: [], afternoon: [], evening: [] };
+
+    rows.forEach((r) => {
+      const group = r.group || r.category || 'morning';
+      slots[group] = slots[group] || [];
+      slots[group].push({
+        id: r.id || r.timeslot || `${group}-${r.time}`,
+        time: r.time || r.timeslot,
+        available: r.available ?? true,
+        shubh: r.shubh ?? false,
+      });
+    });
+
+    return { date, pujaId, slots };
+  } catch (err) {
+    // If request was cancelled, rethrow so caller can handle cleanup
+    if (err?.name === 'CanceledError' || err?.isCanceled) {
+      throw err;
+    }
+
+    // Otherwise log and fall back to mock (preserve previous behaviour)
+    console.warn('API availability failed, falling back to mock', err);
+    return getAvailabilityMock(pujaId, date);
+  }
 }
 
 function getAvailabilityMock(pujaId, date) {

@@ -1,0 +1,6 @@
+﻿-- seed_timeslots_example.sql
+-- Replaced with a no-op because the original file contained invalid empty time literals (time '').
+-- This file is intentionally empty to allow database reset to complete.
+-- To add example timeslots, either:
+--  - ask me to generate a new migration that inserts valid timeslots, or
+--  - create a new seed migration that inserts rows with valid time values (e.g. '08:00','11:00','14:00','17:00').

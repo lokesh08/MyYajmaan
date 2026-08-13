@@ -1,0 +1,59 @@
+﻿-- Ensure pandits has expected columns before creating indexes/views
+ALTER TABLE IF EXISTS pandits
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+
+-- Ensure metadata exists (defensive; safe if already present)
+ALTER TABLE IF EXISTS pandits
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
+-- Ensure pandits.metadata exists before creating GIN index (added automatically to avoid index errors)
+ALTER TABLE IF EXISTS pandits
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
+-- add_search_indexes_and_view.sql
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE INDEX IF NOT EXISTS idx_users_metadata_gin ON users USING gin (metadata);
+CREATE INDEX IF NOT EXISTS idx_pandits_metadata_gin ON pandits USING gin (metadata);
+CREATE INDEX IF NOT EXISTS idx_pujas_metadata_gin ON pujas USING gin (metadata);
+
+CREATE INDEX IF NOT EXISTS idx_pujas_tsv_title_desc ON pujas USING GIN (
+  to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(description, ''))
+);
+
+CREATE INDEX IF NOT EXISTS idx_pujas_title_trgm ON pujas USING gin (title gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_pujas_category_title ON pujas (category)
+WHERE category IS NOT NULL;
+
+CREATE OR REPLACE VIEW v_puja_with_pandit_count AS
+SELECT
+  pu.id,
+  pu.code,
+  pu.title,
+  pu.description,
+  pu.category,
+  pu.base_price,
+  pu.shubh_available,
+  pu.metadata,
+  COALESCE(count_pp.pandit_count, 0) AS pandit_count,
+  COALESCE(min_price.min_price, pu.base_price) AS min_price
+FROM pujas pu
+LEFT JOIN (
+  SELECT puja_id, COUNT(DISTINCT pandit_id) AS pandit_count
+  FROM pandit_puja pp
+  JOIN pandits p ON p.id = pp.pandit_id AND p.is_active = true
+  WHERE pp.active = true
+  GROUP BY puja_id
+) AS count_pp ON count_pp.puja_id = pu.id
+LEFT JOIN (
+  SELECT puja_id, MIN(COALESCE(price_override, p.price)) AS min_price
+  FROM pandit_puja pp
+  JOIN pandits p ON p.id = pp.pandit_id AND p.is_active = true
+  WHERE pp.active = true
+  GROUP BY puja_id
+) AS min_price ON min_price.puja_id = pu.id;
+
+
+
+
+

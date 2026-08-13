@@ -1,0 +1,195 @@
+/* Modal shared styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400;
+}
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.36);
+  backdrop-filter: blur(2px);
+}
+.modal-card {
+  position: relative;
+  z-index: 1401;
+  background: #fff;
+  border-radius: 10px;
+  width: 92%;
+  max-width: 980px;
+  box-shadow: 0 16px 36px rgba(12,23,34,0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+.modal-md { max-width: 680px; }
+.modal-lg { max-width: 980px; }
+
+.modal-header {
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+.modal-title { margin:0; font-size: 18px; color: #332; }
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* body area scrolls if content large */
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+/* Refer & Earn layout */
+.refer-grid {
+  display:flex;
+  gap:12px;
+  margin-bottom: 14px;
+  flex-wrap:wrap;
+}
+.reward-card {
+  flex:1 1 220px;
+  background: #fff6ee;
+  padding: 16px;
+  border-radius: 8px;
+  text-align:center;
+  border: 1px solid #f0e6da;
+}
+.reward-amount { font-size: 28px; font-weight:700; color:#b84a00; }
+.reward-sub { color:#6f5847; margin-top:6px; font-size:13px; }
+
+/* referral row */
+.referral-row {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin: 12px 0;
+  flex-wrap:wrap;
+}
+.ref-label { font-size:13px; color:#666; min-width:120px; }
+.ref-code {
+  background:#fff;
+  border:1px solid #eee;
+  padding:12px 16px;
+  border-radius:6px;
+  font-weight:700;
+  letter-spacing:0.6px;
+  flex:1 1 auto;
+  min-width:180px;
+}
+.btn-copy {
+  background:#f39c12;
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* share row */
+.share-row { margin:10px 0 18px 0; }
+.share-title { font-size:14px; margin-bottom:8px; color:#444; }
+.share-buttons { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+
+/* Icon share buttons */
+.share-btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  border:1px solid #eee;
+  background:#fff;
+  cursor:pointer;
+  text-decoration:none;
+  color:#222;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.share-btn:active { transform: scale(.98); }
+.share-btn:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+
+.share-btn.icon .icon-svg { width:24px; height:24px; display:block; }
+
+/* Colored accents */
+.share-btn.whatsapp { color: #075E54; border-color: rgba(7,94,84,0.12); }
+.share-btn.facebook { color: #1877F2; border-color: rgba(24,119,242,0.12); }
+.share-btn.email { color: #0B79D0; border-color: rgba(11,121,208,0.12); }
+.share-btn.more { color: #333; }
+
+/* earnings row */
+.earnings-row {
+  display:flex;
+  gap:12px;
+  margin-top:14px;
+  border-top:1px solid #f0f0f0;
+  padding-top:12px;
+}
+.earn-col { flex:1; background:#fff; padding:12px; border-radius:8px; border:1px solid #f5f5f5; text-align:center; }
+.earn-label { font-size:13px; color:#666; }
+.earn-value { font-weight:700; margin-top:6px; display:block; }
+.earn-value.green { color:#1b8e3b; }
+
+/* Muhrat modal */
+.muhrat-box { display:flex; flex-direction:column; gap:12px; padding:8px; }
+.muhrat-row { display:flex; gap:12px; flex-wrap:wrap; }
+.muhrat-section { background:#fff; padding:12px; border-radius:8px; border:1px solid #f0f0f0; flex:1 1 220px; }
+.muhrat-label { font-size:13px; color:#666; }
+.muhrat-value { font-weight:700; font-size:16px; margin-top:6px; }
+.muhrat-sub { color:#666; font-size:13px; margin-top:6px; }
+.muhrat-desc { color:#444; margin-top:8px; }
+.muhrat-actions { display:flex; gap:12px; align-items:center; margin-top:6px; }
+
+.muhrat-share-btn {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #eee;
+  background:#fff;
+  cursor:pointer;
+}
+.muhrat-share-btn svg { width:18px; height:18px; }
+.muhrat-share-label { font-size:13px; color:#444; }
+
+/* buttons */
+.btn-primary {
+  background: linear-gradient(180deg,#1976d2,#115293);
+  color: #fff;
+  padding:10px 16px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+.btn-primary:disabled,
+.home-btn.disabled { opacity:0.5; cursor:not-allowed; }
+
+/* small helpers */
+.home-buttons { display:flex; gap:12px; padding:20px; }
+.home-btn { padding:10px 16px; border-radius:8px; border:1px solid #eee; background:#fff; cursor:pointer; }
+
+/* Responsive behaviours */
+@media (max-width: 720px) {
+  .modal-card { width: 96%; margin: 6px; border-radius:12px; }
+  .reward-card { flex:1 1 100%; }
+  .referral-row { flex-direction:column; align-items:stretch; }
+  .btn-copy { width:100%; }
+  .share-buttons { justify-content:space-between; }
+  .earnings-row { flex-direction:column; }
+  .muhrat-row { flex-direction:column; }
+  .muhrat-actions { justify-content:space-between; }
+}
