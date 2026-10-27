@@ -24,11 +24,22 @@ services:
       - key: APP_HOST
         value: 0.0.0.0
       - key: FRONTEND_ORIGINS
-        value: https://www.myyajmaan.com,https://myyajmaan.com
+        value: https://www.myyajmaan.com,https://myyajmaan.com,https://my-yajmaan.vercel.app
       - key: COOKIE_SECURE
         value: "true"
+      # "none" is required while the frontend (vercel.app) and backend
+      # (onrender.com) live on different domains -- a Lax cookie is never
+      # sent on a cross-site fetch()/XHR, only on a top-level navigation,
+      # so every authenticated API call after login would 401. Safe
+      # cross-domain because COOKIE_SECURE is "true" (browsers require
+      # Secure for SameSite=None) and every state-changing route already
+      # requires the separate CSRF header on top of this cookie. Once the
+      # backend moves to api.myyajmaan.com (same registrable domain as
+      # the frontend, see DEPLOYMENT.md step 4.3), this can go back to
+      # "lax" -- not required to, since CSRF protection already covers
+      # what Lax buys you, but it's the stricter default to return to.
       - key: COOKIE_SAMESITE
-        value: lax
+        value: none
       - key: BANK_DETAILS_ENCRYPTION_KEY
         sync: false # set in dashboard -- generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
       - key: AADHAR_ENCRYPTION_KEY
