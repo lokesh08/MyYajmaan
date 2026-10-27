@@ -1,0 +1,82 @@
+/*
+ * Re-themes react-toastify to match MyYajmaan's palette and the soft
+ * tinted-card language already used everywhere else in the app for
+ * status feedback (emerald = success, rose = error, amber/saffron =
+ * warning, maroon = info) — instead of toastify's default neon
+ * green/blue/yellow. Loaded after react-toastify's own stylesheet.
+ */
+
+/*
+ * :root:root (doubled) rather than plain :root: Vite's dev-mode CSS
+ * injection order doesn't reliably match this file's JS import order
+ * relative to react-toastify's own stylesheet, so a plain :root block
+ * can lose an equal-specificity cascade tie against theirs. Doubling
+ * the pseudo-class raises specificity just enough to always win,
+ * regardless of injection order.
+ */
+:root:root {
+  /* Icon + progress-bar accent colors */
+  --toastify-color-success: var(--color-emerald-600); /* emerald-600 */
+  --toastify-color-error: var(--color-rose-600); /* rose-600 */
+  --toastify-color-warning: var(--color-saffron); /* saffron */
+  --toastify-color-info: var(--color-maroon); /* maroon */
+
+  --toastify-color-progress-success: var(--color-emerald-600);
+  --toastify-color-progress-error: var(--color-rose-600);
+  --toastify-color-progress-warning: var(--color-saffron);
+  --toastify-color-progress-info: var(--color-maroon);
+
+  --toastify-toast-bd-radius: 1rem;
+  --toastify-toast-shadow: var(--shadow-toast);
+  --toastify-font-family: "Poppins", sans-serif;
+}
+
+.Toastify__toast {
+  align-items: flex-start;
+  border: 1px solid transparent;
+}
+
+.Toastify__toast-body {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/*
+ * Doubled-up class selectors (.Toastify__toast + type modifier) so
+ * these definitively out-specificity react-toastify's own
+ * .Toastify__toast-theme--light rule (same 0,0,1,0 specificity as a
+ * single-class selector would be, which is a losing tie by source
+ * order otherwise) -- this way theming doesn't depend on CSS import
+ * order at all.
+ */
+.Toastify__toast.Toastify__toast--success {
+  background: var(--color-emerald-50); /* emerald-50 */
+  border-color: var(--color-emerald-200); /* emerald-200 */
+  color: var(--color-emerald-800); /* emerald-800 */
+}
+
+.Toastify__toast.Toastify__toast--error {
+  background: var(--color-rose-50); /* rose-50 */
+  border-color: var(--color-rose-200); /* rose-200 */
+  color: var(--color-rose-800); /* rose-800 */
+}
+
+.Toastify__toast.Toastify__toast--warning {
+  background: var(--color-amber-50); /* amber-50 */
+  border-color: var(--color-amber-200); /* amber-200 */
+  color: var(--color-amber-800); /* amber-800 */
+}
+
+.Toastify__toast.Toastify__toast--info {
+  background: var(--color-maroon-mist); /* maroon-tinted cream */
+  border-color: var(--color-maroon-blush);
+  color: var(--color-maroon); /* maroon */
+}
+
+.Toastify__close-button {
+  opacity: 0.6;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}

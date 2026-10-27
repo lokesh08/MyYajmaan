@@ -15,21 +15,41 @@ L.Icon.Default.mergeOptions({
   shadowUrl,
 });
 
+function hasValidCoords(point) {
+  return (
+    point &&
+    Number.isFinite(point.lat) &&
+    Number.isFinite(point.lng)
+  );
+}
+
 function MapController({ center, zoom }) {
   const map = useMap();
   useEffect(() => {
-    if (center) {
+    // A selected Pandit Ji with no lat/lng on file (onboarding hasn't
+    // captured coordinates for them yet) must never reach Leaflet's
+    // setView — it crashes deep inside its animated-zoom projection
+    // math instead of failing gracefully. Skip the recenter for them;
+    // they're still visible and selectable in the list, just not
+    // pinned on the map.
+    if (hasValidCoords(center)) {
       map.setView([center.lat, center.lng], zoom || 13, { animate: true });
     }
   }, [center, zoom, map]);
   return null;
 }
 
+function formatPrice(price) {
+  if (price === null || price === undefined || price === '') return null;
+  const num = Number(price);
+  return Number.isNaN(num) ? null : `₹${num.toLocaleString('en-IN')}`;
+}
+
 export default function PanditMap({ pandits, userLoc, selectedId, onMarkerClick }) {
   const selected = pandits?.find(p => p.id === selectedId);
   const defaultCenter = userLoc || { lat: 28.6139, lng: 77.2090 };
 
-  const visiblePandits = (pandits || []).filter(p => p.lat && p.lng);
+  const visiblePandits = (pandits || []).filter(hasValidCoords);
 
   return (
     <MapContainer center={[defaultCenter.lat, defaultCenter.lng]} zoom={12} style={{ height: '100%', width: '100%' }}>
@@ -53,9 +73,9 @@ export default function PanditMap({ pandits, userLoc, selectedId, onMarkerClick 
           <Popup>
             <div>
               <strong>{p.name}</strong><br/>
-              ⭐ {p.rating?.toFixed(1)}<br/>
-              {p.address}<br/>
-              {p.price}
+              {p.rating ? <>⭐ {Number(p.rating).toFixed(1)}<br/></> : null}
+              {p.address && <>{p.address}<br/></>}
+              {formatPrice(p.price)}
             </div>
           </Popup>
         </Marker>

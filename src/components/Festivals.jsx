@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { withAbortGet } from "../api";
 import Loader from "./common/Loader";
+import { optimizedImage } from "../utils/image";
 
 /* FestivalCard unchanged (keeps image/title/date rendering) */
 function formatFestivalDate(f) {
@@ -15,12 +16,12 @@ function formatFestivalDate(f) {
 
 function FestivalCard({ festival }) {
   return (
-    <div className="overflow-hidden rounded-[1rem] border border-amber-100 bg-white shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-[1rem] border border-amber-200 bg-white shadow-sm">
       <div className="relative h-24">
-        <img src={festival.image_url} alt={festival.title || festival.name} className="h-full w-full object-cover" />
+        <img loading="lazy" decoding="async" src={optimizedImage(festival.image_url)} alt={festival.title || festival.name} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
       </div>
-      <div className="px-3 py-2 text-center">
+      <div className="flex flex-1 flex-col justify-center px-3 py-3 text-center">
         <p className="text-sm font-semibold text-slate-800">{festival.title || festival.name}</p>
         <p className="text-sm text-slate-600">{festival.description}</p>
         <p className="text-xs font-semibold text-slate-800">{formatFestivalDate(festival)}</p>
@@ -35,7 +36,10 @@ export default function Festivals({ limit = 4 }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const { promise, controller } = withAbortGet("/festivals", { params: { highlight: true, limit } });
+    // No date params needed here: the API already returns whichever
+    // festivals are upcoming relative to today, soonest first, so this
+    // naturally reflects whatever month the app happens to be opened in.
+    const { promise, controller } = withAbortGet("/festivals", { params: { limit } });
 
     setLoading(true);
     setError(null);
@@ -61,7 +65,7 @@ export default function Festivals({ limit = 4 }) {
   if (!items || items.length === 0) return <div className="p-4 text-center text-sm text-slate-500">No highlighted festivals right now.</div>;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid h-full gap-3 sm:grid-cols-2">
       {items.map((festival) => (
         <FestivalCard key={festival.id || festival.title} festival={festival} />
       ))}

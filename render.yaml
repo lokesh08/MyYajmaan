@@ -1,0 +1,83 @@
+services:
+  - type: web
+    name: myyajmaan-api
+    runtime: docker
+    rootDir: myyajmaan-api
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: singapore
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # Values commented "set in dashboard" hold secrets -- never put
+      # those in this file, since render.yaml is committed to git.
+      # Everything else has a sensible production default baked in
+      # here so a first deploy only needs the secrets filled in.
+      - key: SUPABASE_URL
+        sync: false # set in dashboard: your Supabase Cloud project URL
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false # set in dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false # set in dashboard
+      - key: SUPABASE_PUBLIC_BUCKET
+        value: images
+      - key: APP_HOST
+        value: 0.0.0.0
+      - key: FRONTEND_ORIGINS
+        value: https://www.myyajmaan.com,https://myyajmaan.com
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: lax
+      - key: BANK_DETAILS_ENCRYPTION_KEY
+        sync: false # set in dashboard -- generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+      - key: AADHAR_ENCRYPTION_KEY
+        sync: false # set in dashboard -- same generation method
+      - key: AADHAR_MOCK_MODE
+        value: "false"
+      - key: RAZORPAY_KEY_ID
+        sync: false # set in dashboard
+      - key: RAZORPAY_KEY_SECRET
+        sync: false # set in dashboard
+      - key: RAZORPAY_MERCHANT_NAME
+        value: MyYajmaan
+      - key: RAZORPAY_MOCK_MODE
+        value: "false"
+      - key: OTP_DEV_MODE
+        value: "false"
+      - key: OTP_TTL_SECONDS
+        value: "900"
+      - key: OTP_RESEND_COOLDOWN_SECONDS
+        value: "30"
+      - key: OTP_MAX_ATTEMPTS
+        value: "5"
+      - key: OTP_MAX_SENDS_PER_HOUR
+        value: "5"
+      - key: OTP_HASH_SECRET
+        sync: false # set in dashboard -- generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+      - key: SMTP_HOST
+        sync: false # set in dashboard
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USERNAME
+        sync: false # set in dashboard
+      - key: SMTP_PASSWORD
+        sync: false # set in dashboard
+      - key: SMTP_FROM_EMAIL
+        sync: false # set in dashboard
+      - key: SMTP_FROM_NAME
+        value: MyYajmaan
+      - key: SMTP_USE_TLS
+        value: "true"
+      - key: SMS_PROVIDER
+        value: msg91
+      - key: MSG91_AUTH_KEY
+        sync: false # set in dashboard
+      - key: MSG91_TEMPLATE_ID
+        sync: false # set in dashboard
+      - key: SMS_DEFAULT_COUNTRY_CODE
+        value: "91"
+      - key: PUBLIC_SITE_URL
+        value: https://www.myyajmaan.com
+      - key: SITEMAP_INCLUDE_PANDITS
+        value: "true"

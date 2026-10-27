@@ -1,6 +1,13 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-supabase
 httpx
-pydantic
+supabase
+passlib[bcrypt]
+PyJWT
+email-validator
+python-multipart
+cryptography
+openpyxl
+bleach
+reportlab

@@ -14,6 +14,7 @@ export default function SelectPandit() {
   const preserved = state?.date ? state : draft;
   const date = preserved?.date;
   const slot = preserved?.slot;
+  const address = preserved?.address;
   const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
 
   const [pandits, setPandits] = useState([]);
@@ -41,7 +42,12 @@ export default function SelectPandit() {
       setPandits([]);
 
       try {
-        const res = await fetchAvailablePandits(puja.id, date, slot.time, { signal: controller.signal });
+        // Server/Supabase now filters to only pandits who actually
+        // offer this puja and prices them at exactly what they charge
+        // for it (pandit_puja.price_override, falling back to the
+        // puja's base_price) -- no more generic-price fallback needed,
+        // p.price is always the real per-puja price when present at all.
+        const res = await fetchAvailablePandits(puja.id, date, slot.time, { city: address?.city, signal: controller.signal });
         if (!mounted) return;
 
         const rows = Array.isArray(res?.pandits) ? res.pandits : [];
@@ -75,16 +81,16 @@ export default function SelectPandit() {
     };
     // Note: selected intentionally not in deps to avoid clearing selection while user interacts
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, slot?.time, puja.id]);
+  }, [date, slot?.time, puja.id, address?.city]);
 
   useEffect(() => {
     saveBookingDraft({ puja, date, slot, pandit: selected });
   }, [puja, date, slot, selected]);
 
-  if (!date || !slot) {
+  if (!date || !slot || !address) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">No date/time selected. Please choose a slot first.</p>
+        <p className="text-slate-600">Incomplete booking data. Please complete the earlier steps first.</p>
       </section>
     );
   }
@@ -101,7 +107,7 @@ export default function SelectPandit() {
         { label: `Time: ${slot.time}` },
       ]}
     >
-      <BookingStepper currentStep={3} />
+      <BookingStepper currentStep={4} />
       <p className="mt-2 text-sm text-slate-600">Ritual: <strong>{puja.title}</strong></p>
       <p className="mt-1 text-sm text-slate-600">Selected: <strong>{date}</strong> • <strong>{slot.time}</strong></p>
 
@@ -113,7 +119,11 @@ export default function SelectPandit() {
         )}
 
         {!loading && !error && pandits.length === 0 && (
-          <p className="text-sm text-slate-500">No pandits available for the selected date/time.</p>
+          <p className="text-sm text-slate-500">
+            {address?.city
+              ? `No Pandit Ji available in ${address.city} for this date/time. Try a different date, time, or address.`
+              : 'No pandits available for the selected date/time.'}
+          </p>
         )}
 
         {!loading && pandits.map((p) => (
@@ -130,7 +140,7 @@ export default function SelectPandit() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-maroon to-saffron text-xl font-semibold text-white">👳</div>
                 <div>
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-sm text-slate-500">{(p.languages || []).join(', ')} • {p.experience} yrs</p>
+                  <p className="text-sm text-slate-500">{(p.languages || []).join(', ')} • {p.experience} yrs{p.city ? ` • ${p.city}` : ''}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -151,12 +161,12 @@ export default function SelectPandit() {
         <button
           disabled={!selected}
           onClick={() => {
-            saveBookingDraft({ puja, date, slot, pandit: selected });
-            navigate('/book/address', { state: { date, slot, puja, pandit: selected } });
+            saveBookingDraft({ puja, date, slot, pandit: selected, address });
+            navigate('/book/payment', { state: { date, slot, puja, pandit: selected, address } });
           }}
           className={`rounded-full px-5 py-2 font-semibold text-white shadow-sm ${!selected ? 'bg-gray-300' : 'bg-saffron'}`}
         >
-          Next: Address
+          Next: Payment
         </button>
         <button onClick={() => navigate(-1)} className="rounded-full border px-5 py-2">Back</button>
       </div>

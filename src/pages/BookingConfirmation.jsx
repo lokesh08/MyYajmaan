@@ -55,9 +55,12 @@ export default function BookingConfirmation() {
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/dashboard" className="rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm transition hover:opacity-90">Go to My Bookings</Link>
-          <Link to="/book" onClick={clearBookingDraft} className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700">Book Another Puja</Link>
-          <button onClick={() => window.print()} className="rounded-full border border-slate-200 bg-slate-50 px-5 py-2.5 font-semibold text-slate-700">Download Invoice</button>
+          <Link to="/dashboard" title="Go to My Bookings" className="interactive-button rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-maroon">Go to My Bookings</Link>
+          <Link to="/book" onClick={clearBookingDraft} title="Book another puja" className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-maroon hover:text-maroon">Book Another Puja</Link>
+          {/* This is a payment receipt, not a GST tax invoice -- the real
+              invoice only becomes available once the puja is marked
+              completed, from the Bookings page (see ClientBookingsPage.jsx). */}
+          <button onClick={() => window.print()} title="Download receipt" className="interactive-button rounded-full border border-slate-200 bg-slate-50 px-5 py-2.5 font-semibold text-slate-700 hover:border-slate-300">Download Receipt</button>
         </div>
       </div>
     </BookingFrame>

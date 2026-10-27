@@ -1,7 +1,11 @@
 import { isConfigured, fetchPandits as fetchPanditsFromSupabase } from './supabaseClient';
 import { getServiceMode, requestJson } from './apiClient';
 
-export async function fetchAvailablePandits(pujaId, date, timeslot, { signal } = {}) {
+// pincode isn't used as a filter -- a pandit's registered pincode is a
+// single point, not a service radius, so exact matching would almost
+// always return nobody. City is the reliable signal; pincode is only
+// ever shown to the customer as information (see SelectPandit.jsx).
+export async function fetchAvailablePandits(pujaId, date, timeslot, { city, signal } = {}) {
   const serviceMode = getServiceMode();
 
   // If API mode, call requestJson with params and optional signal
@@ -9,7 +13,10 @@ export async function fetchAvailablePandits(pujaId, date, timeslot, { signal } =
     try {
       const payload = await requestJson('/pandits', {
         method: 'GET',
-        params: { pujaId, date, timeslot },
+        // Backend query param is puja_id (snake_case), not pujaId --
+        // this mismatch previously meant the real API path silently
+        // ignored which puja was selected.
+        params: { puja_id: pujaId, date, timeslot, city: city || undefined },
         signal,
       });
 
@@ -36,7 +43,7 @@ export async function fetchAvailablePandits(pujaId, date, timeslot, { signal } =
   // Supabase mode fallback
   if (serviceMode === 'supabase' && isConfigured) {
     try {
-      const rows = await fetchPanditsFromSupabase(pujaId, date, timeslot);
+      const rows = await fetchPanditsFromSupabase(pujaId, date, timeslot, city);
       return { date, timeslot, pandits: Array.isArray(rows) ? rows : [] };
     } catch (err) {
       console.warn('Supabase pandits failed, falling back to mock', err);

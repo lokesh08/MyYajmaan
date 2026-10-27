@@ -1,0 +1,19 @@
+GRANT USAGE ON SCHEMA public TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLE public.audit_logs
+TO service_role;
+
+GRANT USAGE, SELECT
+ON SEQUENCE public.audit_logs_id_seq
+TO service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLES
+TO service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT USAGE, SELECT
+ON SEQUENCES
+TO service_role;

@@ -1,93 +1,202 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import SelectionCard from '../components/SelectionCard';
-import { pujaCatalog } from '../constants/pujaCatalog';
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { withAbortGet } from "../api";
+import SelectionCard from "../components/SelectionCard";
+import AppInfoStats from "../components/AppInfoStats";
+import Loader from "../components/common/Loader";
+import Seo from "../components/Seo";
+import { getSiteUrl } from "../seo/seoHead";
+import { toSnippet } from "../seo/siteConfig";
+import { breadcrumbSchema, pujaServiceSchema } from "../seo/structuredData";
+import NotFound from "../components/common/NotFound";
+import { bookingFallbackImage } from "../constants/visualAssets";
+import { saveBookingDraft } from "../utils/bookingFlowStorage";
+import { optimizedImage } from "../utils/image";
 
 const tabs = [
-  { id: 'about', label: 'About Puja' },
-  { id: 'benefits', label: 'Benefits' },
-  { id: 'samagri', label: 'Samagri' },
-  { id: 'faq', label: 'FAQ' },
+  { id: "about", label: "About Puja" },
+  { id: "benefits", label: "Benefits" },
+];
+
+const TIERS = [
+  {
+    id: "basic",
+    name: "Basic Package",
+    description: "Standard puja arrangement performed by a verified pandit, following complete Vedic rituals.",
+    feeNote: "No extra fee",
+  },
+  {
+    id: "premium",
+    name: "Premium Package",
+    description: "Everything in Basic, plus extra samagri and priority scheduling.",
+    feeNote: "Fee shown at checkout",
+  },
 ];
 
 export default function PujaDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('about');
-  const [selectedPackageName, setSelectedPackageName] = useState(pujaCatalog[0]?.packages?.[0]?.name || 'Basic Package');
 
-  const puja = useMemo(() => pujaCatalog.find((item) => item.id === id) || pujaCatalog[0], [id]);
+  const [puja, setPuja] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [activeTab, setActiveTab] = useState("about");
+  const [selectedTier, setSelectedTier] = useState(TIERS[0].id);
 
-  const selectedPackage = puja.packages?.find((pkg) => pkg.name === selectedPackageName) || puja.packages?.[0];
+  useEffect(() => {
+    const { promise, controller } = withAbortGet(`/pujas/${id}`);
 
-  const handlePackageSelection = (pkg) => {
-    setSelectedPackageName(pkg.name);
-    navigate('/book/datetime', {
+    setLoading(true);
+    setNotFound(false);
+
+    promise
+      .then((data) => setPuja(data))
+      .catch((err) => {
+        if (err?.isCanceled || err?.name === "CanceledError") return;
+        setNotFound(true);
+      })
+      .finally(() => setLoading(false));
+
+    return () => {
+      try {
+        controller.abort();
+      } catch (_) {
+        /* ignore */
+      }
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <Loader variant="card" count={1} />
+      </section>
+    );
+  }
+
+  if (notFound || !puja) {
+    return (
+      <NotFound
+        title="Puja not found"
+        message="The puja you are looking for does not exist or is no longer available."
+      />
+    );
+  }
+
+  const benefits = puja.metadata?.benefits || [];
+  const image = puja.image_url || puja.thumbnail_url || bookingFallbackImage;
+  const isPackagePuja = puja.puja_type === "package";
+
+  // Search/social tags and structured data for this specific puja.
+  const siteUrl = getSiteUrl();
+  const pujaPath = `/book/${puja.id}`;
+  const summary = toSnippet(puja.description, 120);
+  const seoDescription = summary
+    ? `${summary.replace(/[\s.,;:!?…-]+$/, "")}. Book a verified Pandit Ji online with MyYajmaan.`
+    : `Book ${puja.title} online with a verified Pandit Ji at your home. Choose your date, time and Pandit Ji on MyYajmaan.`;
+
+  function goToBooking() {
+    const tier = TIERS.find((t) => t.id === selectedTier);
+    const bookingPuja = {
+      id: puja.id,
+      title: puja.title,
+      image,
+      pujaType: puja.puja_type || "normal",
+      // A package puja's price is admin-quoted later, not tiered --
+      // the Basic/Premium upsell only applies to normal pujas.
+      ...(isPackagePuja ? {} : { packageName: tier?.name, tier: tier?.id }),
+    };
+
+    // Persisted before navigating (not just passed as router state) so
+    // the puja survives even when the very next thing that happens is
+    // a redirect through /login and back for a logged-out visitor --
+    // see RoleRoute's booking-flow login gate.
+    saveBookingDraft({ puja: bookingPuja, selectedPuja: puja });
+
+    navigate("/book/datetime", {
       state: {
-        puja: {
-          id: puja.id,
-          title: puja.title,
-          price: pkg.price,
-          image: puja.image,
-          packageName: pkg.name,
-        },
-        packageOption: pkg,
+        puja: bookingPuja,
         selectedPuja: puja,
       },
     });
-  };
+  }
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <Seo
+        title={`${puja.title} Booking Online`}
+        description={seoDescription}
+        path={pujaPath}
+        image={image}
+        imageAlt={`${puja.title} puja`}
+        jsonLd={[
+          pujaServiceSchema(siteUrl, puja, { path: pujaPath, image }),
+          breadcrumbSchema(siteUrl, [
+            { name: "Home", path: "/" },
+            { name: "Pujas", path: "/book" },
+            { name: puja.title, path: pujaPath },
+          ]),
+        ]}
+      />
       <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <Link to="/" className="hover:text-maroon">Home</Link>
+        <Link to="/" title="Go to Home" className="hover:text-maroon">
+          Home
+        </Link>
         <span>›</span>
-        <Link to="/book" className="hover:text-maroon">Pujas</Link>
+        <Link to="/book" title="Browse all pujas" className="hover:text-maroon">
+          Pujas
+        </Link>
         <span>›</span>
         <span className="text-slate-700">{puja.title}</span>
       </div>
 
-      <div className="overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-[0_18px_40px_rgba(122,31,45,0.08)]">
+      <div className="overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-card">
         <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="bg-gradient-to-br from-maroon via-[#7d1e32] to-saffron p-6 text-white">
+          <div className="bg-gradient-to-br from-maroon via-maroon to-saffron p-6 text-white">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-2xl">ॐ</div>
+              <div className="h-12 w-12 overflow-hidden rounded-full border border-white/25">
+                <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+              </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-100">Puja Details</p>
-                <h1 className="mt-1 font-serif text-2xl font-semibold">{puja.title}</h1>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-100">
+                  Puja Details
+                </p>
+                <h1 className="mt-1 font-serif text-2xl font-semibold">
+                  {puja.title}
+                </h1>
+                {isPackagePuja && (
+                  <span className="mt-2 inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
+                    Package Puja
+                  </span>
+                )}
               </div>
             </div>
 
             <img
-              src={puja.image}
+              src={optimizedImage(image)}
               alt={puja.title}
               className="mt-6 h-72 w-full rounded-[1.5rem] object-cover object-center shadow-lg"
             />
           </div>
 
           <div className="p-6 sm:p-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1 text-amber-500">★ ★ ★ ★ ★</div>
-              <span className="text-sm font-semibold text-slate-700">{puja.rating} / 5</span>
-              <span className="text-sm text-slate-500">({puja.reviewCount} reviews)</span>
-            </div>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-cream p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Duration</p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">{puja.duration}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Duration
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  {puja.duration_minutes ? `${puja.duration_minutes} mins` : "To be confirmed"}
+                </p>
               </div>
               <div className="rounded-2xl bg-cream p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">People</p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">{puja.people}</p>
-              </div>
-              <div className="rounded-2xl bg-cream p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Best For</p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">{puja.bestFor}</p>
-              </div>
-              <div className="rounded-2xl bg-cream p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Category</p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">{puja.category}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Category
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  {puja.category || "General"}
+                </p>
               </div>
             </div>
 
@@ -97,91 +206,82 @@ export default function PujaDetailPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab.id ? 'bg-maroon text-white' : 'bg-amber-50 text-slate-700'}`}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab.id ? "bg-maroon text-white" : "bg-amber-50 text-slate-700"}`}
                 >
                   {tab.label}
                 </button>
               ))}
             </div>
 
-            <div className="mt-4 rounded-2xl bg-[#fffaf2] p-4 text-sm text-slate-700">
-              {activeTab === 'about' && <p>{puja.about}</p>}
-              {activeTab === 'benefits' && (
-                <ul className="space-y-2">
-                  {puja.benefits.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
-                </ul>
+            <div className="mt-4 rounded-2xl bg-parchment-50 p-4 text-sm text-slate-700">
+              {activeTab === "about" && (
+                <p>{puja.description || "Details for this puja will be shared closer to the booking."}</p>
               )}
-              {activeTab === 'samagri' && (
-                <ul className="space-y-2">
-                  {puja.samagri.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
-                </ul>
-              )}
-              {activeTab === 'faq' && (
-                <ul className="space-y-2">
-                  {puja.faq.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
-                </ul>
+              {activeTab === "benefits" && (
+                benefits.length > 0 ? (
+                  <ul className="space-y-2">
+                    {benefits.map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Benefits for this puja have not been added yet.</p>
+                )
               )}
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {puja.packages.map((pkg) => (
-                <SelectionCard
-                  key={pkg.name}
-                  ariaLabel={`Select ${pkg.name} for ${puja.title}`}
-                  ariaPressed={selectedPackageName === pkg.name}
-                  selected={selectedPackageName === pkg.name}
-                  onClick={() => handlePackageSelection(pkg)}
-                  className="p-4"
-                >
-                  <p className="text-lg font-semibold text-maroon">{pkg.name}</p>
-                  <p className="mt-2 text-2xl font-bold text-saffron">{pkg.price}</p>
-                  <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                    {pkg.items.map((item) => (
-                      <li key={item}>✓ {item}</li>
-                    ))}
-                  </ul>
-                  <span className={`mt-4 inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition ${selectedPackageName === pkg.name ? 'bg-maroon text-white' : 'bg-amber-50 text-slate-700 group-hover:bg-maroon group-hover:text-white'}`}>
-                    {selectedPackageName === pkg.name ? 'Selected' : `Select ${pkg.name}`}
-                  </span>
-                </SelectionCard>
-              ))}
-            </div>
+            {isPackagePuja ? (
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-slate-700">
+                This is a custom-priced package. There's no payment at this step -- pick your date, address, and
+                tell us your requirements, and our team will call you to confirm the details before sharing a
+                final quote.
+              </div>
+            ) : (
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {TIERS.map((tier) => (
+                  <SelectionCard
+                    key={tier.id}
+                    ariaLabel={`Select ${tier.name} for ${puja.title}`}
+                    ariaPressed={selectedTier === tier.id}
+                    selected={selectedTier === tier.id}
+                    onClick={() => setSelectedTier(tier.id)}
+                    className="p-4"
+                  >
+                    <p className="text-lg font-semibold text-maroon">{tier.name}</p>
+                    <p className="mt-2 text-sm text-slate-600">{tier.description}</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-saffron">
+                      {tier.feeNote}
+                    </p>
+                    <span
+                      className={`mt-4 inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition ${selectedTier === tier.id ? "bg-maroon text-white" : "bg-amber-50 text-slate-700 group-hover:bg-maroon group-hover:text-white"}`}
+                    >
+                      {selectedTier === tier.id ? "Selected" : `Select ${tier.name}`}
+                    </span>
+                  </SelectionCard>
+                ))}
+              </div>
+            )}
 
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() =>
-                  navigate('/book/datetime', {
-                    state: {
-                      puja: {
-                        id: puja.id,
-                        title: puja.title,
-                        image: puja.image,
-                        price: selectedPackage?.price || puja.price,
-                        packageName: selectedPackage?.name || 'Basic Package',
-                      },
-                      packageOption: selectedPackage,
-                      selectedPuja: puja,
-                    },
-                  })
-                }
+                onClick={goToBooking}
                 className="rounded-full bg-saffron px-5 py-2.5 font-semibold text-white"
               >
-                Continue booking
+                {isPackagePuja ? "Continue request" : "Continue booking"}
               </button>
-              <Link to="/book" className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700">
+              <Link
+                to="/book"
+                className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700"
+              >
                 Back to browse
               </Link>
             </div>
           </div>
         </div>
       </div>
+
+      <AppInfoStats />
     </section>
   );
 }

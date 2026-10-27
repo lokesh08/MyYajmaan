@@ -50,7 +50,7 @@ function getAvailabilityMock(pujaId, date) {
     morning: [
       { id: 'm1', time: '06:00 AM', available: true, shubh: false },
       { id: 'm2', time: '07:00 AM', available: true, shubh: true },
-      { id: 'm3', time: '08:00 AM', available: false, shubh: false },
+      { id: 'm3', time: '08:00 AM', available: true, shubh: false },
     ],
     afternoon: [
       { id: 'a1', time: '12:00 PM', available: true, shubh: false },

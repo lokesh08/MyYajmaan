@@ -1,22 +1,28 @@
+import plugin from 'tailwindcss/plugin';
+
+import { colors, shadows, gradients, cssVariables } from './src/theme/tokens.js';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
+    // Replaces (not extends) Tailwind's default palette: every colour
+    // class in the app resolves to a token in src/theme/tokens.js, so
+    // that file is the single source of truth.
+    colors,
     extend: {
-      colors: {
-        maroon: '#7a1f2d',
-        saffron: '#d97706',
-        gold: '#fbbf24',
-        cream: '#fff7ed',
-      },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],
         serif: ['Noto Serif', 'serif'],
       },
-      boxShadow: {
-        divine: '0 10px 30px rgba(122, 31, 45, 0.12)',
-      },
+      boxShadow: shadows,
+      backgroundImage: gradients,
     },
   },
-  plugins: [],
+  plugins: [
+    // Exposes every token to plain CSS as var(--color-*) / var(--shadow-*).
+    plugin(({ addBase }) => {
+      addBase({ ':root': cssVariables() });
+    }),
+  ],
 };
