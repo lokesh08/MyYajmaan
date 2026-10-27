@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -41,24 +42,48 @@ def _extract_data_or_raise(resp: Any, single: bool = False):
     return data or []
 
 
-@router.get("/", response_model=List[FestivalOut])
+@router.get("", response_model=List[FestivalOut])
 def list_festivals(
     limit: int = 50,
     offset: int = 0,
     highlight: Optional[bool] = Query(None, description="If true, return only highlighted festivals"),
+    upcoming_only: bool = Query(
+        True,
+        description=(
+            "If true (default), only festivals that haven't ended yet are "
+            "returned, soonest first — so the list is always relevant "
+            "to whatever month the app is opened in. Pass false to see "
+            "the full calendar including past festivals."
+        ),
+    ),
 ):
     """
-    List festivals. If `highlight=true` is provided, only return festivals where highlight is true.
+    List festivals, soonest-upcoming first by default. This is what
+    drives the Home page's festivals section: with no params it
+    naturally returns whichever festivals are coming up relative to
+    today, so opening the app in a different month surfaces different
+    festivals without any client-side date logic.
+
+    `highlight=true` still works as an extra filter on top of that,
+    for anything that wants only hand-picked festivals.
     """
     supabase = _anon_client()
 
-    qb = supabase.table("festivals").select("*").order("start_date", desc=False).limit(limit).offset(offset)
+    qb = supabase.table("festivals").select("*")
 
-    # apply highlight filter server-side when requested
+    if upcoming_only:
+        today = date.today().isoformat()
+        # Multi-day festivals (e.g. Navratri) stay listed until their
+        # end_date passes, not just their start_date.
+        qb = qb.or_(
+            f"end_date.gte.{today},"
+            f"and(end_date.is.null,start_date.gte.{today})"
+        )
+
     if highlight is not None:
         qb = qb.eq("highlight", highlight)
 
-    resp = qb.execute()
+    resp = qb.order("start_date", desc=False).limit(limit).offset(offset).execute()
     data = _extract_data_or_raise(resp, single=False)
 
     # Convert any storage keys to public URLs before returning

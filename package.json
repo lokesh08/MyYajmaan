@@ -7,16 +7,23 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check:colors": "node scripts/check-colors.mjs",
+    "check:seo": "node scripts/check-seo.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "generate:og": "node scripts/generate-og-image.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.27.0",
+    "@supabase/supabase-js": "^2.112.3",
     "axios": "^1.19.0",
+    "dompurify": "^3.4.14",
     "leaflet": "1.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
-    "react-router-dom": "^6.21.1"
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^6.21.1",
+    "react-toastify": "^11.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
@@ -25,6 +32,7 @@
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "postcss": "^8.4.49",
+    "sharp": "^0.35.4",
     "tailwindcss": "^3.4.16",
     "vite": "^5.4.10"
   }

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { withAbortGet } from "../api";
 import { Loader } from "./common";
+import { panditPlaceholderImage } from "../constants/visualAssets";
+import { optimizedImage } from "../utils/image";
 
 /**
  * Pandits component
@@ -13,9 +15,17 @@ import { Loader } from "./common";
  */
 function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
   return (
-    <div className="rounded-[1.25rem] border border-amber-100 bg-white p-4 shadow-[0_12px_30px_rgba(122,31,45,0.05)]">
+    <div className="h-full rounded-[1.25rem] border border-amber-200 bg-white p-4 shadow-card-sm">
       <div className="flex items-center gap-4">
-        <img src={p.image || p.avatar_url} alt={p.name} className="h-24 w-24 rounded-full object-cover" />
+        <img loading="lazy" decoding="async"
+          src={optimizedImage(p.image || p.avatar_url || panditPlaceholderImage)}
+          alt={p.name}
+          className="h-24 w-24 rounded-full object-cover"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = panditPlaceholderImage;
+          }}
+        />
         <div className="flex-1">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -23,13 +33,15 @@ function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
               <p className="text-sm text-slate-500">Vedic rituals • {p.languages?.join(", ") || "Hindi, English"}</p>
             </div>
             <div className="text-right">
-              <div className="rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-maroon">{p.price ? `₹${p.price}` : "-"}</div>
+              {p.starting_price ? (
+                <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-maroon">Starts from ₹{p.starting_price}</div>
+              ) : null}
               <p className="mt-1 text-sm text-amber-500">⭐ {p.rating ?? "-"}</p>
             </div>
           </div>
           <div className="mt-3 flex gap-2">
-            <button onClick={() => onView(p)} className="rounded-full border border-amber-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700">View</button>
-            <button onClick={() => onSelect(p)} className="ml-auto rounded-full bg-saffron px-3 py-1.5 text-sm font-semibold text-white">Select</button>
+            <button onClick={() => onView(p)} className="interactive-button rounded-full border border-amber-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-maroon hover:text-maroon">View</button>
+            <button onClick={() => onSelect(p)} className="interactive-button ml-auto rounded-full bg-saffron px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-500">Select</button>
           </div>
         </div>
       </div>

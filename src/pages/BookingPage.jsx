@@ -1,7 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { pujaCatalog } from '../constants/pujaCatalog';
+import { withAbortGet } from '../api';
+import { bookingFallbackImage } from '../constants/visualAssets';
 import { clearBookingDraft } from '../utils/bookingFlowStorage';
+import Loader from '../components/common/Loader';
+import Seo from '../components/Seo';
+import { getSiteUrl } from '../seo/seoHead';
+import { itemListSchema } from '../seo/structuredData';
+import { optimizedImage } from '../utils/image';
 
 const categories = ['All Categories', 'Festival', 'Family', 'Housewarming', 'Temple', 'Path', 'Remedy'];
 const durations = ['All Durations', '1 - 2 Hours', '2 - 3 Hours', '3 - 5 Hours'];
@@ -12,43 +18,96 @@ const sortOptions = [
   { value: 'rating', label: 'Top Rated' },
 ];
 
+// Buckets duration_minutes into the same ranges the filter dropdown
+// offers, since the API stores an exact minute count, not a range.
+function bucketDuration(minutes) {
+  if (!minutes) return null;
+  if (minutes <= 120) return '1 - 2 Hours';
+  if (minutes <= 180) return '2 - 3 Hours';
+  return '3 - 5 Hours';
+}
+
+const PUJA_TYPE_TABS = [
+  { value: 'normal', label: 'Normal Pujas' },
+  { value: 'package', label: 'Package Pujas' },
+];
+
 export default function BookingPage() {
   const navigate = useNavigate();
+  const [pujaType, setPujaType] = useState('normal');
   const [category, setCategory] = useState('All Categories');
   const [duration, setDuration] = useState('All Durations');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('popular');
 
+  const [pujas, setPujas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const { promise, controller } = withAbortGet('/pujas', { params: { limit: 100 } });
+
+    setLoading(true);
+    setError(null);
+
+    promise
+      .then((data) => setPujas(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        if (err?.isCanceled || err?.name === 'CanceledError') return;
+        setError(err?.message || 'Failed to load pujas');
+      })
+      .finally(() => setLoading(false));
+
+    return () => {
+      try {
+        controller.abort();
+      } catch (_) {
+        /* ignore */
+      }
+    };
+  }, []);
+
   const filteredPujas = useMemo(() => {
-    const list = pujaCatalog.filter((puja) => {
+    const list = pujas.filter((puja) => {
+      const matchesType = (puja.puja_type || 'normal') === pujaType;
       const matchesCategory = category === 'All Categories' || puja.category === category;
-      const matchesDuration = duration === 'All Durations' || puja.duration === duration;
-      const matchesSearch = !search || puja.title.toLowerCase().includes(search.toLowerCase());
-      return matchesCategory && matchesDuration && matchesSearch;
+      const matchesDuration = duration === 'All Durations' || bucketDuration(puja.duration_minutes) === duration;
+      const matchesSearch = !search || puja.title?.toLowerCase().includes(search.toLowerCase());
+      return matchesType && matchesCategory && matchesDuration && matchesSearch;
     });
 
     const sorted = [...list];
     if (sortBy === 'price-asc') {
-      sorted.sort((a, b) => Number(a.price.replace(/[^\d]/g, '')) - Number(b.price.replace(/[^\d]/g, '')));
+      sorted.sort((a, b) => (a.base_price || 0) - (b.base_price || 0));
     } else if (sortBy === 'price-desc') {
-      sorted.sort((a, b) => Number(b.price.replace(/[^\d]/g, '')) - Number(a.price.replace(/[^\d]/g, '')));
-    } else if (sortBy === 'rating') {
-      sorted.sort((a, b) => b.rating - a.rating);
-    } else {
-      sorted.sort((a, b) => b.reviewCount - a.reviewCount);
+      sorted.sort((a, b) => (b.base_price || 0) - (a.base_price || 0));
     }
+    // 'rating' and 'popular' sorts are no-ops for now — the API doesn't
+    // carry rating/review-count data yet, so we don't fabricate an order.
 
     return sorted;
-  }, [category, duration, search, sortBy]);
+  }, [pujas, pujaType, category, duration, search, sortBy]);
 
   function openDetails(puja) {
     clearBookingDraft();
     navigate(`/book/${puja.id}`);
   }
 
+  // The full (unfiltered) catalogue as an ItemList, so search engines can
+  // see and link every bookable puja. Route-level title/description still apply.
+  const itemList =
+    pujas.length > 0
+      ? itemListSchema(
+          getSiteUrl(),
+          pujas.slice(0, 50).map((puja) => ({ name: puja.title, path: `/book/${puja.id}` })),
+          'Pujas you can book on MyYajmaan',
+        )
+      : undefined;
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-5 rounded-[1.4rem] bg-[#5f0d1a] p-4 text-white shadow-sm">
+      <Seo jsonLd={itemList} />
+      <div className="mb-5 rounded-[1.4rem] bg-maroon-deep p-4 text-white shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.26em] text-amber-100">Browse Pujas</p>
@@ -57,6 +116,28 @@ export default function BookingPage() {
           <div className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm">Step 1 of 6</div>
         </div>
       </div>
+
+      <div className="mb-5 flex flex-wrap gap-2 rounded-full border border-amber-100 bg-white p-1 shadow-sm sm:inline-flex sm:w-auto">
+        {PUJA_TYPE_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => setPujaType(tab.value)}
+            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
+              pujaType === tab.value ? 'bg-maroon text-white' : 'text-slate-600 hover:bg-amber-50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {pujaType === 'package' && (
+        <div className="mb-5 rounded-[1rem] border border-amber-200 bg-amber-50 p-4 text-sm text-slate-700">
+          Package pujas are custom-priced. Submit a request with your date, address, and requirements -- no
+          payment needed yet -- and our team will call you to confirm the details and share a final quote.
+        </div>
+      )}
 
       <div className="mb-5 rounded-[1rem] border border-amber-100 bg-white p-3 shadow-sm">
         <input
@@ -113,35 +194,61 @@ export default function BookingPage() {
         </label>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {filteredPujas.map((puja) => (
-          <div key={puja.id} className="overflow-hidden rounded-[1.3rem] border border-amber-100 bg-white shadow-[0_12px_28px_rgba(122,31,45,0.05)]">
-            <div className="relative h-52 overflow-hidden">
-              <img src={puja.image} alt={puja.title} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <h2 className="font-serif text-xl font-semibold">{puja.title}</h2>
-                <p className="mt-1 text-sm text-amber-100">Duration: {puja.duration}</p>
-              </div>
-            </div>
+      {loading && <Loader variant="card" count={6} />}
 
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-500">From {puja.price}</p>
-                <p className="text-sm text-amber-500">★ {puja.rating}</p>
+      {!loading && error && (
+        <p className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-8 text-center text-sm text-rose-600">
+          {error}
+        </p>
+      )}
+
+      {!loading && !error && filteredPujas.length === 0 && (
+        <p className="rounded-2xl border border-dashed border-amber-200 bg-white px-4 py-10 text-center text-sm text-slate-400">
+          No pujas match your filters right now.
+        </p>
+      )}
+
+      {!loading && !error && filteredPujas.length > 0 && (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {filteredPujas.map((puja) => (
+            <div key={puja.id} className="overflow-hidden rounded-[1.3rem] border border-amber-100 bg-white shadow-card-sm">
+              <div className="relative h-52 overflow-hidden">
+                <img loading="lazy" decoding="async"
+                  src={optimizedImage(puja.thumbnail_url || puja.image_url || bookingFallbackImage)}
+                  alt={puja.title}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <h2 className="font-serif text-xl font-semibold">{puja.title}</h2>
+                  {puja.duration_minutes ? (
+                    <p className="mt-1 text-sm text-amber-100">Duration: {puja.duration_minutes} mins</p>
+                  ) : null}
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => openDetails(puja)}
-                aria-label={`View details for ${puja.title}`}
-                className="mt-4 w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
-              >
-                View details
-              </button>
+
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-slate-500">
+                    From {puja.base_price ? `₹${puja.base_price}` : '-'}
+                  </p>
+                  {puja.category && (
+                    <p className="text-xs font-semibold uppercase tracking-wide text-saffron">{puja.category}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openDetails(puja)}
+                  aria-label={`View details for ${puja.title}`}
+                  className="mt-4 w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
+                >
+                  View details
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

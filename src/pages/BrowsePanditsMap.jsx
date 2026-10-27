@@ -1,9 +1,26 @@
 import React, { useEffect, useState, useRef } from "react";
 import PanditList from "../components/PanditList";
 import PanditMap from "../components/PanditMap";
+import ErrorBoundary from "../components/ErrorBoundary";
 import "./BrowsePanditsMap.css";
-import { panditPortraits } from "../constants/visualAssets";
 import { withAbortGet } from "../api";
+import { optimizedImage } from "../utils/image";
+
+// Only fields a customer needs to pick a nearby Pandit Ji — no phone,
+// email, bank, or other contact/personal detail is ever included, on
+// the frontend or in the /pandits API response it reads from.
+function normalizePandit(rec) {
+  return {
+    id: rec.id,
+    name: rec.display_name || rec.name || "Pandit Ji",
+    rating: rec.rating_avg ?? rec.rating ?? null,
+    price: rec.price ?? null,
+    avatar: rec.image || rec.avatar_url || optimizedImage("/images/panditPlaceholder.png"),
+    address: [rec.address, rec.city].filter(Boolean).join(", "),
+    lat: rec.latitude != null ? Number(rec.latitude) : null,
+    lng: rec.longitude != null ? Number(rec.longitude) : null,
+  };
+}
 
 export default function BrowsePanditsMap() {
   const [userLoc, setUserLoc] = useState(null); // {lat, lng}
@@ -12,12 +29,16 @@ export default function BrowsePanditsMap() {
   const [selectedId, setSelectedId] = useState(null);
   const [showListMobile, setShowListMobile] = useState(true);
   const [loadingPandits, setLoadingPandits] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // keep controller ref so we can abort if needed (or on unmount)
   const panditsControllerRef = useRef(null);
 
   useEffect(() => {
-    // Get user location with fallback
+    // User's real-time coordinates drive "based on user location" —
+    // browser geolocation first, falling back to a city-center default
+    // (New Delhi) only when it's denied/unavailable, purely so the map
+    // has somewhere sensible to center itself.
     let geoMounted = true;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -40,15 +61,18 @@ export default function BrowsePanditsMap() {
   }, []);
 
   useEffect(() => {
-    // Fetch pandits via api.withAbortGet (cancellable)
+    // Fetch real, approved-and-active pandits via api.withAbortGet
+    // (cancellable). The /pandits endpoint never returns phone/email —
+    // see PanditOut in models.py — so there's nothing to strip here.
     setLoadingPandits(true);
-    const { promise, controller } = withAbortGet("/pandits");
+    setLoadError(false);
+    const { promise, controller } = withAbortGet("/pandits?limit=200");
     panditsControllerRef.current = controller;
 
     promise
       .then((data) => {
-        // Expecting data to be an array or object — preserve previous behavior
-        setPandits(data);
+        const list = Array.isArray(data) ? data : data?.items || [];
+        setPandits(list.map(normalizePandit));
         setLoadingPandits(false);
       })
       .catch((err) => {
@@ -57,41 +81,9 @@ export default function BrowsePanditsMap() {
           return;
         }
 
-        console.error("Failed to load pandits, falling back to sample data", err);
-
-        // fallback sample data
-        setPandits([
-          {
-            id: 1,
-            name: "Pandit Rajesh Sharma",
-            rating: 4.8,
-            lat: 28.65,
-            lng: 77.2,
-            avatar: panditPortraits[0],
-            address: "Kashmere Gate, Delhi",
-            price: "₹2,100",
-          },
-          {
-            id: 2,
-            name: "Pandit Vivek Mishra",
-            rating: 4.6,
-            lat: 28.62,
-            lng: 77.25,
-            avatar: panditPortraits[1],
-            address: "Connaught Place, Delhi",
-            price: "₹1,800",
-          },
-          {
-            id: 3,
-            name: "Pandit Dinesh Pathak",
-            rating: 4.2,
-            lat: 28.6,
-            lng: 77.21,
-            avatar: panditPortraits[2],
-            address: "Karol Bagh, Delhi",
-            price: "₹1,600",
-          },
-        ]);
+        console.error("Failed to load pandits", err);
+        setPandits([]);
+        setLoadError(true);
         setLoadingPandits(false);
       });
 
@@ -127,6 +119,12 @@ export default function BrowsePanditsMap() {
         </button>
       </div>
 
+      {loadError && (
+        <div className="load-error-banner" role="alert">
+          Couldn't load Pandit Ji listings right now. Please refresh the page.
+        </div>
+      )}
+
       <div className={`browse-body ${showListMobile ? "list-visible" : "list-hidden"}`}>
         <aside id="pandit-list" className="pane list-pane" aria-label="Pandit list">
           <PanditList
@@ -150,12 +148,14 @@ export default function BrowsePanditsMap() {
             {showListMobile ? "Hide list" : "Show list"}
           </button>
 
-          <PanditMap
-            pandits={pandits}
-            userLoc={userLoc}
-            selectedId={selectedId}
-            onMarkerClick={(id) => setSelectedId(id)}
-          />
+          <ErrorBoundary message="Couldn't display the map. Please try again.">
+            <PanditMap
+              pandits={pandits}
+              userLoc={userLoc}
+              selectedId={selectedId}
+              onMarkerClick={(id) => setSelectedId(id)}
+            />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

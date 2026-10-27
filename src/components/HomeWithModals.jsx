@@ -1,91 +1,125 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import ReferEarnModal from "./ReferEarnModal";
 import MuhratModal from "./MuhratModal";
 import "./modals.css";
 import { withAbortGet } from "../api"; // use the withAbortGet helper
+import { useAuth } from "../context/AuthContext";
+import { showInfo } from "../utils/toaster";
+
+function formatCountdown(ms) {
+  if (ms <= 0) return "00:00:00";
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
 
 export default function HomeWithModals() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   const [referOpen, setReferOpen] = useState(false);
   const [muhratOpen, setMuhratOpen] = useState(false);
   const [referralData, setReferralData] = useState(null);
   const [muhrat, setMuhrat] = useState(null);
+  const [countdown, setCountdown] = useState(null);
 
   // keep refs to controllers so we can abort on unmount
-  const referralControllerRef = useRef(null);
   const muhratControllerRef = useRef(null);
 
-  useEffect(() => {
-    // Referral request
-    const { promise: referralPromise, controller: referralController } = withAbortGet("/referral");
-    referralControllerRef.current = referralController;
+  function loadMuhrat() {
+    const { promise, controller } = withAbortGet("/muhrat/next");
+    muhratControllerRef.current = controller;
 
-    referralPromise
-      .then((data) => {
-        setReferralData(data);
-      })
+    promise
+      .then((data) => setMuhrat(data))
       .catch((err) => {
-        if (err?.name === "CanceledError" || err?.isCanceled) {
-          // aborted - ignore
-          return;
-        }
-        // fallback sample
-        setReferralData({
-          code: "SHUBHALABHA25",
-          signupReward: "₹25",
-          bookingReward: "₹51",
-          earnings: "₹76.00",
-          totalEarned: "₹936.00",
-          shareUrl: window.location.origin,
-        });
-      });
-
-    // Muhrat request
-    const { promise: muhratPromise, controller: muhratController } = withAbortGet("/muhrat/next");
-    muhratControllerRef.current = muhratController;
-
-    muhratPromise
-      .then((data) => {
-        setMuhrat(data);
-      })
-      .catch((err) => {
-        if (err?.name === "CanceledError" || err?.isCanceled) {
-          // aborted - ignore
-          return;
-        }
-        // fallback: no active muhrat
+        if (err?.name === "CanceledError" || err?.isCanceled) return;
         setMuhrat({ active: false });
       });
+  }
+
+  useEffect(() => {
+    loadMuhrat();
 
     return () => {
-      // cleanup: abort both requests if still in-flight
-      try {
-        referralControllerRef.current?.abort();
-      } catch (e) { /* ignore */ }
       try {
         muhratControllerRef.current?.abort();
-      } catch (e) { /* ignore */ }
-      referralControllerRef.current = null;
+      } catch (e) {
+        /* ignore */
+      }
       muhratControllerRef.current = null;
     };
   }, []);
+
+  // Live countdown to the active muhurat's end time.
+  useEffect(() => {
+    if (!muhrat?.active || !muhrat?.end_at) {
+      setCountdown(null);
+      return;
+    }
+
+    const endTime = new Date(muhrat.end_at).getTime();
+
+    function tick() {
+      const remaining = endTime - Date.now();
+      if (remaining <= 0) {
+        setCountdown(null);
+        loadMuhrat(); // refresh — this muhurat just ended
+        return;
+      }
+      setCountdown(remaining);
+    }
+
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [muhrat?.active, muhrat?.end_at]);
+
+  function handleReferNow() {
+    if (!isAuthenticated) {
+      showInfo("Please log in to refer a friend and earn rewards.");
+      navigate("/login");
+      return;
+    }
+
+    const { promise } = withAbortGet("/referral");
+    promise
+      .then((data) => {
+        setReferralData(data);
+        setReferOpen(true);
+      })
+      .catch((err) => {
+        if (err?.isCanceled || err?.name === "CanceledError") return;
+        setReferralData(null);
+        setReferOpen(true);
+      });
+  }
 
   const muhratActive = muhrat && muhrat.active;
 
   return (
     <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr_1fr]">
-      <div className="rounded-[1rem] border border-amber-100 bg-white p-4 shadow-sm">
+      <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
           Today's Shubh Muhurat
         </p>
         <div className="mt-2 flex items-center justify-between gap-3">
           <div>
-            <p className="text-2xl font-bold text-maroon">03:25:16</p>
-            <p className="text-sm text-slate-500">Offer ends in 1 hr</p>
+            <p className="text-2xl font-bold text-maroon">
+              {muhratActive && countdown != null ? formatCountdown(countdown) : "--:--:--"}
+            </p>
+            <p className="text-sm text-slate-500">
+              {muhratActive ? `Offer ends soon — ${muhrat.title}` : "No active offer right now"}
+            </p>
           </div>
           <button
             type="button"
             aria-label="View today muhurat offer"
-            className="rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white"
+            className="interactive-button rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             onClick={() => muhratActive && setMuhratOpen(true)}
             disabled={!muhratActive}
           >
@@ -94,7 +128,7 @@ export default function HomeWithModals() {
         </div>
       </div>
 
-      <div className="rounded-[1rem] border border-amber-100 bg-white p-4 shadow-sm">
+      <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
           Refer & Earn
         </p>
@@ -104,14 +138,14 @@ export default function HomeWithModals() {
         <button
           type="button"
           aria-label="Refer and earn rewards"
-          className="mt-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-maroon"
-          onClick={() => setReferOpen(true)}
+          className="interactive-button mt-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-maroon"
+          onClick={handleReferNow}
         >
           Refer Now
         </button>
       </div>
 
-      <div className="rounded-[1rem] border border-amber-100 bg-white p-4 shadow-sm">
+      <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
           Why families choose us
         </p>

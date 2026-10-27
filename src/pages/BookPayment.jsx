@@ -1,19 +1,30 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
+import { get } from '../api';
+import { useAuth } from '../context/AuthContext';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
-import SelectionCard from '../components/SelectionCard';
+import CouponsShowcase from '../components/CouponsShowcase';
 import ThemeDialog from '../components/ThemeDialog';
-import { initiatePayment, verifyPayment } from '../services/payments';
+import { payWithRazorpay } from '../services/razorpay';
 import { createBooking } from '../services/bookings';
+import { validateCoupon } from '../services/coupons';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+
+const PAYMENT_METHOD = 'razorpay';
+const DEFAULT_PRICING = { premium_package_fee: 500, gst_percentage: 0, platform_fee: 200 };
 
 export default function BookPayment() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [method, setMethod] = useState('upi');
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [dialog, setDialog] = useState({ open: false, title: '', message: '' });
+    const [couponCode, setCouponCode] = useState('');
+    const [coupon, setCoupon] = useState(null);
+    const [couponMessage, setCouponMessage] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+  const [pricing, setPricing] = useState(DEFAULT_PRICING);
   const draft = getBookingDraft();
   const preserved = state?.date ? state : draft;
 
@@ -31,7 +42,23 @@ export default function BookPayment() {
     };
   }, []);
 
-  if (!date || !slot || !pandit) {
+  // Admin-configured pricing add-ons (Admin Settings -> Pricing). Fails
+  // open to the documented defaults rather than blocking payment.
+  useEffect(() => {
+    let mounted = true;
+    get('/settings/pricing')
+      .then((data) => {
+        if (mounted && data) setPricing({ ...DEFAULT_PRICING, ...data });
+      })
+      .catch(() => {
+        /* keep the defaults */
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!date || !slot || !pandit || !address) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
         <p className="text-slate-600">Incomplete booking data. Go back and complete earlier steps.</p>
@@ -39,7 +66,60 @@ export default function BookPayment() {
     );
   }
 
-  const amount = pandit.price;
+  // Real per-puja price the selected Pandit Ji charges for this puja
+  // (pandit_puja.price_override, or the puja's own base_price) -- see
+  // routers/pandits.py's GET /pandits?puja_id=... this is always the
+  // correct value whenever a pandit is returned at all, no fallback
+  // needed.
+  const panditPrice = Number(pandit.price) || 0;
+  const isPremium = puja?.tier === 'premium';
+  const premiumFee = isPremium ? Number(pricing.premium_package_fee) || 0 : 0;
+  const subtotal = panditPrice + premiumFee;
+  const discount = coupon?.discount || 0;
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const gstPercent = Number(pricing.gst_percentage) || 0;
+  const platformFee = Number(pricing.platform_fee) || 0;
+  // GST applies only to MyYajmaan's own platform fee, never to the
+  // Pandit Ji's service -- that's treated as out of scope for this tax
+  // line entirely, not just discounted. See invoicing.py for how this
+  // same split carries through to the actual tax invoice.
+  const gstAmount = Math.round((platformFee * gstPercent) / 100 * 100) / 100;
+  const payableAmount = Math.round((discountedSubtotal + gstAmount + platformFee) * 100) / 100;
+
+    async function handleApplyCoupon(explicitCode) {
+      const code = (explicitCode ?? couponCode).trim();
+      if (!code || couponLoading) return;
+
+      setCouponLoading(true);
+      setCoupon(null);
+      setCouponMessage('');
+
+      try {
+        const result = await validateCoupon({
+          code,
+          amount: subtotal,
+          pujaId: puja?.id,
+        });
+
+        if (result.valid) {
+          setCoupon(result);
+          setCouponMessage(`Coupon applied. You save ₹${result.discount}.`);
+        } else {
+          setCouponMessage(result.message || 'Enter a valid coupon code.');
+        }
+      } catch {
+        setCouponMessage('We could not validate that coupon. Please try again.');
+      } finally {
+        setCouponLoading(false);
+      }
+    }
+
+    function selectCouponCode(code) {
+      setCouponCode(code);
+      setCoupon(null);
+      setCouponMessage('');
+      handleApplyCoupon(code);
+    }
 
   async function handlePay() {
     // If already processing, ignore duplicate clicks
@@ -48,171 +128,89 @@ export default function BookPayment() {
     const controller = new AbortController();
     controllerRef.current = controller;
 
+    let paymentRef = null;
+
     setLoading(true);
     try {
-      // 1) initiate payment (pass signal for cancellation)
-      // Expectation: initiatePayment returns at least { sessionId } and optionally { redirectUrl }
-      const session = await initiatePayment({ amount, method }, { signal: controller.signal });
-
-      // If caller cancelled during initiatePayment
-      if (controller.signal.aborted) return;
-
-      // Case A: provider requires redirect (popup)
-      if (session && session.redirectUrl) {
-        // Open popup for provider flow
-        const popup = window.open(session.redirectUrl, 'payment_window', 'width=600,height=800');
-
-        if (!popup) {
-          // Popup blocked — show error
-          setDialog({
-            open: true,
-            title: 'Popup blocked',
-            message: 'Please allow popups or use a different browser to complete payment.',
-          });
-          return;
-        }
-
-        // Poll verify endpoint until success, failure, popup closed, cancellation, or timeout
-        const pollIntervalMs = 2000; // poll every 2s
-        const maxPollAttempts = 60; // ~2 minutes
-        let attempts = 0;
-        let verified = null;
-
-        while (!controller.signal.aborted && attempts < maxPollAttempts) {
-          // If popup closed by user, give up and show dialog
-          if (popup.closed) {
-            setDialog({
-              open: true,
-              title: 'Payment interrupted',
-              message: 'The payment window was closed before completion. Please try again.',
-            });
-            break;
-          }
-
-          try {
-            // Wait between polls (skip wait on first attempt)
-            if (attempts > 0) {
-              // small delay
-              await new Promise((res) => setTimeout(res, pollIntervalMs));
-            }
-
-            // call verifyPayment with signal to allow cancellation
-            const verification = await verifyPayment(session.sessionId, { signal: controller.signal });
-
-            if (controller.signal.aborted) return;
-
-            // If verifyPayment returns status field, check it
-            if (verification && verification.status) {
-              if (verification.status === 'success') {
-                verified = verification;
-                break;
-              }
-              // Optionally handle explicit failure status by breaking
-              if (verification.status === 'failed' || verification.status === 'error') {
-                setDialog({
-                  open: true,
-                  title: 'Payment failed',
-                  message: 'The payment did not complete successfully. Please try again.',
-                });
-                break;
-              }
-            }
-          } catch (err) {
-            // If canceled, rethrow to let outer catch handle it
-            if (err?.name === 'CanceledError' || err?.isCanceled) {
-              throw err;
-            }
-            // Non-fatal verify error — log and continue polling (transient)
-            console.warn('verifyPayment polling error (will retry)', err);
-          }
-
-          attempts += 1;
-        }
-
-        // Close popup if still open
-        try { if (popup && !popup.closed) popup.close(); } catch (e) { /* ignore */ }
-
-        if (verified && verified.status === 'success') {
-          // create booking and navigate
-          const booking = await createBooking(
-            {
-              pujaId: puja?.id || 1,
-              panditId: pandit.id,
-              date,
-              timeslot: slot.time,
-              amount,
-              paymentRef: verified.sessionId || session.sessionId,
-            },
-            { signal: controller.signal }
-          );
-
-          // If abort happened during createBooking, return quietly
-          if (controller.signal.aborted) return;
-
-          saveBookingDraft({ date, slot, puja, pandit, address, booking });
-          controllerRef.current = null;
-          navigate('/book/confirmation', { state: { booking, address, puja, pandit } });
-          return;
-        }
-
-        // If we exit loop without verified success and no dialog shown, show generic failure
-        if (!verified && !controller.signal.aborted) {
-          if (!popup || popup.closed) {
-            // already showed popup-closed dialog above
-          } else {
-            setDialog({
-              open: true,
-              title: 'Payment timeout',
-              message: 'Payment was not confirmed in time. Please check your bank or try again.',
-            });
-          }
-        }
-
-        return;
-      }
-
-      // Case B: immediate flow — verify directly (previous behavior)
-      const verification = await verifyPayment(session.sessionId, { signal: controller.signal });
+      // Razorpay is the only payment method: the order is created and
+      // the signature verified server-side (routers/payments.py); this
+      // resolves only once the payment is genuinely verified.
+      const verification = await payWithRazorpay({
+        amount: payableAmount,
+        description: puja?.title ? `${puja.title} with ${pandit.name}` : 'Puja booking',
+        prefill: {
+          name: profile?.full_name || undefined,
+          email: profile?.email || undefined,
+          contact: profile?.phone || undefined,
+        },
+        signal: controller.signal,
+      });
 
       if (controller.signal.aborted) return;
+      paymentRef = verification.sessionId;
 
-      if (verification.status === 'success') {
-        const booking = await createBooking(
-          {
-            pujaId: puja?.id || 1,
-            panditId: pandit.id,
-            date,
-            timeslot: slot.time,
-            amount,
-            paymentRef: verification.sessionId,
-          },
-          { signal: controller.signal }
-        );
+      const booking = await createBooking(
+        {
+          pujaId: puja?.id,
+          pujaTitle: puja?.title,
+          panditId: pandit.id,
+          date,
+          timeslot: slot.time,
+          amount: payableAmount,
+          paymentRef: verification.sessionId,
+          couponId: coupon?.id,
+          couponDiscount: discount,
+          address,
+          paymentMethod: PAYMENT_METHOD,
+          packageTier: puja?.tier,
+          premiumFee,
+          gstAmount,
+          platformFee,
+          panditFeeAmount: panditPrice,
+        },
+        { signal: controller.signal }
+      );
 
-        if (controller.signal.aborted) return;
+      // If abort happened during createBooking, return quietly
+      if (controller.signal.aborted) return;
 
-        saveBookingDraft({ date, slot, puja, pandit, address, booking });
-        controllerRef.current = null;
-        navigate('/book/confirmation', { state: { booking, address, puja, pandit } });
-        return;
-      } else {
-        setDialog({
-          open: true,
-          title: 'Payment failed',
-          message: 'The payment did not complete successfully. Please try again.',
-        });
-      }
+      saveBookingDraft({ date, slot, puja, pandit, address, booking });
+      controllerRef.current = null;
+      navigate('/book/confirmation', { state: { booking, address, puja, pandit } });
     } catch (err) {
-      // If cancelled, silently return (component unmount or user cancelled)
+      // Component unmounted / request cancelled: nothing to show.
       if (err?.name === 'CanceledError' || err?.isCanceled) {
         return;
       }
 
+      // Customer closed the Razorpay window without paying.
+      if (err?.isPaymentCancelled) {
+        setDialog({
+          open: true,
+          title: 'Payment cancelled',
+          message: 'You closed the payment window before completing the payment. No money was charged.',
+        });
+        return;
+      }
+
       console.error('Payment flow error', err);
+
+      // Money already left the customer's account but the booking could
+      // not be saved -- say so plainly (with the reference) rather than
+      // a generic "try again", which could lead to paying twice.
+      if (paymentRef) {
+        setDialog({
+          open: true,
+          title: 'Payment received',
+          message: `Your payment (ref: ${paymentRef}) was received, but we could not complete your booking. Please do not pay again - contact support with this reference and we will sort it out.`,
+        });
+        return;
+      }
+
       setDialog({
         open: true,
         title: 'Payment error',
-        message: 'Something went wrong while processing your payment. Please try again.',
+        message: err?.message || 'Something went wrong while processing your payment. Please try again.',
       });
     } finally {
       setLoading(false);
@@ -224,13 +222,13 @@ export default function BookPayment() {
   return (
     <BookingFrame
       title="Payment"
-      description="Review your booking and choose a payment method."
+      description="Review your booking and pay securely."
       accentImage={puja?.image || undefined}
       asideTitle="Booking review"
       asideItems={[
         { label: `Ritual: ${puja?.title || 'Selected puja'}` },
         { label: `Pandit: ${pandit.name}` },
-        { label: `Amount: ₹${amount}` },
+        { label: `Total: ₹${payableAmount.toFixed(2)}` },
       ]}
     >
       <BookingStepper currentStep={5} />
@@ -242,29 +240,98 @@ export default function BookPayment() {
             <p className="mt-1 text-sm text-slate-500">{address?.city}, {address?.pin}</p>
           </div>
           <div className="text-right">
-            <p className="font-semibold text-maroon">₹{amount}</p>
+            {isPremium && (
+              <span className="mb-1 inline-block rounded-full bg-gradient-to-r from-saffron to-gold px-2.5 py-0.5 text-[10px] font-bold text-white">
+                PREMIUM
+              </span>
+            )}
+            <p className="font-semibold text-maroon">₹{panditPrice.toFixed(2)}</p>
+            <p className="text-xs text-slate-400">Puja price</p>
           </div>
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm font-medium text-slate-700">Payment Method</label>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            {[
-              { key: 'upi', label: 'UPI' },
-              { key: 'card', label: 'Card' },
-              { key: 'wallet', label: 'Wallet' },
-            ].map((option) => (
-              <SelectionCard
-                key={option.key}
-                ariaLabel={`Select ${option.label} payment`}
-                ariaPressed={method === option.key}
-                selected={method === option.key}
-                onClick={() => setMethod(option.key)}
-                className="px-3 py-3"
-              >
-                <p className="text-sm font-semibold text-slate-700">{option.label}</p>
-              </SelectionCard>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="block text-sm font-medium text-slate-700" htmlFor="coupon-code">Coupon code</label>
+            <CouponsShowcase variant="link" onSelectCode={selectCouponCode} />
+          </div>
+          <div className="mt-2 flex gap-2">
+            <input
+              id="coupon-code"
+              value={couponCode}
+              onChange={(event) => {
+                setCouponCode(event.target.value.toUpperCase());
+                setCoupon(null);
+                setCouponMessage('');
+              }}
+              placeholder="Enter coupon code"
+              className="min-w-0 flex-1 rounded-xl border border-amber-200 px-3 py-2 text-sm uppercase outline-none focus:border-maroon"
+            />
+            <button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={!couponCode.trim() || couponLoading}
+              className="interactive-button rounded-xl border border-amber-200 px-4 py-2 text-sm font-semibold text-maroon disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {couponLoading ? 'Checking...' : 'Apply'}
+            </button>
+          </div>
+          {couponMessage && (
+            <p className={`mt-2 text-sm ${coupon ? 'text-emerald-700' : 'text-rose-600'}`}>
+              {couponMessage}
+            </p>
+          )}
+          {coupon && (
+            <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              <span>Coupon discount</span>
+              <span>-₹{coupon.discount}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 flex items-center justify-between rounded-[1.25rem] border border-amber-100 bg-white p-4 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold text-slate-700">Payment</p>
+            <p className="text-xs text-slate-500">Pay securely with UPI, cards, net banking or wallets via Razorpay.</p>
+          </div>
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-maroon">Razorpay</span>
+        </div>
+
+        <div className="mt-4 rounded-[1.25rem] border border-amber-100 bg-white p-4 shadow-sm">
+          <p className="text-sm font-semibold text-slate-700">Price Breakdown</p>
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-600">Puja price</span>
+              <span className="font-medium text-slate-800">₹{panditPrice.toFixed(2)}</span>
+            </div>
+            {isPremium && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">Premium package fee</span>
+                <span className="font-medium text-slate-800">₹{premiumFee.toFixed(2)}</span>
+              </div>
+            )}
+            {discount > 0 && (
+              <div className="flex items-center justify-between text-emerald-700">
+                <span>Coupon discount</span>
+                <span>-₹{discount.toFixed(2)}</span>
+              </div>
+            )}
+            {gstAmount > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">GST ({gstPercent}%) on platform fee</span>
+                <span className="font-medium text-slate-800">₹{gstAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {platformFee > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">Platform fee</span>
+                <span className="font-medium text-slate-800">₹{platformFee.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between border-t border-amber-100 pt-2 text-base font-bold text-maroon">
+              <span>Total</span>
+              <span>₹{payableAmount.toFixed(2)}</span>
+            </div>
           </div>
         </div>
 
@@ -272,11 +339,11 @@ export default function BookPayment() {
           <button
             onClick={handlePay}
             disabled={loading}
-            className="rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:opacity-90"
+            className="interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? 'Processing…' : `Pay ₹${amount}`}
+            {loading ? 'Processing…' : `Pay ₹${payableAmount.toFixed(2)}`}
           </button>
-          <button onClick={() => navigate(-1)} className="rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">Back</button>
+          <button onClick={() => navigate(-1)} className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
         </div>
       </div>
 

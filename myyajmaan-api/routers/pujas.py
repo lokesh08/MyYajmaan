@@ -1,7 +1,8 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from audit import write_audit_log
 from db import (
     create_supabase_client_for_key,
     SUPABASE_ANON_KEY,
@@ -9,6 +10,7 @@ from db import (
     convert_records_image_fields,
 )
 from models import PujaOut
+from permissions import optional_current_user
 
 router = APIRouter(prefix="/pujas", tags=["pujas"])
 
@@ -41,12 +43,23 @@ def _extract_data_or_raise(resp: Any, single: bool = False):
     return data or []
 
 
-@router.get("/", response_model=List[PujaOut])
-def list_pujas(limit: int = 50, offset: int = 0):
+@router.get("", response_model=List[PujaOut])
+def list_pujas(
+    limit: int = 50,
+    offset: int = 0,
+    listing_type: Optional[str] = None,
+    puja_type: Optional[str] = None,
+):
     supabase = _anon_client()
+    query = supabase.table("pujas").select("*").eq("is_active", True)
+
+    if listing_type:
+        query = query.eq("listing_type", listing_type)
+    if puja_type:
+        query = query.eq("puja_type", puja_type)
+
     resp = (
-        supabase.table("pujas")
-        .select("*")
+        query
         .order("created_at", desc=False)
         .limit(limit)
         .offset(offset)
@@ -60,9 +73,21 @@ def list_pujas(limit: int = 50, offset: int = 0):
 
 
 @router.get("/{puja_id}", response_model=PujaOut)
-def get_puja(puja_id: str):
+def get_puja(
+    puja_id: str,
+    current_user: Optional[dict] = Depends(optional_current_user),
+):
     supabase = _anon_client()
-    resp = supabase.table("pujas").select("*").eq("id", puja_id).single().execute()
+    resp = supabase.table("pujas").select("*").eq("id", puja_id).eq("is_active", True).single().execute()
     data = _extract_data_or_raise(resp, single=True)
     convert_record_image_fields(data, fields=["thumbnail_url", "image_url"])
+
+    write_audit_log(
+        action="PUJA_VIEWED",
+        actor_id=str(current_user["id"]) if current_user else None,
+        entity="pujas",
+        entity_id=puja_id,
+        payload={"title": data.get("title")},
+    )
+
     return data

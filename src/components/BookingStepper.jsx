@@ -1,13 +1,24 @@
-const steps = [
+const NORMAL_STEPS = [
   'Puja',
   'Date & Time',
-  'Pandit',
   'Address',
+  'Pandit',
   'Payment',
   'Confirmation',
 ];
 
-export default function BookingStepper({ currentStep = 1 }) {
+// A package puja has no Pandit-picker or Payment step at booking time
+// (admin assigns a Pandit Ji and payment only happens after a quote) --
+// see BookPackageDetails.jsx/BookPackageConfirmation.jsx.
+export const PACKAGE_STEPS = [
+  'Puja',
+  'Date & Time',
+  'Address',
+  'Requirements',
+  'Submitted',
+];
+
+export default function BookingStepper({ currentStep = 1, steps = NORMAL_STEPS }) {
   return (
     <div className="mb-6 overflow-x-auto">
       <div className="flex min-w-max items-center gap-2 rounded-full border border-amber-100 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 px-2 py-2 shadow-sm">

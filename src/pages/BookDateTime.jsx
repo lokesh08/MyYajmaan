@@ -1,9 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { get } from '../api';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import { getAvailability } from '../services/availability';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+
+const DEFAULT_MIN_LEAD_HOURS = 6;
+
+// Slot times are free-text like "07:00 AM" -- combined with the
+// selected date, this is the only place that needs to turn one into a
+// real Date to compare against the admin-configured lead-time buffer.
+function parseSlotDateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+  const [, hh, mm, ampm] = match;
+  let hours = parseInt(hh, 10) % 12;
+  if (ampm.toUpperCase() === 'PM') hours += 12;
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  if (!y || !mo || !d) return null;
+  return new Date(y, mo - 1, d, hours, parseInt(mm, 10), 0, 0);
+}
 
 export default function BookDateTime() {
   const { state } = useLocation();
@@ -17,7 +35,27 @@ export default function BookDateTime() {
   const [availabilityError, setAvailabilityError] = useState(null);
 
   const [selectedSlot, setSelectedSlot] = useState(() => preserved?.slot || null);
+  const [minLeadHours, setMinLeadHours] = useState(DEFAULT_MIN_LEAD_HOURS);
   const navigate = useNavigate();
+
+  // Admin-configured minimum notice before a puja can be booked (see
+  // Admin Settings -> Booking Lead Time). Fails open to the documented
+  // default rather than blocking booking if this can't be read.
+  useEffect(() => {
+    let mounted = true;
+    get('/settings/booking')
+      .then((data) => {
+        if (mounted && Number.isFinite(data?.min_lead_hours)) {
+          setMinLeadHours(data.min_lead_hours);
+        }
+      })
+      .catch(() => {
+        /* keep the default */
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,7 +77,9 @@ export default function BookDateTime() {
           const found = Object.values(res?.slots ?? {}).some((group) =>
             group.some((s) => s.id === selectedSlot.id)
           );
-          if (!found) {
+          const slotDT = parseSlotDateTime(date, selectedSlot.time);
+          const stillFarEnoughOut = !slotDT || slotDT >= new Date(Date.now() + minLeadHours * 3600 * 1000);
+          if (!found || !stillFarEnoughOut) {
             setSelectedSlot(null);
           }
         }
@@ -105,6 +145,9 @@ export default function BookDateTime() {
 
         <div className="mt-6">
           <h3 className="font-semibold text-slate-700">Available Time Slots</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Bookings need at least {minLeadHours} hour{minLeadHours === 1 ? '' : 's'}' notice so we can arrange your Pandit Ji.
+          </p>
 
           {loadingAvailability && <p className="mt-2 text-sm text-slate-500">Loading availability…</p>}
 
@@ -118,16 +161,22 @@ export default function BookDateTime() {
                 <div key={group}>
                   <p className="mb-2 text-sm font-semibold capitalize text-slate-600">{group}</p>
                   <div className="flex flex-wrap gap-2">
-                    {slots.map((s) => (
-                      <button
-                        key={s.id}
-                        disabled={!s.available}
-                        onClick={() => setSelectedSlot(s)}
-                        className={`rounded-full px-3 py-2 text-sm font-medium transition ${s.available ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
-                      >
-                        {s.time} {s.shubh ? '✨' : ''}
-                      </button>
-                    ))}
+                    {slots.map((s) => {
+                      const slotDT = parseSlotDateTime(date, s.time);
+                      const tooSoon = Boolean(slotDT) && slotDT < new Date(Date.now() + minLeadHours * 3600 * 1000);
+                      const selectable = s.available && !tooSoon;
+                      return (
+                        <button
+                          key={s.id}
+                          disabled={!selectable}
+                          title={tooSoon ? `Needs at least ${minLeadHours} hours' notice` : undefined}
+                          onClick={() => setSelectedSlot(s)}
+                          className={`rounded-full px-3 py-2 text-sm font-medium transition ${selectable ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
+                        >
+                          {s.time} {s.shubh ? '✨' : ''}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -144,11 +193,11 @@ export default function BookDateTime() {
             disabled={!selectedSlot || isPast(date)}
             onClick={() => {
               saveBookingDraft({ puja, date, slot: selectedSlot });
-              navigate('/book/select-pandit', { state: { date, slot: selectedSlot, puja } });
+              navigate('/book/address', { state: { date, slot: selectedSlot, puja } });
             }}
             className={`rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
           >
-            Next
+            Next: Address
           </button>
           <button onClick={() => navigate(-1)} className="rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">Back</button>
         </div>
