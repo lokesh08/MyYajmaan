@@ -4,10 +4,15 @@ One-time email + phone verification for self-registered accounts
 
 A new account starts with signup_verification_pending = TRUE and can't
 log in (see routers/auth.py) until both the email OTP and the phone OTP
-have been entered once. These endpoints are public -- the person has no
-session yet -- so they are keyed by email, only ever act on accounts
-that are still pending, and are protected by per-channel cooldown /
-hourly send limits and a wrong-attempt lockout (see otp_service.py).
+have been entered once -- or, while no SMS provider is configured (see
+config.sms_otp_configured()), until just the email OTP has been entered.
+That fallback exists only so signup isn't blocked on a channel nobody
+can receive a code on yet; it turns itself back off automatically the
+moment MSG91 credentials are set, with no code change needed. These
+endpoints are public -- the person has no session yet -- so they are
+keyed by email, only ever act on accounts that are still pending, and
+are protected by per-channel cooldown / hourly send limits and a
+wrong-attempt lockout (see otp_service.py).
 """
 
 import logging
@@ -16,6 +21,7 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel, EmailStr
 
+import config
 import otp_service
 from audit import write_audit_log
 from db import service_supabase
@@ -139,7 +145,9 @@ async def verify_otp(payload: VerifyOtpIn):
     # only once BOTH channels are verified.
     refreshed = _find_pending_user(payload.email) or user
     state = _state(refreshed)
-    fully_verified = state["email_verified"] and state["phone_verified"]
+    fully_verified = state["email_verified"] and (
+        state["phone_verified"] or not config.sms_otp_configured()
+    )
 
     if fully_verified:
         # Conditional on the flag still being set, so two simultaneous
