@@ -1,3 +1,11 @@
+import base64
+import hashlib
+import hmac
+import json
+import os
+import time
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 
 from auth import ACCESS_COOKIE, get_current_user
@@ -90,29 +98,77 @@ async def mark_all_notifications_read(current_user: dict = Depends(get_current_u
     return {"message": "All notifications marked as read."}
 
 
+# The frontend reaches REST through Vercel's /api rewrite (so the session
+# cookie is first-party), but Vercel can't proxy a WebSocket -- the
+# socket has to go straight to the API host, where that cookie isn't
+# sent. So the page first fetches a short-lived signed ticket over REST
+# (cookie-authenticated) and passes it on the socket URL instead.
+WS_TICKET_TTL_SECONDS = 60
+
+
+def _ws_ticket_key() -> bytes:
+    secret = os.getenv("WS_TICKET_SECRET") or os.getenv("SUPABASE_SERVICE_ROLE_KEY") or ""
+    return hashlib.sha256(f"ws-ticket:{secret}".encode()).digest()
+
+
+def _make_ws_ticket(user_id: str) -> str:
+    body = base64.urlsafe_b64encode(
+        json.dumps({"uid": user_id, "exp": int(time.time()) + WS_TICKET_TTL_SECONDS}).encode()
+    ).decode().rstrip("=")
+    signature = hmac.new(_ws_ticket_key(), body.encode(), hashlib.sha256).hexdigest()
+    return f"{body}.{signature}"
+
+
+def _read_ws_ticket(ticket: str) -> Optional[str]:
+    try:
+        body, signature = ticket.split(".", 1)
+        expected = hmac.new(_ws_ticket_key(), body.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(signature, expected):
+            return None
+        data = json.loads(base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)))
+        if int(data["exp"]) < time.time():
+            return None
+        return str(data["uid"])
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+@router.get("/ws-ticket")
+async def get_ws_ticket(current_user: dict = Depends(get_current_user)):
+    return {"ticket": _make_ws_ticket(str(current_user["id"])), "expires_in": WS_TICKET_TTL_SECONDS}
+
+
 @router.websocket("/ws")
 async def notifications_ws(websocket: WebSocket):
     """
-    One connection per open tab/device. Authenticated the same way as
-    every REST request -- the same HttpOnly session cookie -- read
-    directly off the handshake request since a WebSocket can't carry
-    an Authorization header or use FastAPI's normal Depends() cookie
+    One connection per open tab/device. Authenticated by a ticket from
+    GET /notifications/ws-ticket (see above), or -- when the frontend
+    and API share a host, e.g. local dev -- by the same HttpOnly
+    session cookie every REST request uses, read directly off the
+    handshake since a WebSocket can't use FastAPI's Depends() cookie
     parsing.
     """
 
-    access_token = websocket.cookies.get(ACCESS_COOKIE)
-    if not access_token:
-        await websocket.close(code=4401)
-        return
+    ticket = websocket.query_params.get("ticket")
+    if ticket:
+        user_id = _read_ws_ticket(ticket)
+        if not user_id:
+            await websocket.close(code=4401)
+            return
+    else:
+        access_token = websocket.cookies.get(ACCESS_COOKIE)
+        if not access_token:
+            await websocket.close(code=4401)
+            return
 
-    try:
-        auth_user = await get_supabase_user_from_token(access_token)
-        profile = await get_profile_from_auth_uid(auth_user["id"])
-    except HTTPException:
-        await websocket.close(code=4401)
-        return
+        try:
+            auth_user = await get_supabase_user_from_token(access_token)
+            profile = await get_profile_from_auth_uid(auth_user["id"])
+        except HTTPException:
+            await websocket.close(code=4401)
+            return
 
-    user_id = str(profile["id"])
+        user_id = str(profile["id"])
 
     await websocket.accept()
     await manager.connect(user_id, websocket)

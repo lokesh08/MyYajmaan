@@ -101,11 +101,13 @@ export default function useNotifications(enabled) {
     let stopped = false;
     let reconnectDelay = RECONNECT_START_DELAY_MS;
 
-    function connect() {
+    async function connect() {
       if (stopped) return;
       let socket;
       try {
-        socket = new WebSocket(getNotificationsSocketUrl());
+        const url = await getNotificationsSocketUrl();
+        if (stopped) return;
+        socket = new WebSocket(url);
       } catch {
         reconnectTimerRef.current = setTimeout(connect, reconnectDelay);
         reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_DELAY_MS);
