@@ -3,6 +3,7 @@ from typing import Optional, cast
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 
 from audit import write_audit_log
+from auth import get_current_user
 from permissions import require_admin_roles
 from routers.auth import (
     ACCESS_COOKIE,
@@ -12,6 +13,7 @@ from routers.auth import (
     force_logout_previous_session,
     get_profile_from_auth_uid,
     get_supabase_user_from_token,
+    revoke_supabase_session,
     set_auth_cookies,
     supabase_password_login,
     write_login_history,
@@ -79,13 +81,29 @@ async def admin_me(current_user: dict = Depends(require_admin_roles())):
 
 
 @router.post("/logout")
-async def admin_logout(response: Response, current_user: dict = Depends(require_admin_roles())):
-    write_audit_log(
-        action="ADMIN_LOGOUT",
-        actor_id=str(current_user["id"]),
-        entity="users",
-        entity_id=str(current_user["id"]),
-        payload={"email": current_user.get("email")},
-    )
+async def admin_logout(
+    response: Response,
+    myyajmaan_access: Optional[str] = Cookie(
+        default=None,
+        alias=ACCESS_COOKIE,
+    ),
+):
+    # Not gated on require_admin_roles(): an expired or already-revoked
+    # session must still be able to log out and get its cookies cleared.
+    if myyajmaan_access:
+        try:
+            current_user = await get_current_user(myyajmaan_access=myyajmaan_access)
+            write_audit_log(
+                action="ADMIN_LOGOUT",
+                actor_id=str(current_user["id"]),
+                entity="users",
+                entity_id=str(current_user["id"]),
+                payload={"email": current_user.get("email")},
+            )
+        except Exception:
+            pass
+
+        await revoke_supabase_session(myyajmaan_access)
+
     clear_auth_cookies(response)
     return {"message": "Logged out successfully."}
