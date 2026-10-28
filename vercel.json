@@ -2,6 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
+    { "source": "/api/:path*", "destination": "https://myyajmaan-api.onrender.com/:path*" }
   ]
 }
