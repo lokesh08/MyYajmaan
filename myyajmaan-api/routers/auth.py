@@ -185,16 +185,24 @@ def set_auth_cookies(
         )
 
 
-def clear_auth_cookies(response: Response):
+def delete_cookie(response: Response, key: str):
+    # Must carry the same Secure/SameSite attributes the cookie was set
+    # with. Starlette's defaults (SameSite=Lax, not Secure) don't match a
+    # SameSite=None; Secure cookie, and the browser silently ignores the
+    # deletion on a cross-site response -- logout then "succeeds" while
+    # the session cookies stay put.
     response.delete_cookie(
-        key=ACCESS_COOKIE,
+        key=key,
         path="/",
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
     )
 
-    response.delete_cookie(
-        key=REFRESH_COOKIE,
-        path="/",
-    )
+
+def clear_auth_cookies(response: Response):
+    delete_cookie(response, ACCESS_COOKIE)
+    delete_cookie(response, REFRESH_COOKIE)
 
 
 async def supabase_signup(
@@ -1024,7 +1032,7 @@ async def set_new_password(
             "role": profile.get("role"),
         }
     )
-    response.delete_cookie(key=PWRESET_COOKIE, path="/")
+    delete_cookie(response, PWRESET_COOKIE)
     return response
 
 
@@ -1285,6 +1293,10 @@ async def logout(
         except Exception:
             # Logout should still clear cookies even if audit fails.
             pass
+
+        # End the session at Supabase too, so the token stops working
+        # even if a copy of the cookie survives somewhere.
+        await revoke_supabase_session(myyajmaan_access)
 
     clear_auth_cookies(response)
 
