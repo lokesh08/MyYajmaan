@@ -89,14 +89,11 @@ function parseSlotTo24h(timeslot) {
 
 function panditMatchesCity(pandit, city) {
   const cityLower = city.trim().toLowerCase();
+  // Same rule as routers/pandits.py: the pandit's own city always
+  // counts; service areas (often localities inside it) are extra.
+  if ((pandit.city || '').trim().toLowerCase() === cityLower) return true;
   const serviceAreas = pandit.service_areas || [];
-  if (serviceAreas.length > 0) {
-    return serviceAreas.some((area) => (area || '').trim().toLowerCase() === cityLower);
-  }
-  // No service areas declared yet -- fall back to the pandit's own
-  // registered city rather than excluding them (mirrors the "empty
-  // list = unrestricted" rule already used for coupons).
-  return (pandit.city || '').trim().toLowerCase() === cityLower;
+  return serviceAreas.some((area) => (area || '').trim().toLowerCase() === cityLower);
 }
 
 function panditMatchesAvailability(pandit, weekdayKey, slot24h) {

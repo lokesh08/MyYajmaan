@@ -167,6 +167,26 @@ def consume_verified_payment(
         raise PaymentNotVerifiedError("PAYMENT_ALREADY_USED", "This payment has already been used.")
 
 
+def release_consumed_payment(payment_id: str) -> None:
+    """
+    Undoes consume_verified_payment() when the thing it paid for could
+    not be created afterwards (e.g. the booking insert failed), so the
+    customer's money isn't stranded on a payment that can never be used
+    again -- they can retry with the same payment instead of paying twice.
+    """
+    if service_supabase is None or not payment_id:
+        return
+    try:
+        service_supabase.table("payment_verifications").update({
+            "status": "verified",
+            "consumed_at": None,
+            "consumed_reference_type": None,
+            "consumed_reference_id": None,
+        }).eq("payment_id", payment_id.strip()).eq("status", "consumed").execute()
+    except Exception:
+        logger.exception("Could not release consumed payment %s", payment_id)
+
+
 def attach_consumed_reference(payment_id: str, reference_id: str) -> None:
     """
     Best-effort: fills in the real reference_id once it exists (e.g. the
