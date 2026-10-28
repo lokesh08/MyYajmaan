@@ -16,9 +16,13 @@ export function markAllNotificationsRead() {
   return patch("/notifications/mark-all-read", {});
 }
 
-// ws:// (or wss:// behind https) counterpart of the app's API base URL.
-export function getNotificationsSocketUrl() {
-  const baseURL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
-  const wsBase = baseURL.replace(/^http/i, "ws");
-  return `${wsBase}/notifications/ws`;
+// Vercel's /api rewrite can't proxy a WebSocket, so in production the
+// socket goes straight to the API host (VITE_WS_BASE_URL), where the
+// session cookie isn't sent -- it authenticates with a short-lived
+// ticket fetched over the normal (cookie-authenticated) API instead.
+export async function getNotificationsSocketUrl() {
+  const base = import.meta.env.VITE_WS_BASE_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
+  const wsBase = new URL(base, window.location.origin).href.replace(/\/$/, "").replace(/^http/i, "ws");
+  const { ticket } = await get("/notifications/ws-ticket");
+  return `${wsBase}/notifications/ws?ticket=${encodeURIComponent(ticket)}`;
 }
