@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from audit import write_audit_log
 from bank_crypto import decrypt_value, encrypt_value, is_configured, mask_value
@@ -134,6 +134,14 @@ class ProfileIn(BaseModel):
     address: str = Field(min_length=1, max_length=500)
     city: str = Field(min_length=1, max_length=120)
     pin: str = Field(min_length=1, max_length=12)
+
+    @field_validator("date_of_birth")
+    @classmethod
+    def blank_date_to_none(cls, value: Optional[str]) -> Optional[str]:
+        # The form sends "" when no date is picked, and Postgres rejects
+        # "" for a DATE column (500 on save) -- store it as NULL instead.
+        value = (value or "").strip()
+        return value or None
 
 
 @router.put("/profile")

@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from audit import write_audit_log
 from db import service_supabase
@@ -120,6 +120,14 @@ class CouponIn(BaseModel):
     valid_until: Optional[str] = None
     is_active: bool = True
     coupon_type: str = "general"
+
+    @field_validator("valid_from", "valid_until")
+    @classmethod
+    def blank_date_to_none(cls, value: Optional[str]) -> Optional[str]:
+        # A cleared date input arrives as "", which Postgres rejects for a
+        # timestamp column -- treat it as "no limit" (NULL) instead.
+        value = (value or "").strip()
+        return value or None
 
 
 def _validate_payload(payload: CouponIn):

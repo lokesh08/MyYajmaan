@@ -74,8 +74,8 @@ class PujaDiscountIn(BaseModel):
 class MuhratIn(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = None
-    start_at: str
-    end_at: str
+    start_at: str = Field(min_length=1)
+    end_at: str = Field(min_length=1)
     discount_percent: Optional[float] = Field(default=None, ge=0, le=100)
     puja_discounts: List[PujaDiscountIn] = Field(default_factory=list)
     active: bool = True

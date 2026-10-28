@@ -7,7 +7,7 @@ export default function OffersBanner() {
   useEffect(() => {
     let active = true;
 
-    get("/offers/")
+    get("/offers")
       .then((data) => {
         if (active) setOffers(Array.isArray(data) ? data.slice(0, 3) : []);
       })

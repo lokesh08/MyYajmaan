@@ -1,8 +1,13 @@
+import logging
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from postgrest.exceptions import APIError
 
 from security_middleware import CsrfHeaderMiddleware, SecurityHeadersMiddleware
 
@@ -63,6 +68,71 @@ from routers import (
 app = FastAPI(
     title="MyYajmaan API",
 )
+
+logger = logging.getLogger(__name__)
+
+# Postgres/PostgREST error codes that mean "the request was bad", not
+# "the server broke". Without this, any route that forgot to validate
+# one of these cases (e.g. "" sent for a DATE column) surfaced as a bare
+# 500 "Internal Server Error" the frontend can't explain to anyone.
+DB_ERROR_RESPONSES = {
+    "22007": (400, "INVALID_INPUT", "One of the dates or times entered is not valid."),
+    "22008": (400, "INVALID_INPUT", "One of the dates or times entered is not valid."),
+    "22P02": (400, "INVALID_INPUT", "One of the values entered is not in a valid format."),
+    "22003": (400, "INVALID_INPUT", "One of the numbers entered is out of range."),
+    "22001": (400, "INVALID_INPUT", "One of the values entered is too long."),
+    "23502": (400, "MISSING_REQUIRED_FIELD", "A required field is missing."),
+    "23514": (400, "INVALID_INPUT", "One of the values entered is not allowed."),
+    "23503": (409, "RELATED_RECORD_CONFLICT", "This refers to a record that doesn't exist or is still in use."),
+    "23505": (409, "ALREADY_EXISTS", "This record already exists."),
+    "PGRST116": (404, "NOT_FOUND", "The requested record was not found."),
+    # Routes that query with the user's own token (RLS): an expired or
+    # malformed JWT is a session problem, and SESSION_EXPIRED is what
+    # makes the frontend refresh the session and retry.
+    "PGRST301": (401, "SESSION_EXPIRED", "Your session has expired. Please log in again."),
+    "PGRST303": (401, "SESSION_EXPIRED", "Your session has expired. Please log in again."),
+}
+
+
+@app.exception_handler(APIError)
+async def database_error_handler(request: Request, exc: APIError):
+    status_code, code, message = DB_ERROR_RESPONSES.get(
+        exc.code or "",
+        (500, "DATABASE_ERROR", "Something went wrong while saving. Please try again."),
+    )
+    log = logger.exception if status_code >= 500 else logger.warning
+    log("Database error on %s %s: %r", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": {"code": code, "message": message}},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    # FastAPI's default 422 body is a list the frontend can't display
+    # (it fell back to "Something went wrong"). Name the first bad field
+    # in plain words; the full list stays under "errors".
+    errors = exc.errors()
+    first = errors[0] if errors else {}
+    field = next((str(part) for part in reversed(first.get("loc", ())) if not isinstance(part, int)), "")
+    field_label = field.replace("_", " ").capitalize()
+    message = f"{field_label}: {first.get('msg', 'is invalid')}" if field_label and field not in ("body", "query") else "Some of the details entered are not valid."
+    return JSONResponse(
+        status_code=422,
+        content={"detail": {"code": "VALIDATION_ERROR", "message": message, "errors": jsonable_encoder(errors)}},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception):
+    # Same {"detail": {code, message}} shape every other error uses, so the
+    # frontend shows a readable message instead of "status code 500".
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": {"code": "INTERNAL_ERROR", "message": "Something went wrong. Please try again."}},
+    )
 
 origins = [
     origin.strip()
