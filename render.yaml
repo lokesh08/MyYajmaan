@@ -41,9 +41,9 @@ services:
       - key: COOKIE_SAMESITE
         value: none
       - key: BANK_DETAILS_ENCRYPTION_KEY
-        sync: false # set in dashboard -- generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+        sync: false # set in dashboard -- must be a Fernet key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
       - key: AADHAR_ENCRYPTION_KEY
-        sync: false # set in dashboard -- same generation method
+        sync: false # set in dashboard -- a separate Fernet key, same command as above
       - key: AADHAR_MOCK_MODE
         value: "false"
       - key: RAZORPAY_KEY_ID

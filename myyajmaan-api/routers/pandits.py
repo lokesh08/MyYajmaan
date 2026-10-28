@@ -80,13 +80,14 @@ def _parse_slot_to_24h(timeslot: Optional[str]) -> Optional[str]:
 
 def _pandit_matches_city(pandit: dict, city: str) -> bool:
     city_lower = city.strip().lower()
+    # The pandit's own registered city always counts. Service areas are
+    # extra places they'll travel to -- often localities inside that
+    # city ("Ajmeri Gate", "Adarsh Nagar") -- so declaring some must not
+    # stop them matching their home city.
+    if (pandit.get("city") or "").strip().lower() == city_lower:
+        return True
     service_areas = pandit.get("service_areas") or []
-    if service_areas:
-        return any((area or "").strip().lower() == city_lower for area in service_areas)
-    # No service areas declared yet -- fall back to the pandit's own
-    # registered city rather than excluding them (same "empty list =
-    # unrestricted" rule used for coupons.applicable_puja_ids).
-    return (pandit.get("city") or "").strip().lower() == city_lower
+    return any((area or "").strip().lower() == city_lower for area in service_areas)
 
 
 def _pandit_matches_availability(pandit: dict, weekday_key: Optional[str], slot_24h: Optional[str]) -> bool:
