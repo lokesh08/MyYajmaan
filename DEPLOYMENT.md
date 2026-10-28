@@ -43,8 +43,15 @@ produced (a project ref, a URL, an API key).
    dashboard, for each one:
    - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY` — from
      step 1.2 above.
-   - `BANK_DETAILS_ENCRYPTION_KEY`, `AADHAR_ENCRYPTION_KEY`,
-     `OTP_HASH_SECRET` — three separate random values. Generate each with:
+   - `BANK_DETAILS_ENCRYPTION_KEY`, `AADHAR_ENCRYPTION_KEY` — two separate
+     Fernet keys (any other format is rejected at startup and bank/Aadhaar
+     details can't be saved). Generate each with:
+     ```
+     python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+     ```
+     Keep them safe: changing a key later makes data already encrypted
+     with the old one unreadable.
+   - `OTP_HASH_SECRET` — a random value. Generate with:
      ```
      python -c "import secrets; print(secrets.token_urlsafe(32))"
      ```
