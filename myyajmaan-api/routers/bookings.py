@@ -6,7 +6,12 @@ from auth import api_error, get_bearer_token
 from db import create_supabase_client_for_key, service_supabase, SUPABASE_ANON_KEY
 from models import BookingIn, BookingOut
 from notifications import notify_user
-from payment_verification import PaymentNotVerifiedError, attach_consumed_reference, consume_verified_payment
+from payment_verification import (
+    PaymentNotVerifiedError,
+    attach_consumed_reference,
+    consume_verified_payment,
+    release_consumed_payment,
+)
 from permissions import require_roles
 from wallet import credit_wallet, get_active_coupon_amount
 
@@ -124,11 +129,26 @@ async def create_booking(
         # auto-confirming.
         "status": "pending_pandit",
     }
-    resp = supabase.table("bookings").insert(record).select("*").execute()
-    data = _extract_data_or_raise(resp, single=False)
-    # insert(...).select("*") returns a list with the created row
-    if not data:
-        raise HTTPException(status_code=500, detail="Failed to create booking")
+    # Inserted with the service client, like the rest of the customer
+    # routes (client_bookings.py): the customer is already authenticated
+    # by require_roles() and client_id comes from that server-side
+    # profile, never from the request. Going through the user's own
+    # token made this depend on bookings' RLS policy resolving
+    # users.auth_uid, which Supabase Cloud's default RLS on `users` can
+    # silently break -- failing the insert *after* the payment was spent.
+    writer = service_supabase if service_supabase is not None else supabase
+    try:
+        resp = writer.table("bookings").insert(record).execute()
+        data = _extract_data_or_raise(resp, single=False)
+        if not data:
+            raise HTTPException(status_code=500, detail=api_error("BOOKING_CREATE_FAILED", "Your booking could not be saved."))
+    except Exception:
+        logger.exception("Booking insert failed for user %s, payment %s", user["id"], payload.payment_ref)
+        # The payment was consumed above; hand it back so the customer
+        # can retry with it rather than having paid for nothing.
+        if payload.amount and payload.amount > 0:
+            release_consumed_payment(payload.payment_ref)
+        raise
 
     created_booking = data[0]
 

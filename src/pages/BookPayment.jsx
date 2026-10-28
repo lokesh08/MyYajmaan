@@ -202,7 +202,7 @@ export default function BookPayment() {
         setDialog({
           open: true,
           title: 'Payment received',
-          message: `Your payment (ref: ${paymentRef}) was received, but we could not complete your booking. Please do not pay again - contact support with this reference and we will sort it out.`,
+          message: `Your payment (ref: ${paymentRef}) was received, but we could not complete your booking${err?.message ? ` (${err.message})` : ''}. Please do not pay again - contact support with this reference and we will sort it out.`,
         });
         return;
       }
