@@ -129,6 +129,10 @@ export default function Testimonials() {
     ? Array.from({ length: visibleCount }, (_, offset) => testimonials[(activeIndex + offset) % totalSlides])
     : [];
 
+  // Nothing published yet: hide the whole section rather than show
+  // visitors an empty "What our customers say" box.
+  if (!loading && totalSlides === 0) return null;
+
   return (
     <section className="relative overflow-hidden rounded-[1.8rem] border border-amber-200 bg-parchment-50 px-4 py-10 shadow-card sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-amber-200/20 blur-3xl" />
@@ -159,12 +163,6 @@ export default function Testimonials() {
         <div className="relative mt-8">
           <Loader variant="card" count={3} />
         </div>
-      )}
-
-      {!loading && totalSlides === 0 && (
-        <p className="relative mt-8 rounded-2xl border border-dashed border-amber-200 bg-white px-4 py-10 text-center text-sm text-slate-400">
-          No testimonials published yet.
-        </p>
       )}
 
       {!loading && totalSlides > 0 && (

@@ -189,29 +189,33 @@ export default function BookingJourney() {
         </div>
       </div>
 
-      <div className="relative mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="relative mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5">
         {displaySteps.map((step, index) => (
+          // Phones: a compact row (icon beside the text) instead of a
+          // 245px-tall centred card per step -- about half the scroll.
           <article
             key={`${step.number}-${index}`}
-            className="group relative flex min-h-[245px] flex-col items-center rounded-[1.35rem] border border-amber-200 bg-white px-5 py-6 text-center shadow-card-sm transition duration-300 hover:-translate-y-2 hover:border-saffron/40 hover:shadow-card-lg"
+            className="group relative flex items-start gap-4 rounded-[1.35rem] border border-amber-200 bg-white px-4 py-4 text-left shadow-card-sm transition duration-300 hover:-translate-y-2 hover:border-saffron/40 hover:shadow-card-lg sm:min-h-[245px] sm:flex-col sm:items-center sm:gap-0 sm:px-5 sm:py-6 sm:text-center"
           >
             <span className="absolute right-4 top-4 text-xs font-bold tracking-[0.18em] text-amber-300 transition group-hover:text-saffron">
               {String(index + 1).padStart(2, "0")}
             </span>
 
-           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 text-saffron ring-1 ring-amber-200/70 transition-transform duration-300 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-maroon group-hover:ring-maroon/30">
-  {step.icon}
-</div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 text-saffron ring-1 ring-amber-200/70 transition-transform duration-300 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-maroon group-hover:ring-maroon/30 sm:h-16 sm:w-16">
+              {step.icon}
+            </div>
 
-            <h3 className="mt-5 font-serif text-xl font-semibold text-maroon">
-              {step.title}
-            </h3>
+            <div className="pr-6 sm:pr-0">
+              <h3 className="font-serif text-lg font-semibold text-maroon sm:mt-5 sm:text-xl">
+                {step.title}
+              </h3>
 
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {step.description}
-            </p>
+              <p className="mt-1 text-sm leading-6 text-slate-600 sm:mt-2">
+                {step.description}
+              </p>
+            </div>
 
-            <span className="mt-auto h-1 w-8 rounded-full bg-amber-100 transition-all duration-300 group-hover:w-14 group-hover:bg-saffron" />
+            <span className="mt-auto hidden h-1 w-8 rounded-full bg-amber-100 transition-all duration-300 group-hover:w-14 group-hover:bg-saffron sm:block" />
           </article>
         ))}
       </div>

@@ -1141,12 +1141,25 @@ async def me(
         default=None,
         alias=ACCESS_COOKIE,
     ),
+    myyajmaan_refresh: Optional[str] = Cookie(
+        default=None,
+        alias=REFRESH_COOKIE,
+    ),
 ):
     """
     Returns the currently authenticated application profile.
     """
 
+    if not myyajmaan_access and not myyajmaan_refresh:
+        # A plain guest (no session cookies at all): every page asks
+        # "who am I?" on load, so answer "nobody" instead of a 401 that
+        # shows up as a red error in every visitor's browser console.
+        return {"user": None}
+
     if not myyajmaan_access:
+        # Access cookie expired but the 30-day refresh cookie is still
+        # here -- the 401 is what makes the frontend refresh the session
+        # and retry (api/axiosClient.js), so keep it for this case.
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=api_error(

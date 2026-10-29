@@ -94,7 +94,7 @@ export default function PanditLoginPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         <div className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative min-h-[300px] overflow-hidden bg-parchment-100 p-7 sm:p-9 lg:min-h-[560px]">
+          <div className="relative overflow-hidden bg-parchment-100 p-6 sm:min-h-[300px] sm:p-9 lg:min-h-[560px]">
             <div className="absolute inset-0 bg-gradient-to-br from-parchment-100 via-parchment-50 to-sand-pale" />
             <div className="relative flex h-full flex-col justify-between">
               <div>
@@ -102,7 +102,7 @@ export default function PanditLoginPage() {
                 <h1 className="mt-3 font-serif text-3xl font-semibold leading-tight text-maroon sm:text-4xl">Welcome back, Pandit Ji</h1>
                 <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">Manage your profile and serve more families through MyYajmaan.</p>
               </div>
-              <img loading="lazy" decoding="async" src={optimizedImage("/images/panditJoin.png")} alt="Pandit Ji" className="mx-auto mt-8 h-52 w-full max-w-sm object-contain lg:h-64" />
+              <img loading="lazy" decoding="async" src={optimizedImage("/images/panditJoin.png")} alt="Pandit Ji" className="mx-auto mt-8 hidden h-52 w-full max-w-sm object-contain sm:block lg:h-64" />
             </div>
           </div>
 
@@ -123,6 +123,7 @@ export default function PanditLoginPage() {
                     type="password"
                     autoComplete="new-password"
                     placeholder="New password"
+                    aria-label="New password"
                     disabled={loading}
                     className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                   />
@@ -132,6 +133,7 @@ export default function PanditLoginPage() {
                     type="password"
                     autoComplete="new-password"
                     placeholder="Confirm new password"
+                    aria-label="Confirm new password"
                     disabled={loading}
                     className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                   />
@@ -157,6 +159,7 @@ export default function PanditLoginPage() {
                     type="email"
                     autoComplete="email"
                     placeholder="Email address"
+                    aria-label="Email address"
                     disabled={loading}
                     className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                   />
@@ -166,11 +169,12 @@ export default function PanditLoginPage() {
                     type="password"
                     autoComplete="current-password"
                     placeholder="Password"
+                    aria-label="Password"
                     disabled={loading}
                     className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                   />
                   <div className="text-right">
-                    <Link to="/forgot-password" title="Reset your password" className="text-sm font-semibold text-maroon hover:text-saffron">
+                    <Link to="/forgot-password" title="Reset your password" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-maroon hover:text-saffron">
                       Forgot password?
                     </Link>
                   </div>

@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { clearBookingDraft } from "../utils/bookingFlowStorage";
 import { formatRoleLabel } from "../utils/roleLabels";
@@ -6,6 +7,7 @@ import NotificationBell from "./notifications/NotificationBell";
 import { useAuth } from "../context/AuthContext";
 import { ADMIN_BASE_PATH, ADMIN_DASHBOARD_PATH } from "../constants/adminRoutes";
 import Footer from "./Footer";
+import MobileNav from "./MobileNav";
 import { optimizedImage } from "../utils/image";
 
 const commonLinks = [
@@ -24,6 +26,14 @@ export default function Layout({ children }) {
     userName,
     logout,
   } = useAuth();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  // Any navigation (a menu link, the browser's Back button) closes it.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   // The admin portal renders its own sidebar/topbar chrome.
   if (location.pathname.startsWith(ADMIN_BASE_PATH)) {
@@ -49,8 +59,16 @@ export default function Layout({ children }) {
 
   async function handleLogout() {
     const destination = getLoginPathForRole(role);
+    setMenuOpen(false);
     await logout();
     navigate(destination);
+  }
+
+  function handleNavLinkClick(item) {
+    if (item.to === "/book") {
+      clearBookingDraft();
+    }
+    setMenuOpen(false);
   }
 
   return (
@@ -149,15 +167,29 @@ export default function Layout({ children }) {
                   </p>
                 </div>
 
+                {/* On phones Logout lives in the menu, next to the greeting. */}
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="interactive-button rounded-full border border-amber-200/40 px-4 py-2 text-sm font-semibold text-amber-50 hover:bg-white/10"
+                  className="interactive-button hidden rounded-full border border-amber-200/40 px-4 py-2 text-sm font-semibold text-amber-50 hover:bg-white/10 md:inline-block"
                 >
                   Logout
                 </button>
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-amber-200/40 text-amber-50 hover:bg-white/10 md:hidden"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -172,6 +204,17 @@ export default function Layout({ children }) {
           }}
         />
       </header>
+
+      <MobileNav
+        open={menuOpen}
+        onClose={closeMenu}
+        links={links}
+        isAuthenticated={isAuthenticated}
+        userName={userName}
+        role={role}
+        onLinkClick={handleNavLinkClick}
+        onLogout={handleLogout}
+      />
 
       <main id="main-content" tabIndex={-1} className="outline-none">
         {children}

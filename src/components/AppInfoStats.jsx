@@ -1,7 +1,7 @@
 const STATS = [
-  { icon: "🏺", value: "5000+", label: "Puja's Performed" },
+  { icon: "🏺", value: "5000+", label: "Pujas Performed" },
   { icon: "🙏", value: "250+", label: "Vedic Priests" },
-  { icon: "🔥", value: "1000+", label: "Types Of Puja's & Homams" },
+  { icon: "🔥", value: "1000+", label: "Types of Pujas & Homams" },
 ];
 
 /**

@@ -34,10 +34,10 @@ export default function BookingStepper({ currentStep = 1, steps = NORMAL_STEPS }
           return (
             <div key={step} className="flex items-center gap-2">
               <div className={`flex items-center gap-2 rounded-full px-2.5 py-1.5 ${isActive ? 'bg-white/80' : 'bg-white/60'}`}>
-                <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${circleClass}`}>
+                <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${circleClass}`}>
                   {isComplete ? '✓' : index + 1}
                 </div>
-                <span className={`text-[11px] font-semibold tracking-wide ${isActive ? 'text-maroon' : isComplete ? 'text-emerald-700' : 'text-slate-600'}`}>
+                <span className={`text-xs font-semibold tracking-wide ${isActive ? 'text-maroon' : isComplete ? 'text-emerald-700' : 'text-slate-600'}`}>
                   {step}
                 </span>
               </div>

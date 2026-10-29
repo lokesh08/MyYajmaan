@@ -111,7 +111,7 @@ export default function Footer() {
                   rel={social.href !== "#" ? "noopener noreferrer" : undefined}
                   aria-label={social.label}
                   title={social.label}
-                  className="interactive-button flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-sm transition hover:-translate-y-1 hover:scale-105 hover:shadow-lg"
+                  className="interactive-button flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl shadow-sm transition hover:-translate-y-1 hover:scale-105 hover:shadow-lg"
                 >
                   <img
                     src={social.icon}

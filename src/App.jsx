@@ -430,9 +430,13 @@ function App() {
         <Route
           path="/browse-pandits"
           element={
-            <RoleRoute allowedRoles={["user", "admin"]}>
+            // Public, like /book: it only lists approved pandits (public
+            // /pandits API). The home page's "Browse Pandit Ji" and
+            // "Popular Pandit Ji -> View All" link here, and guests were
+            // being bounced to a login screen.
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't browse other pandits.">
               <BrowsePanditsMap />
-            </RoleRoute>
+            </BlockRoleRoute>
           }
         />
 

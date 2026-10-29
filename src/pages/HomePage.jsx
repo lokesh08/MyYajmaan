@@ -139,7 +139,7 @@ export default function HomePage() {
               Popular Pandit Ji
             </h2>
             <Link
-              to="/pandit"
+              to="/browse-pandits"
               aria-label="View all pandits"
               title="View all pandits"
               className="text-sm font-semibold text-saffron"

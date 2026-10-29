@@ -98,11 +98,11 @@ export default function PanditRegisterPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         <div ref={formCardRef} className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative min-h-[300px] overflow-hidden bg-parchment-100 p-7 sm:p-9 lg:min-h-[650px]">
+          <div className="relative overflow-hidden bg-parchment-100 p-6 sm:min-h-[300px] sm:p-9 lg:min-h-[650px]">
             <div className="absolute inset-0 bg-gradient-to-br from-parchment-100 via-parchment-50 to-sand-pale" />
             <div className="relative flex h-full flex-col justify-between">
               <div><p className="text-xs font-semibold uppercase tracking-[0.25em] text-saffron">Join MyYajmaan</p><h1 className="mt-3 max-w-md font-serif text-3xl font-semibold leading-tight text-maroon sm:text-4xl">Become a Pandit Ji</h1><p className="mt-3 max-w-md text-sm leading-6 text-slate-600">Share your seva with families looking for trusted spiritual guidance.</p></div>
-              <img loading="lazy" decoding="async" src={optimizedImage("/images/panditJoin.png")} alt="Pandit Ji performing puja" className="mx-auto mt-8 h-56 w-full max-w-sm object-contain lg:h-72" />
+              <img loading="lazy" decoding="async" src={optimizedImage("/images/panditJoin.png")} alt="Pandit Ji performing puja" className="mx-auto mt-8 hidden h-56 w-full max-w-sm object-contain sm:block lg:h-72" />
             </div>
           </div>
           <div className="p-6 sm:p-9 lg:p-10">
@@ -111,21 +111,22 @@ export default function PanditRegisterPage() {
             <p className="mt-2 text-sm text-slate-600">Start with your basic details. Admin approval will happen after registration.</p>
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input value={form.firstName} onChange={(event) => handleName("firstName", event)} placeholder="First Name *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
-                <input value={form.lastName} onChange={(event) => handleName("lastName", event)} placeholder="Last Name *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+                <input aria-label="First Name" value={form.firstName} onChange={(event) => handleName("firstName", event)} placeholder="First Name *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+                <input aria-label="Last Name" value={form.lastName} onChange={(event) => handleName("lastName", event)} placeholder="Last Name *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
               </div>
               <p className="-mt-2 text-xs text-slate-500">
                 Please enter your name exactly as it appears on your Aadhaar card -- it will be verified later. If
                 you have a middle name, include it with your First Name (e.g. "Ramesh Kumar").
               </p>
-              <input value={form.phone} onChange={handlePhone} placeholder="Mobile Number *" inputMode="tel" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
-              <input value={form.email} onChange={(event) => update("email", event.target.value)} type="email" placeholder="Email *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label="Mobile Number" value={form.phone} onChange={handlePhone} placeholder="Mobile Number *" inputMode="tel" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label="Email" value={form.email} onChange={(event) => update("email", event.target.value)} type="email" placeholder="Email *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
               <div className="grid gap-4 sm:grid-cols-2">
                 <select
                   value={form.state}
                   onChange={(event) => handleStateChange(event.target.value)}
                   disabled={loading || loadingCities}
                   title="Select your state"
+                  aria-label="State"
                   className="w-full rounded-xl border border-amber-100 bg-white px-4 py-3 text-slate-700 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 >
                   <option value="">{loadingCities ? "Loading states..." : "Select State *"}</option>
@@ -136,14 +137,15 @@ export default function PanditRegisterPage() {
                   onChange={(event) => update("city", event.target.value)}
                   disabled={loading || loadingCities || !form.state}
                   title={form.state ? "Select your city" : "Select a state first"}
+                  aria-label="City"
                   className="w-full rounded-xl border border-amber-100 bg-white px-4 py-3 text-slate-700 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 >
                   <option value="">{form.state ? "Select City *" : "Select a state first"}</option>
                   {citiesForState.map((city) => <option key={city.id} value={city.name}>{city.name}</option>)}
                 </select>
               </div>
-              <input value={form.password} onChange={(event) => update("password", event.target.value)} type="password" placeholder="Create Password *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
-              <input value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} type="password" placeholder="Confirm Password *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label="Create Password" value={form.password} onChange={(event) => update("password", event.target.value)} type="password" placeholder="Create Password *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label="Confirm Password" value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} type="password" placeholder="Confirm Password *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
 
               <label className="flex items-start gap-2 text-sm text-slate-600">
                 <input

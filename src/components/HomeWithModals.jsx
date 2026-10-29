@@ -107,25 +107,41 @@ export default function HomeWithModals() {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
           Today's Shubh Muhurat
         </p>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-2xl font-bold text-maroon">
-              {muhratActive && countdown != null ? formatCountdown(countdown) : "--:--:--"}
-            </p>
-            <p className="text-sm text-slate-500">
-              {muhratActive ? `Offer ends soon — ${muhrat.title}` : "No active offer right now"}
-            </p>
+        {muhratActive ? (
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-2xl font-bold text-maroon">
+                {countdown != null ? formatCountdown(countdown) : "--:--:--"}
+              </p>
+              <p className="text-sm text-slate-500">{`Offer ends soon — ${muhrat.title}`}</p>
+            </div>
+            <button
+              type="button"
+              aria-label="View today muhurat offer"
+              className="interactive-button min-h-[44px] rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white"
+              onClick={() => setMuhratOpen(true)}
+            >
+              View Muhurat
+            </button>
           </div>
-          <button
-            type="button"
-            aria-label="View today muhurat offer"
-            className="interactive-button rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={() => muhratActive && setMuhratOpen(true)}
-            disabled={!muhratActive}
-          >
-            {muhratActive ? "View Muhurat" : "No Shubh Muhurat"}
-          </button>
-        </div>
+        ) : (
+          // No offer running: say so plainly and keep the card useful,
+          // instead of a blank "--:--:--" timer and a disabled button.
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <p className="text-sm text-slate-600">
+              {muhrat ? "No special muhurat offer today. Every day is auspicious for a puja." : "Checking today's muhurat…"}
+            </p>
+            {muhrat && (
+              <button
+                type="button"
+                className="interactive-button min-h-[44px] shrink-0 rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white"
+                onClick={() => navigate("/book")}
+              >
+                Book a Puja
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
@@ -138,7 +154,7 @@ export default function HomeWithModals() {
         <button
           type="button"
           aria-label="Refer and earn rewards"
-          className="interactive-button mt-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-maroon"
+          className="interactive-button mt-3 min-h-[44px] rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-maroon"
           onClick={handleReferNow}
         >
           Refer Now

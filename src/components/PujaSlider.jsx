@@ -24,7 +24,7 @@ function PujaCard({ puja, selectedPandit }) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-amber-200 bg-white shadow-card">
-      <div className="relative h-40 overflow-hidden">
+      <div className="relative h-40 overflow-hidden bg-amber-100">
         <img loading="lazy" decoding="async" src={optimizedImage(image)} alt={puja.title} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-3 left-3 right-3 text-white">
@@ -47,14 +47,14 @@ function PujaCard({ puja, selectedPandit }) {
           <button
             type="button"
             onClick={() => navigate(`/book/${puja.id}`)}
-            className="interactive-button flex-1 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-maroon hover:text-maroon"
+            className="interactive-button min-h-[44px] flex-1 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-maroon hover:text-maroon"
           >
             View
           </button>
           <button
             type="button"
             onClick={handleBook}
-            className="interactive-button flex-1 rounded-full bg-maroon px-3 py-1.5 text-xs font-semibold text-white hover:bg-maroon"
+            className="interactive-button min-h-[44px] flex-1 rounded-full bg-maroon px-3 py-1.5 text-xs font-semibold text-white hover:bg-maroon"
           >
             Book
           </button>

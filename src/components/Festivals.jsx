@@ -18,7 +18,7 @@ function formatFestivalDate(f) {
 function FestivalCard({ festival }) {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-[1rem] border border-amber-200 bg-white shadow-sm">
-      <div className="relative h-24">
+      <div className="relative h-24 bg-amber-100">
         <img loading="lazy" decoding="async" src={optimizedImage(festival.image_url)} alt={festival.title || festival.name} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
       </div>
