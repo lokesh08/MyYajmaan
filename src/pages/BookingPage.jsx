@@ -4,6 +4,7 @@ import { withAbortGet } from '../api';
 import { bookingFallbackImage } from '../constants/visualAssets';
 import { clearBookingDraft } from '../utils/bookingFlowStorage';
 import Loader from '../components/common/Loader';
+import SwipeRow from '../components/common/SwipeRow';
 import Seo from '../components/Seo';
 import { getSiteUrl } from '../seo/seoHead';
 import { itemListSchema } from '../seo/structuredData';
@@ -209,46 +210,88 @@ export default function BookingPage() {
       )}
 
       {!loading && !error && filteredPujas.length > 0 && (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredPujas.map((puja) => (
-            <div key={puja.id} className="overflow-hidden rounded-[1.3rem] border border-amber-100 bg-white shadow-card-sm">
-              <div className="relative h-52 overflow-hidden">
-                <img loading="lazy" decoding="async"
-                  src={optimizedImage(puja.thumbnail_url || puja.image_url || bookingFallbackImage)}
-                  alt={puja.title}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h2 className="font-serif text-xl font-semibold">{puja.title}</h2>
-                  {puja.duration_minutes ? (
-                    <p className="mt-1 text-sm text-amber-100">Duration: {puja.duration_minutes} mins</p>
-                  ) : null}
-                </div>
+        <>
+          {/* Mobile: one swipeable row per category instead of one long
+              column. Rows follow the current filters and sort order. */}
+          <div className="space-y-6 sm:hidden">
+            {groupByCategory(filteredPujas).map(([groupName, groupPujas]) => (
+              <div key={groupName}>
+                <h2 className="mb-3 font-serif text-xl font-semibold text-maroon">
+                  {groupName} <span className="text-sm font-normal text-slate-400">({groupPujas.length})</span>
+                </h2>
+                <SwipeRow label={`${groupName} pujas`}>
+                  {groupPujas.map((puja) => (
+                    <PujaCatalogCard key={puja.id} puja={puja} onOpen={openDetails} />
+                  ))}
+                </SwipeRow>
               </div>
+            ))}
+          </div>
 
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-slate-500">
-                    From {puja.base_price ? `₹${puja.base_price}` : '-'}
-                  </p>
-                  {puja.category && (
-                    <p className="text-xs font-semibold uppercase tracking-wide text-saffron">{puja.category}</p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => openDetails(puja)}
-                  aria-label={`View details for ${puja.title}`}
-                  className="mt-4 w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
-                >
-                  View details
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+          <div className="hidden gap-5 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+            {filteredPujas.map((puja) => (
+              <PujaCatalogCard key={puja.id} puja={puja} onOpen={openDetails} />
+            ))}
+          </div>
+        </>
       )}
     </section>
+  );
+}
+
+// Category rows in the same order as the category filter; anything with
+// a category not in that list comes after, then uncategorized pujas.
+function groupByCategory(list) {
+  const groups = new Map();
+  for (const puja of list) {
+    const key = puja.category || 'Other Pujas';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(puja);
+  }
+  const rank = (name) => {
+    const index = categories.indexOf(name);
+    if (index > 0) return index;
+    return name === 'Other Pujas' ? Infinity : categories.length;
+  };
+  return [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
+function PujaCatalogCard({ puja, onOpen }) {
+  return (
+    <div className="h-full overflow-hidden rounded-[1.3rem] border border-amber-100 bg-white shadow-card-sm">
+      <div className="relative h-52 overflow-hidden">
+        <img loading="lazy" decoding="async"
+          src={optimizedImage(puja.thumbnail_url || puja.image_url || bookingFallbackImage)}
+          alt={puja.title}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4 text-white">
+          <h2 className="font-serif text-xl font-semibold">{puja.title}</h2>
+          {puja.duration_minutes ? (
+            <p className="mt-1 text-sm text-amber-100">Duration: {puja.duration_minutes} mins</p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-slate-500">
+            From {puja.base_price ? `₹${puja.base_price}` : '-'}
+          </p>
+          {puja.category && (
+            <p className="text-xs font-semibold uppercase tracking-wide text-saffron">{puja.category}</p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => onOpen(puja)}
+          aria-label={`View details for ${puja.title}`}
+          className="mt-4 w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
+        >
+          View details
+        </button>
+      </div>
+    </div>
   );
 }

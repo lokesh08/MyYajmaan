@@ -92,18 +92,6 @@ export default function PanditLoginPage() {
     <>
       <FullScreenLoader open={loading} message={mustChangePassword ? "Updating your password..." : "Signing in as Pandit Ji..."} />
 
-      {!mustChangePassword && (
-        <>
-          <section className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
-            <EarningsCalculatorCard ctaLabel="New Pandit Ji? Register Now →" />
-          </section>
-
-          <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
-            <WhyJoinMyYajmaan ctaLabel="New Pandit Ji? Register Now →" />
-          </section>
-        </>
-      )}
-
       <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         <div className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative min-h-[300px] overflow-hidden bg-parchment-100 p-7 sm:p-9 lg:min-h-[560px]">
@@ -211,6 +199,19 @@ export default function PanditLoginPage() {
           </div>
         </div>
       </section>
+
+      {/* Form first, so it's what opens on screen; the info follows. */}
+      {!mustChangePassword && (
+        <>
+          <section className="mx-auto max-w-3xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-10">
+            <EarningsCalculatorCard ctaLabel="New Pandit Ji? Register Now →" />
+          </section>
+
+          <section className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-10">
+            <WhyJoinMyYajmaan ctaLabel="New Pandit Ji? Register Now →" />
+          </section>
+        </>
+      )}
     </>
   );
 }

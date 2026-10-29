@@ -117,19 +117,23 @@ export default function HomePage() {
         />
       </div>
 
-      <div className="mt-8 grid items-stretch gap-6 lg:grid-cols-2">
-        <div className="flex h-full min-h-[430px] flex-col rounded-[1.8rem] border border-amber-200 bg-parchment-50 p-4 shadow-card sm:p-6">
+      {/* grid-cols-1 / min-w-0: let these columns shrink to the screen.
+          Without them a grid column grows to its content's natural width,
+          and the festivals swipe row's natural width is every card side
+          by side, which pushed both boxes off the right edge on phones. */}
+      <div className="mt-8 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
+        <div className="flex h-full min-w-0 flex-col rounded-[1.8rem] border border-amber-200 bg-parchment-50 p-4 shadow-card sm:min-h-[430px] sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-[1.6rem] font-semibold text-maroon">
               Upcoming Festivals
             </h2>
           </div>
-          <div className="grid flex-1 auto-rows-fr gap-3">
+          <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-3">
             <Festivals limit={4} />
           </div>
         </div>
 
-        <div className="flex h-full min-h-[430px] flex-col rounded-[1.8rem] border border-amber-200 bg-parchment-50 p-4 shadow-card sm:p-6">
+        <div className="flex h-full min-h-[430px] min-w-0 flex-col rounded-[1.8rem] border border-amber-200 bg-parchment-50 p-4 shadow-card sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-[1.6rem] font-semibold text-maroon">
               Popular Pandit Ji

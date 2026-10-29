@@ -238,13 +238,6 @@ export default function RegisterPage() {
         message="Creating your account..."
       />
 
-      <section className="mx-auto max-w-6xl px-6 pt-10 lg:px-8">
-        <YajmaanBenefits
-          ctaLabel="Create Your Account ↓"
-          onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        />
-      </section>
-
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
         <div ref={formCardRef} className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative min-h-[320px] overflow-hidden bg-maroon-dark p-8 text-white lg:min-h-[600px]">
@@ -432,6 +425,15 @@ export default function RegisterPage() {
             </form>
           </div>
         </div>
+      </section>
+
+      {/* Form first, so it's what opens on screen; the benefits follow,
+          with a button back up to the form. */}
+      <section className="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
+        <YajmaanBenefits
+          ctaLabel="Create Your Account ↑"
+          onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        />
       </section>
     </>
   );
