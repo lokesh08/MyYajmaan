@@ -92,5 +92,17 @@ body {
   .interactive-button:active:not(:disabled) {
     transform: translateY(-0.05rem) scale(0.99);
   }
+
+  /* Mobile card sliders (components/common/SwipeRow.jsx): swipe only,
+     no scrollbar, and a sideways swipe never drags the page with it. */
+  .swipe-row {
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .swipe-row::-webkit-scrollbar {
+    display: none;
+  }
 }
 

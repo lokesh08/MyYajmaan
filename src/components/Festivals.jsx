@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { withAbortGet } from "../api";
 import Loader from "./common/Loader";
+import SwipeRow from "./common/SwipeRow";
 import { optimizedImage } from "../utils/image";
 
 /* FestivalCard unchanged (keeps image/title/date rendering) */
@@ -65,10 +66,21 @@ export default function Festivals({ limit = 4 }) {
   if (!items || items.length === 0) return <div className="p-4 text-center text-sm text-slate-500">No highlighted festivals right now.</div>;
 
   return (
-    <div className="grid h-full gap-3 sm:grid-cols-2">
-      {items.map((festival) => (
-        <FestivalCard key={festival.id || festival.title} festival={festival} />
-      ))}
-    </div>
+    <>
+      {/* Mobile: swipeable row instead of a tall stacked list */}
+      <div className="sm:hidden">
+        <SwipeRow label="Upcoming festivals" itemClassName="w-[70%]">
+          {items.map((festival) => (
+            <FestivalCard key={festival.id || festival.title} festival={festival} />
+          ))}
+        </SwipeRow>
+      </div>
+
+      <div className="hidden h-full gap-3 sm:grid sm:grid-cols-2">
+        {items.map((festival) => (
+          <FestivalCard key={festival.id || festival.title} festival={festival} />
+        ))}
+      </div>
+    </>
   );
 }

@@ -96,20 +96,6 @@ export default function PanditRegisterPage() {
     <>
       <FullScreenLoader open={loading} message="Creating your Pandit Ji account..." />
 
-      <section className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
-        <EarningsCalculatorCard
-          ctaLabel="Register as Pandit Ji ↓"
-          onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        />
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
-        <WhyJoinMyYajmaan
-          ctaLabel="Register as Pandit Ji ↓"
-          onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        />
-      </section>
-
       <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         <div ref={formCardRef} className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative min-h-[300px] overflow-hidden bg-parchment-100 p-7 sm:p-9 lg:min-h-[650px]">
@@ -191,6 +177,22 @@ export default function PanditRegisterPage() {
             <p className="mt-5 text-center text-sm text-slate-600">Already registered? <Link to="/pandit/login" title="Go to Pandit Ji login" className="font-semibold text-maroon hover:text-saffron">Pandit Ji login</Link></p>
           </div>
         </div>
+      </section>
+
+      {/* Form first, so it's what opens on screen; the info follows,
+          with buttons back up to the form. */}
+      <section className="mx-auto max-w-3xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-10">
+        <EarningsCalculatorCard
+          ctaLabel="Register as Pandit Ji ↑"
+          onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-10">
+        <WhyJoinMyYajmaan
+          ctaLabel="Register as Pandit Ji ↑"
+          onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        />
       </section>
     </>
   );

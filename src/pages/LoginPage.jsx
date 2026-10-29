@@ -169,10 +169,6 @@ export default function LoginPage() {
         message="Signing you in..."
       />
 
-      <section className="mx-auto max-w-6xl px-6 pt-10 lg:px-8">
-        <YajmaanBenefits ctaLabel="New to MyYajmaan? Register Now →" />
-      </section>
-
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
         <div className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative min-h-[320px] overflow-hidden bg-maroon-dark p-8 text-white lg:min-h-[560px]">
@@ -299,6 +295,11 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
+      </section>
+
+      {/* Form first, so it's what opens on screen; the benefits follow. */}
+      <section className="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
+        <YajmaanBenefits ctaLabel="New to MyYajmaan? Register Now →" />
       </section>
     </>
   );

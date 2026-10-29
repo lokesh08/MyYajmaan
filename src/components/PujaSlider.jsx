@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { withAbortGet } from "../api";
 import { bookingFallbackImage } from "../constants/visualAssets";
 import Loader from "./common/Loader";
+import SwipeRow from "./common/SwipeRow";
 import { optimizedImage } from "../utils/image";
 
 const DESKTOP_WINDOW = 4;
@@ -178,9 +179,13 @@ export default function PujaSlider({
         </div>
       </div>
 
-      {/* Mobile: one card at a time */}
+      {/* Mobile: swipeable row of every card */}
       <div className="mt-4 sm:hidden">
-        <PujaCard puja={items[activeIndex]} selectedPandit={selectedPandit} />
+        <SwipeRow label={title || "Pujas"}>
+          {items.map((puja) => (
+            <PujaCard key={puja.id} puja={puja} selectedPandit={selectedPandit} />
+          ))}
+        </SwipeRow>
       </div>
 
       {/* Desktop: windowed grid of DESKTOP_WINDOW cards */}
@@ -191,7 +196,7 @@ export default function PujaSlider({
       </div>
 
       {canSlide && (
-        <div className="mt-5 flex items-center justify-center gap-2">
+        <div className="mt-5 hidden items-center justify-center gap-2 sm:flex">
           {items.map((puja, index) => (
             <button
               key={puja.id}
