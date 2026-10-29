@@ -93,11 +93,11 @@ export default function BookPackageDetails() {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? 'Submitting...' : 'Submit Request'}
           </button>
-          <button onClick={() => navigate(-1)} className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">
+          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">
             Back
           </button>
         </div>

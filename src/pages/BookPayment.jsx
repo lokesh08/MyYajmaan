@@ -265,13 +265,13 @@ export default function BookPayment() {
                 setCouponMessage('');
               }}
               placeholder="Enter coupon code"
-              className="min-w-0 flex-1 rounded-xl border border-amber-200 px-3 py-2 text-sm uppercase outline-none focus:border-maroon"
+              className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-amber-200 px-3 py-2 text-sm uppercase outline-none focus:border-maroon"
             />
             <button
               type="button"
               onClick={handleApplyCoupon}
               disabled={!couponCode.trim() || couponLoading}
-              className="interactive-button rounded-xl border border-amber-200 px-4 py-2 text-sm font-semibold text-maroon disabled:cursor-not-allowed disabled:opacity-60"
+              className="interactive-button min-h-[44px] rounded-xl border border-amber-200 px-4 py-2 text-sm font-semibold text-maroon disabled:cursor-not-allowed disabled:opacity-60"
             >
               {couponLoading ? 'Checking...' : 'Apply'}
             </button>
@@ -339,11 +339,11 @@ export default function BookPayment() {
           <button
             onClick={handlePay}
             disabled={loading}
-            className="interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Processing…' : `Pay ₹${payableAmount.toFixed(2)}`}
           </button>
-          <button onClick={() => navigate(-1)} className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
+          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
         </div>
       </div>
 

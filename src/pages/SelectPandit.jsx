@@ -164,11 +164,11 @@ export default function SelectPandit() {
             saveBookingDraft({ puja, date, slot, pandit: selected, address });
             navigate('/book/payment', { state: { date, slot, puja, pandit: selected, address } });
           }}
-          className={`rounded-full px-5 py-2 font-semibold text-white shadow-sm ${!selected ? 'bg-gray-300' : 'bg-saffron'}`}
+          className={`min-h-[44px] rounded-full px-5 py-2 font-semibold text-white shadow-sm ${!selected ? 'bg-gray-300' : 'bg-saffron'}`}
         >
           Next: Payment
         </button>
-        <button onClick={() => navigate(-1)} className="rounded-full border px-5 py-2">Back</button>
+        <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border px-5 py-2">Back</button>
       </div>
     </BookingFrame>
   );

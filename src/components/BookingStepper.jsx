@@ -20,7 +20,42 @@ export const PACKAGE_STEPS = [
 
 export default function BookingStepper({ currentStep = 1, steps = NORMAL_STEPS }) {
   return (
-    <div className="mb-6 overflow-x-auto">
+    <>
+      {/* Phones: "Step 2 of 6 · Date & Time" plus a segmented bar -- the
+          six-pill row below is ~830px wide and scrolled the current step
+          out of view on a phone. */}
+      <div className="mb-5 sm:hidden">
+        <p className="text-sm font-semibold text-maroon">
+          Step {currentStep} of {steps.length}
+          <span className="font-normal text-slate-500"> · {steps[currentStep - 1]}</span>
+        </p>
+        <div
+          className="mt-2 flex gap-1"
+          role="progressbar"
+          aria-label="Booking progress"
+          aria-valuemin={1}
+          aria-valuemax={steps.length}
+          aria-valuenow={currentStep}
+        >
+          {steps.map((step, index) => (
+            <span
+              key={step}
+              className={`h-1.5 flex-1 rounded-full ${
+                index + 1 < currentStep ? 'bg-emerald-400' : index + 1 === currentStep ? 'bg-maroon' : 'bg-amber-100'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <StepperPills currentStep={currentStep} steps={steps} />
+    </>
+  );
+}
+
+function StepperPills({ currentStep, steps }) {
+  return (
+    <div className="mb-6 hidden overflow-x-auto sm:block">
       <div className="flex min-w-max items-center gap-2 rounded-full border border-amber-100 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 px-2 py-2 shadow-sm">
         {steps.map((step, index) => {
           const isActive = index + 1 === currentStep;

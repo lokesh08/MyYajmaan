@@ -105,7 +105,7 @@ export default function CouponsShowcase({ variant = "banner", onSelectCode }) {
           type="button"
           onClick={() => setOpen(true)}
           title="View available coupons"
-          className="text-sm font-semibold text-saffron hover:text-maroon"
+          className="inline-flex min-h-[44px] items-center text-sm font-semibold text-saffron hover:text-maroon"
         >
           View available coupons
         </button>
