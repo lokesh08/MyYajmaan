@@ -241,7 +241,7 @@ export default function BookPayment() {
           </div>
           <div className="text-right">
             {isPremium && (
-              <span className="mb-1 inline-block rounded-full bg-gradient-to-r from-saffron to-gold px-2.5 py-0.5 text-[10px] font-bold text-white">
+              <span className="mb-1 inline-block rounded-full bg-gradient-to-r from-saffron to-gold px-2.5 py-0.5 text-xs font-bold text-white">
                 PREMIUM
               </span>
             )}

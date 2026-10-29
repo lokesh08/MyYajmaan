@@ -80,7 +80,7 @@ const NotificationPanel = forwardRef(function NotificationPanel(
               <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-saffron" aria-hidden="true" />
             </span>
             {item.message && <span className="text-xs text-slate-500">{item.message}</span>}
-            <span className="text-[11px] text-slate-400">{timeAgo(item.created_at)}</span>
+            <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
           </button>
         ))}
 

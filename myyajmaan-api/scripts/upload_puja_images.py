@@ -1,9 +1,9 @@
 """Uploads puja images from public/images/Puja/normal to Supabase Storage
 and points each puja's image_url/thumbnail_url at them.
 
-Same layout as every existing puja image: the file is stored as both
-pujas/<puja_id>/big.png and pujas/<puja_id>/thumb.png in the public
-bucket, and the row stores "images/pujas/<puja_id>/big.png" etc.
+Stored the same way the admin upload stores puja images: resized WebP
+pujas/<puja_id>/big.webp (1200px) and thumb.webp (480px) in the public
+bucket, and the row stores "images/pujas/<puja_id>/big.webp" etc.
 
 Puja IDs are the same on local and Supabase Cloud. Before writing, each
 row's title is checked against the expected one, so an ID that points
@@ -29,7 +29,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
 
-from db import SUPABASE_PUBLIC_BUCKET, service_supabase  # noqa: E402
+from db import LARGE_IMAGE_MAX_WIDTH, SUPABASE_PUBLIC_BUCKET, THUMBNAIL_MAX_WIDTH, service_supabase, webp_variant  # noqa: E402
 
 IMAGES_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -108,10 +108,14 @@ def main() -> int:
         with open(path, "rb") as fh:
             data = fh.read()
         keys = {}
-        for kind in ("big", "thumb"):
-            object_path = f"pujas/{puja_id}/{kind}.png"
+        # Same light WebP sizes the admin upload produces (see db.webp_variant),
+        # falling back to the original PNG if it can't be converted.
+        for kind, width in (("big", LARGE_IMAGE_MAX_WIDTH), ("thumb", THUMBNAIL_MAX_WIDTH)):
+            webp = webp_variant(data, width)
+            body, ext, content_type = (webp, "webp", "image/webp") if webp else (data, "png", "image/png")
+            object_path = f"pujas/{puja_id}/{kind}.{ext}"
             service_supabase.storage.from_(bucket).upload(
-                object_path, data, {"content-type": "image/png", "upsert": "true"},
+                object_path, body, {"content-type": content_type, "upsert": "true"},
             )
             keys[kind] = f"{bucket}/{object_path}"
 

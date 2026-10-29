@@ -279,6 +279,36 @@ def upload_image_to_bucket(
     return f"{bucket}/{path}"
 
 
+# Sizes for catalogue images (puja cards / detail banner). Uploaded
+# originals are often 3-4 MB PNGs; at these widths and WebP they're
+# ~30-150 KB and still sharp on high-density phone screens.
+THUMBNAIL_MAX_WIDTH = 480
+LARGE_IMAGE_MAX_WIDTH = 1200
+
+
+def webp_variant(content: bytes, max_width: int, quality: int = 80) -> Optional[bytes]:
+    """
+    Re-encodes an image as WebP no wider than `max_width` (never
+    upscaled). Returns None if it can't -- callers then keep the original
+    bytes, so a decoding problem never blocks an upload.
+    """
+    try:
+        from PIL import Image, ImageOps
+
+        with Image.open(io.BytesIO(content)) as img:
+            img = ImageOps.exif_transpose(img)
+            if img.mode not in ("RGB", "RGBA"):
+                img = img.convert("RGBA" if "A" in img.getbands() else "RGB")
+            if img.width > max_width:
+                img = img.resize((max_width, round(img.height * max_width / img.width)), Image.LANCZOS)
+            out = io.BytesIO()
+            img.save(out, format="WEBP", quality=quality, method=6)
+            return out.getvalue()
+    except Exception:
+        logging.exception("Could not create a WebP variant; keeping the original image.")
+        return None
+
+
 # Allowed for every "photo" upload in the app (booking completion
 # photos, review photos, Pandit Ji documents/profile photo). Nothing
 # else -- an unrestricted upload accepts arbitrary file types (e.g. an

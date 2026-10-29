@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { withAbortGet } from "../api";
 import PujaSlider from "../components/PujaSlider";
 import AppInfoStats from "../components/AppInfoStats";
 import Loader from "../components/common/Loader";
+import StickyActionBar from "../components/common/StickyActionBar";
 import Seo from "../components/Seo";
 import { getSiteUrl } from "../seo/seoHead";
 import { toSnippet } from "../seo/siteConfig";
@@ -20,6 +21,7 @@ export default function PanditDetailPage() {
   const [pandit, setPandit] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const actionsRef = useRef(null);
 
   useEffect(() => {
     const { promise, controller } = withAbortGet(`/pandits/${id}`);
@@ -62,6 +64,12 @@ export default function PanditDetailPage() {
   }
 
   const name = pandit.display_name || pandit.name || "Pandit Ji";
+
+  function selectThisPandit() {
+    navigate("/book/datetime", {
+      state: { selectedPandit: pandit },
+    });
+  }
   const image = pandit.avatar_url || pandit.image || panditPlaceholderImage;
   const languages = pandit.languages_spoken?.length ? pandit.languages_spoken : pandit.languages;
   const specialities = pandit.specialities || [];
@@ -141,7 +149,7 @@ export default function PanditDetailPage() {
 
               {pandit.starting_price ? (
                 <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 px-4 py-2 text-right ring-1 ring-amber-200/70">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Starts from</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Starts from</p>
                   <p className="font-serif text-xl font-bold text-maroon">₹{pandit.starting_price}</p>
                 </div>
               ) : null}
@@ -158,7 +166,7 @@ export default function PanditDetailPage() {
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-amber-100 bg-cream/60 px-2 py-2.5 text-center">
                   <p className="text-lg leading-none">{item.icon}</p>
-                  <p className="mt-1 text-[11px] font-semibold text-slate-600">{item.label}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-600">{item.label}</p>
                 </div>
               ))}
             </div>
@@ -211,16 +219,12 @@ export default function PanditDetailPage() {
               ) : null}
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div ref={actionsRef} className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 aria-label={`Select ${name} for your puja booking`}
-                onClick={() =>
-                  navigate("/book/datetime", {
-                    state: { selectedPandit: pandit },
-                  })
-                }
-                className="rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm"
+                onClick={selectThisPandit}
+                className="min-h-[44px] rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm"
               >
                 Select this pandit
               </button>
@@ -248,6 +252,18 @@ export default function PanditDetailPage() {
       </div>
 
       <AppInfoStats />
+
+      <StickyActionBar targetRef={actionsRef}>
+        <p className="min-w-0 truncate text-sm font-semibold text-maroon">{name}</p>
+        <button
+          type="button"
+          aria-label={`Select ${name} for your puja booking`}
+          onClick={selectThisPandit}
+          className="min-h-[44px] shrink-0 rounded-full bg-maroon px-5 text-sm font-semibold text-white"
+        >
+          Select this pandit
+        </button>
+      </StickyActionBar>
     </section>
   );
 }

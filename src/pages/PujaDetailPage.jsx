@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { withAbortGet } from "../api";
 import SelectionCard from "../components/SelectionCard";
 import AppInfoStats from "../components/AppInfoStats";
 import Loader from "../components/common/Loader";
+import StickyActionBar from "../components/common/StickyActionBar";
 import Seo from "../components/Seo";
 import { getSiteUrl } from "../seo/seoHead";
 import { toSnippet } from "../seo/siteConfig";
@@ -43,6 +44,7 @@ export default function PujaDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [activeTab, setActiveTab] = useState("about");
   const [selectedTier, setSelectedTier] = useState(TIERS[0].id);
+  const actionsRef = useRef(null);
 
   useEffect(() => {
     const { promise, controller } = withAbortGet(`/pujas/${id}`);
@@ -87,6 +89,9 @@ export default function PujaDetailPage() {
   const benefits = puja.metadata?.benefits || [];
   const image = puja.image_url || puja.thumbnail_url || bookingFallbackImage;
   const isPackagePuja = puja.puja_type === "package";
+  // The Pandit Ji chosen later sets the final fee, so this is a "from"
+  // price. Package pujas are quoted by the team instead.
+  const startingPrice = !isPackagePuja && puja.base_price ? `₹${Number(puja.base_price).toLocaleString("en-IN")}` : null;
 
   // Search/social tags and structured data for this specific puja.
   const siteUrl = getSiteUrl();
@@ -169,6 +174,11 @@ export default function PujaDetailPage() {
                   <span className="mt-2 inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
                     Package Puja
                   </span>
+                )}
+                {startingPrice && (
+                  <p className="mt-2 text-sm text-amber-100">
+                    Starts at <span className="text-lg font-semibold text-white">{startingPrice}</span>
+                  </p>
                 )}
               </div>
             </div>
@@ -262,11 +272,11 @@ export default function PujaDetailPage() {
               </div>
             )}
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div ref={actionsRef} className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={goToBooking}
-                className="rounded-full bg-saffron px-5 py-2.5 font-semibold text-white"
+                className="min-h-[44px] rounded-full bg-saffron px-5 py-2.5 font-semibold text-white"
               >
                 {isPackagePuja ? "Continue request" : "Continue booking"}
               </button>
@@ -282,6 +292,22 @@ export default function PujaDetailPage() {
       </div>
 
       <AppInfoStats />
+
+      <StickyActionBar targetRef={actionsRef}>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-maroon">{puja.title}</p>
+          <p className="text-xs text-slate-500">
+            {startingPrice ? <>Starts at <span className="font-semibold text-slate-800">{startingPrice}</span></> : isPackagePuja ? "Custom quote" : null}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={goToBooking}
+          className="min-h-[44px] shrink-0 rounded-full bg-saffron px-5 text-sm font-semibold text-white"
+        >
+          {isPackagePuja ? "Continue request" : "Continue booking"}
+        </button>
+      </StickyActionBar>
     </section>
   );
 }

@@ -38,10 +38,10 @@ export default function Loader({ variant = "inline", count = 4, className = "" }
             className="animate-pulse overflow-hidden rounded-[1rem] border border-amber-100 bg-white p-0"
             aria-hidden="true"
           >
-            <div className="h-24 bg-gray-200" />
+            <div className="h-24 bg-amber-100" />
             <div className="p-3">
-              <div className="mb-2 h-3 w-3/5 bg-gray-200" />
-              <div className="h-2 w-2/5 bg-gray-200" />
+              <div className="mb-2 h-3 w-3/5 rounded bg-amber-100" />
+              <div className="h-2 w-2/5 rounded bg-amber-50" />
             </div>
           </div>
         ))}

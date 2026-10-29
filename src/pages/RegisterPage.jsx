@@ -240,7 +240,7 @@ export default function RegisterPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
         <div ref={formCardRef} className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative min-h-[320px] overflow-hidden bg-maroon-dark p-8 text-white lg:min-h-[600px]">
+          <div className="relative overflow-hidden bg-maroon-dark p-6 text-white sm:min-h-[320px] sm:p-8 lg:min-h-[600px]">
             <img
               src={backgroundImage}
               alt="Festival background"
@@ -268,7 +268,7 @@ export default function RegisterPage() {
                 </p>
               </div>
 
-              <div className="grid gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <div className="hidden gap-3 rounded-2xl sm:grid bg-white/10 p-4 backdrop-blur-sm">
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
                   • Find trusted pandits
                 </div>

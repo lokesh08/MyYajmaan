@@ -336,7 +336,7 @@ export default function MessagingCenterPage({ portal }) {
                       {!item.is_read && <span className="h-2 w-2 shrink-0 rounded-full bg-saffron" aria-hidden="true" />}
                     </span>
                     <span className={`block truncate text-xs ${!item.is_read ? "font-semibold text-slate-700" : "text-slate-500"}`}>{item.title}</span>
-                    <span className="text-[11px] text-slate-400">{timeAgo(item.created_at)}</span>
+                    <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
                   </span>
                 </button>
               ))}
@@ -355,7 +355,7 @@ export default function MessagingCenterPage({ portal }) {
                     <span className="truncate text-sm font-medium text-slate-700">To: {item.recipient_name || item.recipient_email}</span>
                   </span>
                   <span className="block truncate text-xs text-slate-500">{item.subject}</span>
-                  <span className="text-[11px] text-slate-400">{timeAgo(item.sent_at || item.created_at)}</span>
+                  <span className="text-xs text-slate-400">{timeAgo(item.sent_at || item.created_at)}</span>
                 </button>
               ))}
 
@@ -372,7 +372,7 @@ export default function MessagingCenterPage({ portal }) {
                       To: {item.recipient_name || item.recipient_email || <span className="italic text-slate-400">Not addressed yet</span>}
                     </span>
                     <span className="block truncate text-xs text-slate-500">{item.subject || "(No subject)"}</span>
-                    <span className="text-[11px] text-slate-400">{timeAgo(item.updated_at || item.created_at)}</span>
+                    <span className="text-xs text-slate-400">{timeAgo(item.updated_at || item.created_at)}</span>
                   </button>
                   <button
                     type="button"

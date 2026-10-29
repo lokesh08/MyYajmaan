@@ -171,7 +171,7 @@ export default function LoginPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
         <div className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative min-h-[320px] overflow-hidden bg-maroon-dark p-8 text-white lg:min-h-[560px]">
+          <div className="relative overflow-hidden bg-maroon-dark p-6 text-white sm:min-h-[320px] sm:p-8 lg:min-h-[560px]">
             <img
               src={backgroundImage}
               alt="Festival background"
@@ -199,7 +199,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <div className="grid gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <div className="hidden gap-3 rounded-2xl sm:grid bg-white/10 p-4 backdrop-blur-sm">
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
                   • Book verified pandits
                 </div>
@@ -269,7 +269,7 @@ export default function LoginPage() {
                 <Link
                   to="/forgot-password"
                   title="Reset your password"
-                  className="text-sm font-semibold text-maroon hover:text-saffron"
+                  className="inline-flex min-h-[44px] items-center text-sm font-semibold text-maroon hover:text-saffron"
                 >
                   Forgot password?
                 </Link>

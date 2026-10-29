@@ -105,7 +105,7 @@ export default function MuhratModal({ open, onClose, muhrat }) {
             🪔
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-100">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-100">
               {active ? 'Live Now' : 'Upcoming Offer'}
             </p>
             <p className="truncate text-sm text-amber-50/90">
@@ -118,7 +118,7 @@ export default function MuhratModal({ open, onClose, muhrat }) {
           <div className="-mt-3 flex items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-parchment-200 to-parchment-300 px-4 py-3">
             <span className="text-xl">⏳</span>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-maroon/70">Offer ends in</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-maroon/70">Offer ends in</p>
               <p className="font-mono text-xl font-bold tracking-wider text-maroon">{countdown}</p>
             </div>
           </div>

@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from audit import write_audit_log
-from db import service_supabase
+from db import sanitize_or_filter_term, service_supabase
 from permissions import require_admin_roles
 
 router = APIRouter(prefix="/admin/users", tags=["admin-users"])

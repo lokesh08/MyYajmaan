@@ -5,10 +5,14 @@ from pydantic import BaseModel
 
 from audit import write_audit_log
 from db import (
+    LARGE_IMAGE_MAX_WIDTH,
+    THUMBNAIL_MAX_WIDTH,
     convert_record_image_fields,
     convert_records_image_fields,
+    sanitize_or_filter_term,
     service_supabase,
     upload_image_to_bucket,
+    webp_variant,
 )
 from permissions import require_admin_roles
 
@@ -40,21 +44,48 @@ def _parse_benefits(benefits: Optional[str]) -> list:
     return [item.strip() for item in benefits.split(",") if item.strip()]
 
 
-async def _maybe_upload(file: Optional[UploadFile], puja_id: str, kind: str) -> Optional[str]:
-    """Uploads an optional multipart image file; returns None if none was sent."""
+async def _read_upload(file: Optional[UploadFile]) -> Optional[bytes]:
     if file is None or not file.filename:
         return None
-
     content = await file.read()
-    if not content:
-        return None
+    return content or None
+
+
+def _store_image(content: bytes, file: UploadFile, puja_id: str, kind: str, max_width: int) -> str:
+    """
+    Stores a resized WebP (pujas/<id>/<kind>.webp). Uploaded originals are
+    often 3-4 MB PNGs, which made the puja lists tens of MB on a phone.
+    Falls back to the original bytes and extension if conversion fails.
+    """
+    webp = webp_variant(content, max_width)
+    if webp:
+        return upload_image_to_bucket(webp, "image/webp", f"pujas/{puja_id}/{kind}.webp")
 
     ext = ""
     if "." in file.filename:
         ext = "." + file.filename.rsplit(".", 1)[-1].lower()
+    return upload_image_to_bucket(content, file.content_type or "", f"pujas/{puja_id}/{kind}{ext}")
 
-    path = f"pujas/{puja_id}/{kind}{ext}"
-    return upload_image_to_bucket(content, file.content_type or "", path)
+
+async def _upload_puja_images(
+    image: Optional[UploadFile], thumbnail: Optional[UploadFile], puja_id: str
+) -> tuple:
+    """
+    Returns (image_key, thumb_key); either is None when nothing was sent.
+    A new main image without its own thumbnail also gets a matching card
+    thumbnail made from it, so the list never shows the old picture.
+    """
+    image_bytes = await _read_upload(image)
+    thumb_bytes = await _read_upload(thumbnail)
+
+    image_key = _store_image(image_bytes, image, puja_id, "big", LARGE_IMAGE_MAX_WIDTH) if image_bytes else None
+    if thumb_bytes:
+        thumb_key = _store_image(thumb_bytes, thumbnail, puja_id, "thumb", THUMBNAIL_MAX_WIDTH)
+    elif image_bytes:
+        thumb_key = _store_image(image_bytes, image, puja_id, "thumb", THUMBNAIL_MAX_WIDTH)
+    else:
+        thumb_key = None
+    return image_key, thumb_key
 
 
 @router.get("")
@@ -155,8 +186,7 @@ async def create_puja(
         raise HTTPException(status_code=500, detail="Could not create the puja.")
     puja = rows[0]
 
-    image_key = await _maybe_upload(image, puja["id"], "big")
-    thumb_key = await _maybe_upload(thumbnail, puja["id"], "thumb")
+    image_key, thumb_key = await _upload_puja_images(image, thumbnail, puja["id"])
 
     if image_key or thumb_key:
         image_update = {}
@@ -238,8 +268,7 @@ async def update_puja(
     if is_active is not None:
         update_payload["is_active"] = is_active
 
-    image_key = await _maybe_upload(image, puja_id, "big")
-    thumb_key = await _maybe_upload(thumbnail, puja_id, "thumb")
+    image_key, thumb_key = await _upload_puja_images(image, thumbnail, puja_id)
     if image_key:
         update_payload["image_url"] = image_key
     if thumb_key:

@@ -124,7 +124,7 @@ export default function BookingPage() {
             key={tab.value}
             type="button"
             onClick={() => setPujaType(tab.value)}
-            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
+            className={`min-h-[44px] flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
               pujaType === tab.value ? 'bg-maroon text-white' : 'text-slate-600 hover:bg-amber-50'
             }`}
           >
@@ -151,14 +151,33 @@ export default function BookingPage() {
         />
       </div>
 
-      <div className="mb-5 grid gap-3 md:grid-cols-3">
-        <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-3 shadow-sm">
+      {/* Phones: categories as one swipeable row of chips, instead of a
+          dropdown card -- the stacked filter cards used to fill the whole
+          first screen before any puja showed. */}
+      <div className="swipe-row -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 md:hidden" role="group" aria-label="Filter by category">
+        {categories.map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setCategory(item)}
+            aria-pressed={category === item}
+            className={`min-h-[44px] shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
+              category === item ? 'border-maroon bg-maroon text-white' : 'border-amber-200 bg-white text-slate-700'
+            }`}
+          >
+            {item === 'All Categories' ? 'All' : item}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3">
+        <label className="hidden rounded-[0.9rem] border border-amber-100 bg-white p-3 shadow-sm md:block">
           <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">All Categories</span>
           <select
             aria-label="Filter by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-amber-200 bg-amber-50 min-h-[44px] px-3 py-2 text-sm"
           >
             {categories.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -166,13 +185,13 @@ export default function BookingPage() {
           </select>
         </label>
 
-        <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-3 shadow-sm">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">All Durations</span>
+        <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-2 shadow-sm md:p-3">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:mb-2 md:tracking-[0.22em]">All Durations</span>
           <select
             aria-label="Filter by duration"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-amber-200 bg-amber-50 min-h-[44px] px-3 py-2 text-sm"
           >
             {durations.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -180,13 +199,13 @@ export default function BookingPage() {
           </select>
         </label>
 
-        <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-3 shadow-sm">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Sort By</span>
+        <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-2 shadow-sm md:p-3">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:mb-2 md:tracking-[0.22em]">Sort By</span>
           <select
             aria-label="Sort pujas"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-amber-200 bg-amber-50 min-h-[44px] px-3 py-2 text-sm"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -259,7 +278,7 @@ function groupByCategory(list) {
 function PujaCatalogCard({ puja, onOpen }) {
   return (
     <div className="h-full overflow-hidden rounded-[1.3rem] border border-amber-100 bg-white shadow-card-sm">
-      <div className="relative h-52 overflow-hidden">
+      <div className="relative h-52 overflow-hidden bg-amber-100">
         <img loading="lazy" decoding="async"
           src={optimizedImage(puja.thumbnail_url || puja.image_url || bookingFallbackImage)}
           alt={puja.title}
@@ -287,7 +306,7 @@ function PujaCatalogCard({ puja, onOpen }) {
           type="button"
           onClick={() => onOpen(puja)}
           aria-label={`View details for ${puja.title}`}
-          className="mt-4 w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
+          className="mt-4 min-h-[44px] w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
         >
           View details
         </button>
