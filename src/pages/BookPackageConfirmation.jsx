@@ -56,10 +56,10 @@ export default function BookPackageConfirmation() {
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/dashboard/bookings?tab=package" title="Go to My Package Requests" className="interactive-button rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-maroon">
+          <Link to="/dashboard/bookings?tab=package" title="Go to My Package Requests" className="inline-flex min-h-[44px] items-center interactive-button rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-maroon">
             Track My Request
           </Link>
-          <Link to="/book" onClick={clearBookingDraft} title="Book another puja" className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-maroon hover:text-maroon">
+          <Link to="/book" onClick={clearBookingDraft} title="Book another puja" className="inline-flex min-h-[44px] items-center interactive-button rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700 hover:border-maroon hover:text-maroon">
             Book Another Puja
           </Link>
         </div>

@@ -263,10 +263,10 @@ export default function BookAddress() {
         {notice && <ThemeNotice type="error" title="Need a quick check" message={notice} />}
 
         <div className="mt-6 flex gap-3">
-          <button onClick={handleNext} className="interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500">
+          <button onClick={handleNext} className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500">
             {puja?.pujaType === 'package' ? 'Next: Requirements' : 'Next: Select Pandit'}
           </button>
-          <button onClick={() => navigate(-1)} className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
+          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
         </div>
       </div>
 
@@ -316,14 +316,14 @@ export default function BookAddress() {
             <button
               type="submit"
               disabled={savingAddress}
-              className="interactive-button rounded-full bg-maroon px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-[44px] interactive-button rounded-full bg-maroon px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {savingAddress ? 'Saving...' : 'Save address'}
             </button>
             <button
               type="button"
               onClick={() => setAddModalOpen(false)}
-              className="rounded-full border border-amber-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700"
+              className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700"
             >
               Cancel
             </button>

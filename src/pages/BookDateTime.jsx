@@ -171,7 +171,7 @@ export default function BookDateTime() {
                           disabled={!selectable}
                           title={tooSoon ? `Needs at least ${minLeadHours} hours' notice` : undefined}
                           onClick={() => setSelectedSlot(s)}
-                          className={`rounded-full px-3 py-2 text-sm font-medium transition ${selectable ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
+                          className={`min-h-[44px] rounded-full px-3 py-2 text-sm font-medium transition ${selectable ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
                         >
                           {s.time} {s.shubh ? '✨' : ''}
                         </button>
@@ -195,11 +195,11 @@ export default function BookDateTime() {
               saveBookingDraft({ puja, date, slot: selectedSlot });
               navigate('/book/address', { state: { date, slot: selectedSlot, puja } });
             }}
-            className={`rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
+            className={`min-h-[44px] rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
           >
             Next: Address
           </button>
-          <button onClick={() => navigate(-1)} className="rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">Back</button>
+          <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">Back</button>
         </div>
       </div>
     </BookingFrame>
