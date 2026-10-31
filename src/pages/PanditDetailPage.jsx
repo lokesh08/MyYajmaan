@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 import { withAbortGet } from "../api";
 import PujaSlider from "../components/PujaSlider";
@@ -16,12 +16,13 @@ import { optimizedImage } from "../utils/image";
 
 export default function PanditDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [pandit, setPandit] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const actionsRef = useRef(null);
+  const pujasRef = useRef(null);
+  const location = useLocation();
 
   useEffect(() => {
     const { promise, controller } = withAbortGet(`/pandits/${id}`);
@@ -46,6 +47,14 @@ export default function PanditDetailPage() {
     };
   }, [id]);
 
+  // Home page "Popular Pandit Ji -> Select" lands here to pick a puja.
+  const scrollToPujas = Boolean(location.state?.scrollToPujas);
+  useEffect(() => {
+    if (scrollToPujas && pandit) {
+      pujasRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [scrollToPujas, pandit]);
+
   if (loading) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -65,10 +74,11 @@ export default function PanditDetailPage() {
 
   const name = pandit.display_name || pandit.name || "Pandit Ji";
 
+  // Booking starts from a puja, so "Select this pandit" scrolls to the
+  // pujas this Pandit Ji performs (it used to open the wizard with no
+  // puja at all).
   function selectThisPandit() {
-    navigate("/book/datetime", {
-      state: { selectedPandit: pandit },
-    });
+    pujasRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   const image = pandit.avatar_url || pandit.image || panditPlaceholderImage;
   const languages = pandit.languages_spoken?.length ? pandit.languages_spoken : pandit.languages;
@@ -241,7 +251,7 @@ export default function PanditDetailPage() {
         </div>
       </div>
 
-      <div className="mt-8">
+      <div ref={pujasRef} className="mt-8 scroll-mt-24">
         <PujaSlider
           title={`Pujas by ${name}`}
           fetchUrl={`/pandits/${id}/pujas`}

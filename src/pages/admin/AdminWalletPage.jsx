@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import {
   getWalletSummary,
   listBookingPayments,
+  listPanditEarnings,
   listWalletTransactionReasons,
   listWalletTransactions,
   listWithdrawalRequests,
   processWithdrawalRequest,
+  releasePanditEarning,
+  revealWithdrawalBankDetails,
 } from "../../services/adminApi";
 import { showError, showSuccess } from "../../utils/toaster";
 import StatCard from "../../components/admin/StatCard";
@@ -304,6 +308,184 @@ function BookingPaymentsTab() {
   );
 }
 
+// ---------------- Pandit Ji Earnings tab ----------------
+// Completed pujas whose Pandit Ji fee is released to their wallet by
+// admin; the Pandit Ji then requests a withdrawal to their bank.
+
+const EARNING_TABS = [
+  { key: "pending", label: "To Release" },
+  { key: "released", label: "Released" },
+  { key: "all", label: "All" },
+];
+
+function PanditEarningsTab() {
+  const [tab, setTab] = useState("pending");
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [target, setTarget] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [notes, setNotes] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => setPage(1), [tab]);
+
+  useEffect(() => {
+    setLoading(true);
+    listPanditEarnings({ status: tab, page, pageSize: PAGE_SIZE })
+      .then((data) => {
+        setItems(data?.items || []);
+        setTotal(data?.total || 0);
+      })
+      .catch(() => showError("Could not load Pandit Ji earnings."))
+      .finally(() => setLoading(false));
+  }, [tab, page, refreshKey]);
+
+  function openRelease(booking) {
+    setTarget(booking);
+    setAmount(Number(booking.pandit_fee_amount || 0) > 0 ? String(Number(booking.pandit_fee_amount)) : "");
+    setNotes("");
+  }
+
+  async function handleRelease() {
+    if (!target) return;
+    const value = Number(amount);
+    if (!amount || value <= 0) {
+      showError("Please enter the amount to pay this Pandit Ji.");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const result = await releasePanditEarning(target.id, { amount: value, adminNotes: notes.trim() });
+      showSuccess(result?.message || "Fee added to the Pandit Ji's wallet.");
+      setTarget(null);
+      setRefreshKey((k) => k + 1);
+    } catch (error) {
+      showError(error?.message || "Could not release this fee.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  const fee = Number(target?.pandit_fee_amount || 0);
+  const isPartial = target && fee > 0 && Number(amount) > 0 && Number(amount) < fee;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2 rounded-full border border-amber-100 bg-white p-1">
+        {EARNING_TABS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setTab(item.key)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${tab === item.key ? "bg-maroon text-white" : "text-slate-600 hover:bg-amber-50"}`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className="py-10 text-center text-sm text-slate-400">Loading Pandit Ji earnings...</p>
+      ) : items.length === 0 ? (
+        <div className="rounded-2xl border border-amber-100 bg-white p-8 text-center text-sm text-slate-400">
+          {tab === "pending" ? "No completed pujas waiting for a Pandit Ji payout." : "No released earnings yet."}
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {items.map((booking) => (
+            <div key={booking.id} className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-700">{booking.pandit_name || "Pandit Ji"}</p>
+                  <p className="text-xs text-slate-400">{booking.pandit_city}</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {booking.puja_title} · {booking.customer_name || "Customer"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Puja date {booking.booking_date || booking.date || "—"} · Booking {String(booking.id).slice(0, 8)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400">Pandit Ji fee</p>
+                  <p className="font-serif text-xl font-semibold text-maroon">{formatCurrency(booking.pandit_fee_amount)}</p>
+                  <p className="text-xs text-slate-400">Customer paid {formatCurrency(booking.amount)}</p>
+                </div>
+              </div>
+
+              {booking.has_open_complaint && (
+                <p className="mt-3 rounded-xl bg-rose-50 p-3 text-xs text-rose-600">
+                  This booking has an open complaint. Settle it under Complaints before releasing the fee.
+                </p>
+              )}
+              {Number(booking.refund_amount || 0) > 0 && (
+                <p className="mt-2 text-xs text-amber-700">Customer was refunded {formatCurrency(booking.refund_amount)} on this booking.</p>
+              )}
+
+              {booking.pandit_payout_released_at ? (
+                <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-700">
+                  {formatCurrency(booking.pandit_payout_amount)} added to wallet on {formatDate(booking.pandit_payout_released_at)}
+                </p>
+              ) : (
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => openRelease(booking)}
+                    className="interactive-button min-h-[40px] rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Pay to Pandit Ji Wallet
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Pagination page={page} setPage={setPage} total={total} />
+
+      <ConfirmDialog
+        open={Boolean(target)}
+        title="Pay to Pandit Ji Wallet"
+        message={
+          target
+            ? `Add this puja's fee to ${target.pandit_name || "the Pandit Ji"}'s wallet? They can then move it to their bank account. This can't be undone from here.`
+            : ""
+        }
+        confirmLabel="Add to Wallet"
+        confirmClassName="bg-emerald-600 hover:bg-emerald-700"
+        loading={actionLoading}
+        onConfirm={handleRelease}
+        onClose={() => setTarget(null)}
+      >
+        <div className="space-y-2">
+          <label className="block text-xs font-semibold text-slate-500">
+            Amount (Rs.)
+            <input
+              type="number"
+              min="1"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-amber-200 px-3 py-2 text-sm font-normal text-slate-700 outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
+            />
+          </label>
+          {fee <= 0 && target && <p className="text-xs text-amber-700">No fee was recorded for this older booking — enter the amount to pay.</p>}
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder={isPartial ? "Reason for paying less than the full fee (required)" : "Note for Pandit Ji (optional)"}
+            className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
+          />
+        </div>
+      </ConfirmDialog>
+    </div>
+  );
+}
+
 // ---------------- Withdrawal Requests tab ----------------
 
 const WITHDRAWAL_TABS = [
@@ -322,10 +504,26 @@ function WithdrawalRequestsTab() {
   const [loading, setLoading] = useState(true);
   const [actionTarget, setActionTarget] = useState(null); // { request, action }
   const [notes, setNotes] = useState("");
+  const [payoutReference, setPayoutReference] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [fullBank, setFullBank] = useState({}); // request id -> unmasked details
+  const [revealingId, setRevealingId] = useState(null);
 
   useEffect(() => setPage(1), [tab]);
+
+  async function revealBank(request) {
+    setRevealingId(request.id);
+    try {
+      const details = await revealWithdrawalBankDetails(request.id);
+      setFullBank((current) => ({ ...current, [request.id]: details }));
+    } catch (error) {
+      showError(error?.message || "Could not load the bank details.");
+    } finally {
+      setRevealingId(null);
+    }
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -341,13 +539,22 @@ function WithdrawalRequestsTab() {
   function openAction(request, action) {
     setActionTarget({ request, action });
     setNotes("");
+    setPayoutReference("");
+    setPayoutMethod("");
   }
 
   async function handleConfirm() {
     if (!actionTarget) return;
+    if (actionTarget.action === "mark_paid" && (payoutReference.trim().length < 4 || !payoutMethod)) {
+      showError("Please enter the transaction reference (UTR) and payment method of the bank transfer.");
+      return;
+    }
     setActionLoading(true);
     try {
-      const result = await processWithdrawalRequest(actionTarget.request.id, actionTarget.action, notes);
+      const result = await processWithdrawalRequest(actionTarget.request.id, actionTarget.action, notes, {
+        payoutReference: payoutReference.trim(),
+        payoutMethod,
+      });
       showSuccess(result?.message || "Withdrawal request updated.");
       setActionTarget(null);
       setRefreshKey((k) => k + 1);
@@ -409,16 +616,49 @@ function WithdrawalRequestsTab() {
               </div>
 
               {req.bank_details ? (
-                <div className="mt-3 grid gap-1 rounded-xl bg-cream/60 p-3 text-xs text-slate-600 sm:grid-cols-2">
-                  <p><span className="text-slate-400">Account Holder:</span> {req.bank_details.account_holder_name || "—"}</p>
-                  <p><span className="text-slate-400">Bank:</span> {req.bank_details.bank_name || "—"}</p>
-                  <p><span className="text-slate-400">Account No.:</span> {req.bank_details.account_number_masked || "—"}</p>
-                  <p><span className="text-slate-400">IFSC:</span> {req.bank_details.ifsc_masked || "—"}</p>
+                <div className="mt-3 rounded-xl bg-cream/60 p-3 text-xs text-slate-600">
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    <p><span className="text-slate-400">Account Holder:</span> {fullBank[req.id]?.account_holder_name || req.bank_details.account_holder_name || "—"}</p>
+                    <p><span className="text-slate-400">Bank:</span> {fullBank[req.id]?.bank_name || req.bank_details.bank_name || "—"}</p>
+                    <p className="break-all">
+                      <span className="text-slate-400">Account No.:</span>{" "}
+                      <span className={fullBank[req.id] ? "font-mono font-semibold text-slate-800" : ""}>
+                        {fullBank[req.id]?.account_number || req.bank_details.account_number_masked || "—"}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-slate-400">IFSC:</span>{" "}
+                      <span className={fullBank[req.id] ? "font-mono font-semibold text-slate-800" : ""}>
+                        {fullBank[req.id]?.ifsc || req.bank_details.ifsc_masked || "—"}
+                      </span>
+                    </p>
+                    {fullBank[req.id]?.upi_id && (
+                      <p className="break-all">
+                        <span className="text-slate-400">UPI ID:</span> <span className="font-mono font-semibold text-slate-800">{fullBank[req.id].upi_id}</span>
+                      </p>
+                    )}
+                  </div>
+                  {(req.status === "pending" || req.status === "approved") && !fullBank[req.id] && (
+                    <button
+                      type="button"
+                      onClick={() => revealBank(req)}
+                      disabled={revealingId === req.id}
+                      className="mt-2 font-semibold text-maroon underline-offset-2 hover:underline disabled:opacity-60"
+                    >
+                      {revealingId === req.id ? "Loading..." : "Show full bank details to make the transfer"}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <p className="mt-3 rounded-xl bg-rose-50 p-3 text-xs text-rose-600">No bank details on file — cannot be paid until the pandit adds them.</p>
               )}
 
+              {req.payout_reference && (
+                <p className="mt-2 text-xs text-emerald-700">
+                  Paid via {(req.payout_method || "").toUpperCase()} · Ref <span className="font-mono">{req.payout_reference}</span>
+                  {req.processed_at ? ` · ${formatDate(req.processed_at)}` : ""}
+                </p>
+              )}
               {req.admin_notes && <p className="mt-2 text-xs italic text-slate-500">Note: {req.admin_notes}</p>}
 
               {(req.status === "pending" || req.status === "approved") && (
@@ -463,7 +703,9 @@ function WithdrawalRequestsTab() {
         message={
           actionTarget
             ? `${ACTION_LABELS[actionTarget.action]} the request for ${formatCurrency(actionTarget.request.amount)} from ${actionTarget.request.pandit_name || "this Pandit Ji"}?${
-                actionTarget.action === "mark_paid" ? " This will deduct the amount from their wallet." : ""
+                actionTarget.action === "mark_paid"
+                  ? " First transfer the money to their bank account, then enter the transfer details below. This will deduct the amount from their wallet."
+                  : ""
               }`
             : ""
         }
@@ -473,6 +715,31 @@ function WithdrawalRequestsTab() {
         onConfirm={handleConfirm}
         onClose={() => setActionTarget(null)}
       >
+        {actionTarget?.action === "mark_paid" && (
+          <div className="mb-2 grid gap-2 sm:grid-cols-[1fr_9rem]">
+            <input
+              value={payoutReference}
+              onChange={(e) => setPayoutReference(e.target.value)}
+              maxLength={100}
+              placeholder="Transaction ref / UTR (required)"
+              aria-label="Transaction reference or UTR"
+              className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
+            />
+            <select
+              value={payoutMethod}
+              onChange={(e) => setPayoutMethod(e.target.value)}
+              aria-label="Payment method"
+              className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
+            >
+              <option value="">Method</option>
+              <option value="imps">IMPS</option>
+              <option value="neft">NEFT</option>
+              <option value="rtgs">RTGS</option>
+              <option value="upi">UPI</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        )}
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -490,12 +757,20 @@ function WithdrawalRequestsTab() {
 const TOP_TABS = [
   { key: "ledger", label: "Wallet Ledger" },
   { key: "bookings", label: "Booking Payments" },
+  { key: "earnings", label: "Pandit Ji Earnings" },
   { key: "withdrawals", label: "Withdrawal Requests" },
 ];
 
 export default function AdminWalletPage() {
-  const [topTab, setTopTab] = useState("ledger");
+  // ?tab= lets notifications open the right tab directly.
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [topTab, setTopTab] = useState(TOP_TABS.some((t) => t.key === requestedTab) ? requestedTab : "ledger");
   const [summary, setSummary] = useState(null);
+
+  useEffect(() => {
+    if (TOP_TABS.some((t) => t.key === requestedTab)) setTopTab(requestedTab);
+  }, [requestedTab]);
 
   useEffect(() => {
     getWalletSummary().then(setSummary).catch(() => {});
@@ -508,7 +783,7 @@ export default function AdminWalletPage() {
         <p className="text-sm text-slate-500">Every wallet credit/debit, puja payment, and Pandit Ji payout in one place.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Yajmaan Wallets Total" value={formatCurrency(summary?.customer_wallet_total)} />
         <StatCard label="Pandit Ji Wallets Total" value={formatCurrency(summary?.pandit_wallet_total)} accent="saffron" />
         <StatCard label="Total Credited (all-time)" value={formatCurrency(summary?.total_credited)} accent="emerald" />
@@ -517,6 +792,11 @@ export default function AdminWalletPage() {
           label="Pending Withdrawals"
           value={`${summary?.pending_withdrawal_count ?? 0} · ${formatCurrency(summary?.pending_withdrawal_amount)}`}
           accent="saffron"
+        />
+        <StatCard
+          label="Pandit Ji Fees to Release"
+          value={`${summary?.unreleased_earning_count ?? 0} · ${formatCurrency(summary?.unreleased_earning_amount)}`}
+          accent="emerald"
         />
       </div>
 
@@ -535,6 +815,7 @@ export default function AdminWalletPage() {
 
       {topTab === "ledger" && <WalletLedgerTab />}
       {topTab === "bookings" && <BookingPaymentsTab />}
+      {topTab === "earnings" && <PanditEarningsTab />}
       {topTab === "withdrawals" && <WithdrawalRequestsTab />}
     </div>
   );

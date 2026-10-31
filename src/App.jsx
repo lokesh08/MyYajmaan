@@ -39,7 +39,6 @@ const ClientAddressesPage = lazy(() => import("./pages/client/ClientAddressesPag
 const ClientSettingsPage = lazy(() => import("./pages/client/ClientSettingsPage"));
 const PanditPage = lazy(() => import("./pages/PanditPage"));
 const PanditDetailPage = lazy(() => import("./pages/PanditDetailPage"));
-const BrowsePanditsMap = lazy(() => import("./pages/BrowsePanditsMap"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -427,18 +426,9 @@ function App() {
           }
         />
 
-        <Route
-          path="/browse-pandits"
-          element={
-            // Public, like /book: it only lists approved pandits (public
-            // /pandits API). The home page's "Browse Pandit Ji" and
-            // "Popular Pandit Ji -> View All" link here, and guests were
-            // being bounced to a login screen.
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't browse other pandits.">
-              <BrowsePanditsMap />
-            </BlockRoleRoute>
-          }
-        />
+        {/* "Browse Pandit Ji" was removed from the app; old links and
+            bookmarks go to Book Puja instead of a blank page. */}
+        <Route path="/browse-pandits" element={<Navigate to="/book" replace />} />
 
         <Route
           path="/login"

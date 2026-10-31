@@ -12,7 +12,8 @@ import { toSnippet } from "../seo/siteConfig";
 import { breadcrumbSchema, pujaServiceSchema } from "../seo/structuredData";
 import NotFound from "../components/common/NotFound";
 import { bookingFallbackImage } from "../constants/visualAssets";
-import { saveBookingDraft } from "../utils/bookingFlowStorage";
+import { startBookingDraft } from "../utils/bookingFlowStorage";
+import { BOOKING_START_PATH } from "../utils/bookingSteps";
 import { optimizedImage } from "../utils/image";
 
 const tabs = [
@@ -117,9 +118,9 @@ export default function PujaDetailPage() {
     // the puja survives even when the very next thing that happens is
     // a redirect through /login and back for a logged-out visitor --
     // see RoleRoute's booking-flow login gate.
-    saveBookingDraft({ puja: bookingPuja, selectedPuja: puja });
+    startBookingDraft(bookingPuja, { selectedPuja: puja });
 
-    navigate("/book/datetime", {
+    navigate(BOOKING_START_PATH, {
       state: {
         puja: bookingPuja,
         selectedPuja: puja,

@@ -1,8 +1,10 @@
 import logging
 import os
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends
 
+import config
 from auth import get_current_user
 from db import service_supabase
 from referral_utils import ensure_referral_code
@@ -42,6 +44,15 @@ def _active_coupon_display(coupon_type: str) -> str:
         return "—"
 
 
+@router.get("/referral/rewards")
+def get_referral_rewards():
+    """Public: the admin-configured referral reward amounts, for the home page's Refer & Earn card."""
+    return {
+        "signupReward": _active_coupon_display("referral_signup"),
+        "bookingReward": _active_coupon_display("referral_booking"),
+    }
+
+
 @router.get("/referral")
 def get_referral_summary(current_user: dict = Depends(get_current_user)):
     """
@@ -53,8 +64,10 @@ def get_referral_summary(current_user: dict = Depends(get_current_user)):
     """
 
     code = ensure_referral_code(current_user["id"], full_name=current_user.get("full_name")) or "—"
-    base_url = os.getenv("APP_BASE_URL", "http://localhost:3000")
-    share_url = f"{base_url.rstrip('/')}/register?ref={code}"
+    # APP_BASE_URL was never set on Render, so live links pointed at
+    # localhost; PUBLIC_SITE_URL is the configured public site.
+    base_url = os.getenv("APP_BASE_URL") or config.PUBLIC_SITE_URL or "http://localhost:3000"
+    share_url = f"{base_url.rstrip('/')}/register?ref={quote(code)}"
 
     total_earned = 0.0
     if service_supabase is not None:

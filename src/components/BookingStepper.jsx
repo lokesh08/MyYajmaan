@@ -1,7 +1,8 @@
+// Order matches utils/bookingSteps.js (the address is chosen first).
 const NORMAL_STEPS = [
   'Puja',
-  'Date & Time',
   'Address',
+  'Date & Time',
   'Pandit',
   'Payment',
   'Confirmation',
@@ -12,8 +13,8 @@ const NORMAL_STEPS = [
 // see BookPackageDetails.jsx/BookPackageConfirmation.jsx.
 export const PACKAGE_STEPS = [
   'Puja',
-  'Date & Time',
   'Address',
+  'Date & Time',
   'Requirements',
   'Submitted',
 ];

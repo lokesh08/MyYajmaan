@@ -114,7 +114,6 @@ const OTHER_ROUTES = [
   { pattern: '/book/payment', title: 'Payment | MyYajmaan', noindex: true },
   { pattern: '/book/confirmation', title: 'Booking Confirmed | MyYajmaan', noindex: true },
   { pattern: '/book/package/*', title: 'Package Puja Booking | MyYajmaan', noindex: true },
-  { pattern: '/browse-pandits', title: 'Browse Pandit Ji on Map | MyYajmaan', noindex: true },
 
   // Logged-in areas.
   { pattern: '/dashboard', title: 'My Dashboard | MyYajmaan', noindex: true },

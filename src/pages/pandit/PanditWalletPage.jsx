@@ -13,6 +13,11 @@ const WITHDRAWAL_STATUS_STYLES = {
   rejected: "bg-rose-50 text-rose-600",
 };
 
+const REASON_LABELS = {
+  pandit_booking_earning: "Puja earning",
+  wallet_withdrawal_paid: "Paid to bank account",
+};
+
 export default function PanditWalletPage() {
   const { stage, rejectionReason } = usePanditPortal();
   const [wallet, setWallet] = useState(null);
@@ -73,6 +78,15 @@ export default function PanditWalletPage() {
         <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-maroon to-maroon p-6 text-white shadow-sm">
           <p className="text-xs font-semibold uppercase text-amber-100/80">Wallet Balance</p>
           <p className="mt-2 font-serif text-3xl font-semibold">Rs. {Number(wallet.balance || 0).toFixed(2)}</p>
+          {wallet.available_balance !== undefined && Number(wallet.available_balance) !== Number(wallet.balance || 0) && (
+            <p className="mt-1 text-xs text-amber-100/90">Rs. {Number(wallet.available_balance).toFixed(2)} available (rest is in a pending withdrawal)</p>
+          )}
+          {Number(wallet.awaiting_release_amount || 0) > 0 && (
+            <p className="mt-3 rounded-xl bg-white/10 px-3 py-2 text-xs text-amber-50">
+              Rs. {Number(wallet.awaiting_release_amount).toFixed(2)} from {wallet.awaiting_release_count} completed puja
+              {wallet.awaiting_release_count === 1 ? "" : "s"} will be added once admin releases it.
+            </p>
+          )}
         </div>
 
         <div className="rounded-2xl border border-amber-100 bg-white p-6 shadow-sm">
@@ -110,12 +124,20 @@ export default function PanditWalletPage() {
           <h2 className="mb-3 font-serif text-lg font-semibold text-maroon">Withdrawal Requests</h2>
           <div className="space-y-2">
             {wallet.withdrawal_requests.map((req) => (
-              <div key={req.id} className="flex items-center justify-between rounded-xl border border-amber-50 bg-cream/40 px-4 py-2.5 text-sm">
-                <span>Rs. {Number(req.amount).toFixed(2)}</span>
-                <span className="text-xs text-slate-400">{new Date(req.requested_at).toLocaleDateString()}</span>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${WITHDRAWAL_STATUS_STYLES[req.status] || "bg-slate-100 text-slate-500"}`}>
-                  {req.status}
-                </span>
+              <div key={req.id} className="rounded-xl border border-amber-50 bg-cream/40 px-4 py-2.5 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span>Rs. {Number(req.amount).toFixed(2)}</span>
+                  <span className="text-xs text-slate-400">{new Date(req.requested_at).toLocaleDateString()}</span>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${WITHDRAWAL_STATUS_STYLES[req.status] || "bg-slate-100 text-slate-500"}`}>
+                    {req.status}
+                  </span>
+                </div>
+                {req.payout_reference && (
+                  <p className="mt-1 break-all text-xs text-emerald-700">
+                    Sent via {(req.payout_method || "").toUpperCase()} · Ref {req.payout_reference}
+                  </p>
+                )}
+                {req.status === "rejected" && req.admin_notes && <p className="mt-1 text-xs text-rose-600">Reason: {req.admin_notes}</p>}
               </div>
             ))}
           </div>
@@ -144,7 +166,7 @@ export default function PanditWalletPage() {
               wallet.transactions.map((txn) => (
                 <tr key={txn.id}>
                   <td className="px-4 py-3 text-slate-500">{new Date(txn.created_at).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 capitalize text-slate-700">{(txn.reason || "").replace(/_/g, " ")}</td>
+                  <td className="px-4 py-3 capitalize text-slate-700">{REASON_LABELS[txn.reason] || (txn.reason || "").replace(/_/g, " ")}</td>
                   <td className="px-4 py-3 capitalize">{txn.type}</td>
                   <td className={`px-4 py-3 text-right font-semibold ${txn.type === "credit" ? "text-emerald-600" : "text-rose-500"}`}>
                     {txn.type === "credit" ? "+" : "-"}Rs. {Number(txn.amount).toFixed(2)}

@@ -6,6 +6,8 @@ import { bookingFallbackImage } from "../constants/visualAssets";
 import Loader from "./common/Loader";
 import SwipeRow from "./common/SwipeRow";
 import { optimizedImage } from "../utils/image";
+import { startBookingDraft } from "../utils/bookingFlowStorage";
+import { BOOKING_START_PATH } from "../utils/bookingSteps";
 
 const DESKTOP_WINDOW = 4;
 
@@ -14,9 +16,13 @@ function PujaCard({ puja, selectedPandit }) {
   const image = puja.thumbnail_url || puja.image_url || bookingFallbackImage;
 
   function handleBook() {
-    navigate("/book/datetime", {
+    // pujaType decides the flow (package pujas go to Requirements, not
+    // Pandit/Payment); saved first so it survives a trip through /login.
+    const bookingPuja = { id: puja.id, title: puja.title, image, pujaType: puja.puja_type || "normal" };
+    startBookingDraft(bookingPuja);
+    navigate(BOOKING_START_PATH, {
       state: {
-        puja: { id: puja.id, title: puja.title, image },
+        puja: bookingPuja,
         selectedPandit: selectedPandit || undefined,
       },
     });

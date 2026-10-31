@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -5,6 +7,8 @@ from audit import write_audit_log
 from db import service_supabase
 from notifications import notify_user
 from permissions import require_roles
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/pandit/me/wallet", tags=["pandit-wallet"])
 
@@ -27,6 +31,19 @@ def _has_bank_details(client, pandit_id: str) -> bool:
     # pandit_bank_details is keyed by pandit_id itself (no separate id column).
     resp = client.table("pandit_bank_details").select("pandit_id").eq("pandit_id", pandit_id).limit(1).execute()
     return bool(getattr(resp, "data", None))
+
+
+def _reserved_for_withdrawals(client, pandit_id: str) -> float:
+    # Any earlier requests still awaiting payout are provisionally
+    # reserved so a pandit can't request more than what's actually free.
+    resp = (
+        client.table("wallet_withdrawal_requests")
+        .select("amount")
+        .eq("pandit_id", pandit_id)
+        .in_("status", ["pending", "approved"])
+        .execute()
+    )
+    return sum(float(row["amount"]) for row in (getattr(resp, "data", None) or []))
 
 
 @router.get("")
@@ -63,9 +80,32 @@ async def get_my_wallet(
         .execute()
     )
     withdrawal_requests = getattr(withdrawals_resp, "data", None) or []
+    reserved = _reserved_for_withdrawals(client, pandit["id"])
+
+    # Completed pujas whose fee admin hasn't released to the wallet yet.
+    # Informational only -- never let it break the wallet page.
+    awaiting_release_amount = 0.0
+    awaiting_release_count = 0
+    try:
+        unreleased_resp = (
+            client.table("bookings")
+            .select("pandit_fee_amount")
+            .eq("pandit_id", pandit["id"])
+            .eq("status", "completed")
+            .is_("pandit_payout_released_at", "null")
+            .execute()
+        )
+        unreleased = getattr(unreleased_resp, "data", None) or []
+        awaiting_release_count = len(unreleased)
+        awaiting_release_amount = round(sum(float(r.get("pandit_fee_amount") or 0) for r in unreleased), 2)
+    except Exception:
+        logger.exception("Could not load unreleased earnings for pandit %s", pandit["id"])
 
     return {
         "balance": balance,
+        "available_balance": round(max(balance - reserved, 0), 2),
+        "awaiting_release_amount": awaiting_release_amount,
+        "awaiting_release_count": awaiting_release_count,
         "has_bank_details": _has_bank_details(client, pandit["id"]),
         "transactions": transactions,
         "total_transactions": total,
@@ -96,17 +136,7 @@ async def request_withdrawal(
     user_resp = client.table("users").select("wallet_balance").eq("id", current_user["id"]).single().execute()
     balance = float((getattr(user_resp, "data", None) or {}).get("wallet_balance") or 0)
 
-    # Any earlier requests still awaiting payout are provisionally
-    # reserved so a pandit can't request more than what's actually free.
-    pending_resp = (
-        client.table("wallet_withdrawal_requests")
-        .select("amount")
-        .eq("pandit_id", pandit["id"])
-        .in_("status", ["pending", "approved"])
-        .execute()
-    )
-    already_reserved = sum(float(row["amount"]) for row in (getattr(pending_resp, "data", None) or []))
-    available = round(balance - already_reserved, 2)
+    available = round(balance - _reserved_for_withdrawals(client, pandit["id"]), 2)
 
     if payload.amount > available:
         raise HTTPException(
@@ -150,7 +180,7 @@ async def request_withdrawal(
                 type="WITHDRAWAL_REQUESTED",
                 title="New withdrawal request",
                 message=f"{pandit_name} requested a withdrawal of Rs. {payload.amount:.2f}.",
-                link="/admin/wallet",
+                link="/admin/wallet?tab=withdrawals",
                 metadata={"withdrawal_id": rows[0]["id"]},
             )
     except Exception:

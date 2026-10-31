@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { withAbortPost } from "../api";
@@ -12,6 +12,7 @@ import { authBackgrounds } from "../constants/visualAssets";
 import FullScreenLoader from "../components/common/FullScreenLoader";
 import YajmaanBenefits from "../components/YajmaanBenefits";
 import { optimizedImage } from "../utils/image";
+import { clearStoredReferralCode, resolveReferralCode } from "../utils/referral";
 
 const backgroundImage = authBackgrounds.register;
 
@@ -63,11 +64,22 @@ function getReadableError(error) {
   return "Registration failed. Please check your details and try again.";
 }
 
+function safeLocalStorage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const formCardRef = useRef(null);
   const [searchParams] = useSearchParams();
-  const referralCode = (searchParams.get("ref") || "").trim();
+  // ?ref= from a friend's referral link; remembered in this browser so
+  // it isn't lost if they visit Login first and come back here.
+  const refParam = searchParams.get("ref");
+  const referralCode = useMemo(() => resolveReferralCode(refParam, safeLocalStorage()), [refParam]);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -205,6 +217,7 @@ export default function RegisterPage() {
       );
 
       const result = await promise;
+      clearStoredReferralCode(safeLocalStorage());
 
       showSuccess(
         "Your account was created. Please verify your email and mobile number.",
@@ -299,7 +312,7 @@ export default function RegisterPage() {
 
             {referralCode && (
               <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm font-medium text-maroon">
-                🎉 Referred by a friend — sign up to get your welcome bonus!
+                🎉 Referred by a friend (code <span className="font-mono">{referralCode}</span>) — sign up to get your welcome bonus!
               </p>
             )}
 

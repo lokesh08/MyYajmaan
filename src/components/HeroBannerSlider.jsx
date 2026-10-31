@@ -24,17 +24,31 @@ export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
   return (
     <div className="absolute inset-0">
       {images.map((image, index) => (
-        <img
+        <div
           key={image}
-          src={image}
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-          {...(index === 0 ? { fetchpriority: "high" } : { loading: "lazy" })}
-          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ease-in-out ${
-            index === activeIndex ? "opacity-100" : "opacity-0"
-          }`}
-        />
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === activeIndex ? "opacity-100" : "opacity-0"}`}
+        >
+          {/* Phones show the whole (wide) banner, not a zoomed-in slice:
+              object-contain, with a blurred copy of the same image filling
+              the letterbox. From md up the banner sits behind the hero text
+              and covers it as before. */}
+          <img
+            src={image}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            loading={index === 0 ? undefined : "lazy"}
+            className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70 blur-xl md:hidden"
+          />
+          <img
+            src={image}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            {...(index === 0 ? { fetchpriority: "high" } : { loading: "lazy" })}
+            className="absolute inset-0 h-full w-full object-contain object-center md:object-cover"
+          />
+        </div>
       ))}
 
       {images.length > 1 && (

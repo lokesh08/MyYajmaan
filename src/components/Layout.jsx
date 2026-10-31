@@ -47,15 +47,7 @@ export default function Layout({ children }) {
         ? { label: "Pandit Dashboard", to: "/pandit" }
         : { label: "Yajmaan Dashboard", to: "/dashboard" };
 
-  // Temporarily disabled per request -- not needed right now. Uncomment
-  // both this and its spot in `links` below to bring it back.
-  // const browsePanditsLink = { label: "Browse Pandit Ji", to: "/browse-pandits" };
-
-  const links = isAuthenticated
-    ? role === "user"
-      ? [...commonLinks, /* browsePanditsLink, */ dashboardLink]
-      : [...commonLinks, dashboardLink]
-    : commonLinks;
+  const links = isAuthenticated ? [...commonLinks, dashboardLink] : commonLinks;
 
   async function handleLogout() {
     const destination = getLoginPathForRole(role);
