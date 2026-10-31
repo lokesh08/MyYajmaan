@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatCmsUpdatedAt, useCmsContent } from "../hooks/use-cms-content";
+import { t } from "../i18n";
 
 const benefits = [
   {
@@ -78,10 +79,10 @@ export default function YajmaanBenefits({ ctaLabel = "Create Your Account →", 
       <div className="pointer-events-none absolute -bottom-32 -left-20 h-64 w-64 rounded-full bg-rose-200/20 blur-3xl" />
 
       <div className="relative text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">Trusted by families across India</p>
-        <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon sm:text-4xl">{content.title}</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">{t("Trusted by families across India")}</p>
+        <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon sm:text-4xl">{t(content.title)}</h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-          {content.description}
+          {t(content.description)}
         </p>
 
         <div className="mx-auto mt-5 flex items-center justify-center gap-3">
@@ -101,8 +102,8 @@ export default function YajmaanBenefits({ ctaLabel = "Create Your Account →", 
               {benefit.icon}
             </div>
 
-            <h3 className="mt-5 font-serif text-xl font-semibold text-maroon">{benefit.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{benefit.description}</p>
+            <h3 className="mt-5 font-serif text-xl font-semibold text-maroon">{t(benefit.title)}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{t(benefit.description)}</p>
 
             <span className="mt-auto h-1 w-8 rounded-full bg-amber-100 transition-all duration-300 group-hover:w-14 group-hover:bg-saffron" />
           </article>
@@ -114,21 +115,21 @@ export default function YajmaanBenefits({ ctaLabel = "Create Your Account →", 
           <button
             type="button"
             onClick={onCtaClick}
-            title="Create your MyYajmaan account"
+            title={t("Create your MyYajmaan account")}
             className="interactive-button inline-flex rounded-full bg-maroon px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-maroon hover:shadow-lg"
           >
-            {ctaLabel}
+            {t(ctaLabel)}
           </button>
         ) : (
           <Link
             to="/register"
-            title="Create your MyYajmaan account"
+            title={t("Create your MyYajmaan account")}
             className="interactive-button inline-flex rounded-full bg-maroon px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-maroon hover:shadow-lg"
           >
-            {ctaLabel}
+            {t(ctaLabel)}
           </Link>
         )}
-        {updatedAt && <p className="mt-3 text-xs text-slate-500">Last updated: {formatCmsUpdatedAt(updatedAt)}</p>}
+        {updatedAt && <p className="mt-3 text-xs text-slate-500">{t("Last updated:")}{' '}{formatCmsUpdatedAt(updatedAt)}</p>}
       </div>
     </section>
   );

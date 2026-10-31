@@ -1,4 +1,5 @@
 import { Children, useCallback, useEffect, useRef, useState } from "react";
+import { t } from "../../i18n";
 
 // Shown only where there's a mouse/trackpad (a narrow desktop window):
 // touch screens swipe, but a mouse can't, and the row has no visible
@@ -67,12 +68,12 @@ export default function SwipeRow({ children, label, itemClassName = "w-[78%]" })
       </div>
 
       {canPrev && (
-        <button type="button" aria-label="Previous" onClick={() => scrollByCard(-1)} className={`${POINTER_ONLY} ${arrowClass} -left-2`}>
+        <button type="button" aria-label={t("Previous")} onClick={() => scrollByCard(-1)} className={`${POINTER_ONLY} ${arrowClass} -left-2`}>
           ‹
         </button>
       )}
       {canNext && (
-        <button type="button" aria-label="Next" onClick={() => scrollByCard(1)} className={`${POINTER_ONLY} ${arrowClass} -right-2`}>
+        <button type="button" aria-label={t("Next")} onClick={() => scrollByCard(1)} className={`${POINTER_ONLY} ${arrowClass} -right-2`}>
           ›
         </button>
       )}

@@ -6,6 +6,7 @@ import App from "./App";
 import "./styles.css";
 import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./i18n/LanguageProvider";
 
 ReactDOM.createRoot(
   document.getElementById("root"),
@@ -14,7 +15,11 @@ ReactDOM.createRoot(
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
-        <App />
+        {/* Below AuthProvider: switching language re-mounts the app
+            but never logs anyone out. */}
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,

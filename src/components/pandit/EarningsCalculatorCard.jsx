@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { t } from "../../i18n";
 
 const PUJAS_MIN = 2;
 const PUJAS_MAX = 30;
@@ -143,21 +144,21 @@ export default function EarningsCalculatorCard({ ctaLabel = "Register as Pandit 
 
       <div className="relative p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-saffron">For Pandit Ji</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-saffron">{t("For Pandit Ji")}</p>
           <span className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors ${tier.className}`}>
-            {tier.label}
+            {t(tier.label)}
           </span>
         </div>
 
         <h2 className="mt-2 font-serif text-2xl font-semibold text-maroon sm:text-3xl">
-          Calculate Your Earnings Potential 🪔
+          {t("Calculate Your Earnings Potential 🪔")}
         </h2>
-        <p className="mt-1 text-sm text-slate-500">See what you could earn performing pujas with MyYajmaan.</p>
+        <p className="mt-1 text-sm text-slate-500">{t("See what you could earn performing pujas with MyYajmaan.")}</p>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <SliderRow
             id="pujas-per-month"
-            label="Pujas Per Month"
+            label={t("Pujas Per Month")}
             value={pujasPerMonth}
             min={PUJAS_MIN}
             max={PUJAS_MAX}
@@ -166,7 +167,7 @@ export default function EarningsCalculatorCard({ ctaLabel = "Register as Pandit 
           />
           <SliderRow
             id="fee-per-puja"
-            label="Fee Per Puja"
+            label={t("Fee Per Puja")}
             value={feePerPuja}
             min={FEE_MIN}
             max={FEE_MAX}
@@ -178,13 +179,13 @@ export default function EarningsCalculatorCard({ ctaLabel = "Register as Pandit 
 
         <div className="mt-7 rounded-2xl bg-gradient-to-br from-parchment-100 to-parchment-250 p-5 text-center sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
-            Your Monthly Earnings Potential
+            {t("Your Monthly Earnings Potential")}
           </p>
           <p className="mt-1 font-serif text-4xl font-extrabold text-maroon sm:text-5xl">
             {formatRupees(animatedMonthly)}
           </p>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            that's <span className="font-semibold text-saffron">{formatRupees(yearly)}</span> a year with MyYajmaan
+            {t("that's")}{' '}<span className="font-semibold text-saffron">{formatRupees(yearly)}</span>{' '}{t("a year with MyYajmaan")}
           </p>
         </div>
 
@@ -193,21 +194,21 @@ export default function EarningsCalculatorCard({ ctaLabel = "Register as Pandit 
             <button
               type="button"
               onClick={onCtaClick}
-              title="Register as Pandit Ji"
+              title={t("Register as Pandit Ji")}
               className="earnings-cta interactive-button w-full rounded-full bg-gradient-to-r from-saffron to-sand px-6 py-3.5 text-center font-semibold text-maroon shadow-lg sm:w-auto sm:px-10"
             >
-              {ctaLabel}
+              {t(ctaLabel)}
             </button>
           ) : (
             <Link
               to="/pandit/register"
-              title="Register as Pandit Ji"
+              title={t("Register as Pandit Ji")}
               className="earnings-cta interactive-button w-full rounded-full bg-gradient-to-r from-saffron to-sand px-6 py-3.5 text-center font-semibold text-maroon shadow-lg sm:w-auto sm:px-10"
             >
-              {ctaLabel}
+              {t(ctaLabel)}
             </Link>
           )}
-          <p className="text-xs text-slate-400">Free to join. Get matched with families looking for a trusted Pandit Ji.</p>
+          <p className="text-xs text-slate-400">{t("Free to join. Get matched with families looking for a trusted Pandit Ji.")}</p>
         </div>
       </div>
     </div>

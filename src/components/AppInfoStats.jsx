@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 const STATS = [
   { icon: "🏺", value: "5000+", label: "Pujas Performed" },
   { icon: "🙏", value: "250+", label: "Vedic Priests" },
@@ -23,7 +24,7 @@ export default function AppInfoStats() {
             </div>
             <div>
               <p className="font-serif text-2xl font-bold text-maroon">{stat.value}</p>
-              <p className="text-sm font-medium text-slate-600">{stat.label}</p>
+              <p className="text-sm font-medium text-slate-600">{t(stat.label)}</p>
             </div>
           </div>
         ))}

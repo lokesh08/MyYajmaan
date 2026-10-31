@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 
 import useNotifications from "../../hooks/useNotifications";
 import NotificationPanel from "./NotificationPanel";
+import { t } from "../../i18n";
 
 const THEME_BUTTON_CLASSES = {
   // For the dark maroon gradient header (customer + Pandit Ji portal).
@@ -80,8 +81,8 @@ export default function NotificationBell({ enabled = true, theme = "dark", inbox
         ref={buttonRef}
         type="button"
         onClick={toggleOpen}
-        title="Notifications"
-        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
+        title={t("Notifications")}
+        aria-label={t("Notifications{v0}", { v0: unreadCount > 0 ? `, ${unreadCount} unread` : "" })}
         aria-expanded={open}
         className={`interactive-button relative flex h-10 w-10 items-center justify-center rounded-full border transition ${THEME_BUTTON_CLASSES[theme] || THEME_BUTTON_CLASSES.dark}`}
       >

@@ -15,6 +15,7 @@ import { bookingFallbackImage } from "../constants/visualAssets";
 import { startBookingDraft } from "../utils/bookingFlowStorage";
 import { BOOKING_START_PATH } from "../utils/bookingSteps";
 import { optimizedImage } from "../utils/image";
+import { t as tt } from "../i18n";
 
 const tabs = [
   { id: "about", label: "About Puja" },
@@ -81,8 +82,8 @@ export default function PujaDetailPage() {
   if (notFound || !puja) {
     return (
       <NotFound
-        title="Puja not found"
-        message="The puja you are looking for does not exist or is no longer available."
+        title={tt("Puja not found")}
+        message={tt("The puja you are looking for does not exist or is no longer available.")}
       />
     );
   }
@@ -146,15 +147,15 @@ export default function PujaDetailPage() {
         ]}
       />
       <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <Link to="/" title="Go to Home" className="hover:text-maroon">
-          Home
+        <Link to="/" title={tt("Go to Home")} className="hover:text-maroon">
+          {tt("Home")}
         </Link>
         <span>›</span>
-        <Link to="/book" title="Browse all pujas" className="hover:text-maroon">
-          Pujas
+        <Link to="/book" title={tt("Browse all pujas")} className="hover:text-maroon">
+          {tt("Pujas")}
         </Link>
         <span>›</span>
-        <span className="text-slate-700">{puja.title}</span>
+        <span className="text-slate-700">{tt(puja.title)}</span>
       </div>
 
       <div className="overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-card">
@@ -162,23 +163,23 @@ export default function PujaDetailPage() {
           <div className="bg-gradient-to-br from-maroon via-maroon to-saffron p-6 text-white">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-full border border-white/25">
-                <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                <img src={optimizedImage("/images/logo-mark.png")} alt={tt("MyYajmaan")} className="h-full w-full object-cover" />
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-100">
-                  Puja Details
+                  {tt("Puja Details")}
                 </p>
                 <h1 className="mt-1 font-serif text-2xl font-semibold">
-                  {puja.title}
+                  {tt(puja.title)}
                 </h1>
                 {isPackagePuja && (
                   <span className="mt-2 inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
-                    Package Puja
+                    {tt("Package Puja")}
                   </span>
                 )}
                 {startingPrice && (
                   <p className="mt-2 text-sm text-amber-100">
-                    Starts at <span className="text-lg font-semibold text-white">{startingPrice}</span>
+                    {tt("Starts at")}{' '}<span className="text-lg font-semibold text-white">{startingPrice}</span>
                   </p>
                 )}
               </div>
@@ -195,18 +196,18 @@ export default function PujaDetailPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-cream p-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Duration
+                  {tt("Duration")}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
-                  {puja.duration_minutes ? `${puja.duration_minutes} mins` : "To be confirmed"}
+                  {puja.duration_minutes ? `${puja.duration_minutes} mins` : tt("To be confirmed")}
                 </p>
               </div>
               <div className="rounded-2xl bg-cream p-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Category
+                  {tt("Category")}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
-                  {puja.category || "General"}
+                  {puja.category || tt("General")}
                 </p>
               </div>
             </div>
@@ -219,14 +220,14 @@ export default function PujaDetailPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab.id ? "bg-maroon text-white" : "bg-amber-50 text-slate-700"}`}
                 >
-                  {tab.label}
+                  {tt(tab.label)}
                 </button>
               ))}
             </div>
 
             <div className="mt-4 rounded-2xl bg-parchment-50 p-4 text-sm text-slate-700">
               {activeTab === "about" && (
-                <p>{puja.description || "Details for this puja will be shared closer to the booking."}</p>
+                <p>{puja.description || tt("Details for this puja will be shared closer to the booking.")}</p>
               )}
               {activeTab === "benefits" && (
                 benefits.length > 0 ? (
@@ -236,37 +237,35 @@ export default function PujaDetailPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p>Benefits for this puja have not been added yet.</p>
+                  <p>{tt("Benefits for this puja have not been added yet.")}</p>
                 )
               )}
             </div>
 
             {isPackagePuja ? (
               <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-slate-700">
-                This is a custom-priced package. There's no payment at this step -- pick your date, address, and
-                tell us your requirements, and our team will call you to confirm the details before sharing a
-                final quote.
+                {tt("This is a custom-priced package. There's no payment at this step -- pick your date, address, and tell us your requirements, and our team will call you to confirm the details before sharing a final quote.")}
               </div>
             ) : (
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {TIERS.map((tier) => (
                   <SelectionCard
                     key={tier.id}
-                    ariaLabel={`Select ${tier.name} for ${puja.title}`}
+                    ariaLabel={tt("Select {name} for {title}", { name: tier.name, title: puja.title })}
                     ariaPressed={selectedTier === tier.id}
                     selected={selectedTier === tier.id}
                     onClick={() => setSelectedTier(tier.id)}
                     className="p-4"
                   >
-                    <p className="text-lg font-semibold text-maroon">{tier.name}</p>
-                    <p className="mt-2 text-sm text-slate-600">{tier.description}</p>
+                    <p className="text-lg font-semibold text-maroon">{tt(tier.name)}</p>
+                    <p className="mt-2 text-sm text-slate-600">{tt(tier.description)}</p>
                     <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-saffron">
-                      {tier.feeNote}
+                      {tt(tier.feeNote)}
                     </p>
                     <span
                       className={`mt-4 inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition ${selectedTier === tier.id ? "bg-maroon text-white" : "bg-amber-50 text-slate-700 group-hover:bg-maroon group-hover:text-white"}`}
                     >
-                      {selectedTier === tier.id ? "Selected" : `Select ${tier.name}`}
+                      {selectedTier === tier.id ? tt("Selected") : tt("Select {name}", { name: tier.name })}
                     </span>
                   </SelectionCard>
                 ))}
@@ -279,13 +278,13 @@ export default function PujaDetailPage() {
                 onClick={goToBooking}
                 className="min-h-[44px] rounded-full bg-saffron px-5 py-2.5 font-semibold text-white"
               >
-                {isPackagePuja ? "Continue request" : "Continue booking"}
+                {isPackagePuja ? tt("Continue request") : tt("Continue booking")}
               </button>
               <Link
                 to="/book"
                 className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700"
               >
-                Back to browse
+                {tt("Back to browse")}
               </Link>
             </div>
           </div>
@@ -296,9 +295,9 @@ export default function PujaDetailPage() {
 
       <StickyActionBar targetRef={actionsRef}>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-maroon">{puja.title}</p>
+          <p className="truncate text-sm font-semibold text-maroon">{tt(puja.title)}</p>
           <p className="text-xs text-slate-500">
-            {startingPrice ? <>Starts at <span className="font-semibold text-slate-800">{startingPrice}</span></> : isPackagePuja ? "Custom quote" : null}
+            {startingPrice ? <>{tt("Starts at")}{' '}<span className="font-semibold text-slate-800">{startingPrice}</span></> : isPackagePuja ? tt("Custom quote") : null}
           </p>
         </div>
         <button
@@ -306,7 +305,7 @@ export default function PujaDetailPage() {
           onClick={goToBooking}
           className="min-h-[44px] shrink-0 rounded-full bg-saffron px-5 text-sm font-semibold text-white"
         >
-          {isPackagePuja ? "Continue request" : "Continue booking"}
+          {isPackagePuja ? tt("Continue request") : tt("Continue booking")}
         </button>
       </StickyActionBar>
     </section>

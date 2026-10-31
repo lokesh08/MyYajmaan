@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { get } from "../api";
+import { t } from "../i18n";
 
 export default function OffersBanner() {
   const [offers, setOffers] = useState([]);
@@ -23,10 +24,10 @@ export default function OffersBanner() {
   if (!offers.length) return null;
 
   return (
-    <section className="mt-8" aria-label="Current offers">
+    <section className="mt-8" aria-label={t("Current offers")}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-serif text-[1.75rem] font-semibold text-maroon">
-          Offers for your next puja
+          {t("Offers for your next puja")}
         </h2>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
@@ -44,10 +45,10 @@ export default function OffersBanner() {
             )}
             <div className="p-4">
               <h3 className="font-serif text-lg font-semibold text-maroon">
-                {offer.title}
+                {t(offer.title)}
               </h3>
               <p className="mt-1 text-sm leading-6 text-slate-600">
-                {offer.description}
+                {t(offer.description)}
               </p>
             </div>
           </article>

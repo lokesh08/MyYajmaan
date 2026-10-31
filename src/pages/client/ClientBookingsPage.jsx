@@ -17,6 +17,7 @@ import { showError, showSuccess } from "../../utils/toaster";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import Modal from "../../components/Modal";
 import BookingDetailModal from "../../components/client/BookingDetailModal";
+import { t as tt } from "../../i18n";
 
 const PACKAGE_STATUS_STYLES = {
   pending_review: "bg-amber-50 text-amber-700",
@@ -41,7 +42,7 @@ function PackageStatusPill({ status }) {
   }
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${PACKAGE_STATUS_STYLES[status] || "bg-amber-50 text-amber-700"}`}>
-      {PACKAGE_STATUS_LABELS[status]}
+      {tt(PACKAGE_STATUS_LABELS[status])}
     </span>
   );
 }
@@ -113,17 +114,17 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
 
   async function handleSave() {
     if (!date || !time) {
-      showError("Please choose a new date and time.");
+      showError(tt("Please choose a new date and time."));
       return;
     }
     setSaving(true);
     try {
       const result = await rescheduleMyBooking(booking.id, date, formatTime12Hour(time));
-      showSuccess(result?.message || "Booking rescheduled successfully.");
+      showSuccess(result?.message || tt("Booking rescheduled successfully."));
       onDone();
       onClose();
     } catch (error) {
-      showError(error?.message || "Could not reschedule this booking.");
+      showError(error?.message || tt("Could not reschedule this booking."));
     } finally {
       setSaving(false);
     }
@@ -132,13 +133,13 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <Modal open={open} onClose={onClose} title="Reschedule Booking" size="sm">
+    <Modal open={open} onClose={onClose} title={tt("Reschedule Booking")} size="sm">
       <div className="space-y-4">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Rescheduling costs Rs. {RESCHEDULE_FEE} (deducted from your wallet). Your Pandit Ji will need to reconfirm the new slot.
+          {tt("Rescheduling costs Rs.")}{' '}{RESCHEDULE_FEE}{' '}{tt("(deducted from your wallet). Your Pandit Ji will need to reconfirm the new slot.")}
         </div>
         <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">New Date</span>
+          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{tt("New Date")}</span>
           <input
             type="date"
             min={today}
@@ -148,7 +149,7 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">New Time</span>
+          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{tt("New Time")}</span>
           <input
             type="time"
             value={time}
@@ -164,7 +165,7 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
           disabled={saving}
           className="interactive-button rounded-full border border-amber-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-amber-50"
         >
-          Cancel
+          {tt("Cancel")}
         </button>
         <button
           type="button"
@@ -172,7 +173,7 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
           disabled={saving}
           className="interactive-button rounded-full bg-maroon px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Confirm Reschedule"}
+          {saving ? tt("Saving...") : tt("Confirm Reschedule")}
         </button>
       </div>
     </Modal>
@@ -213,11 +214,11 @@ function FeedbackModal({ booking, open, onClose, onDone }) {
 
   async function handleSubmit() {
     if (!rating) {
-      showError("Please select a rating.");
+      showError(tt("Please select a rating."));
       return;
     }
     if (!comment.trim()) {
-      showError("Please share a few words about your experience.");
+      showError(tt("Please share a few words about your experience."));
       return;
     }
     setSubmitting(true);
@@ -229,35 +230,35 @@ function FeedbackModal({ booking, open, onClose, onDone }) {
         pujaTitle: booking.notes || undefined,
         photos: files,
       });
-      showSuccess("Thank you! Your feedback has been submitted.");
+      showSuccess(tt("Thank you! Your feedback has been submitted."));
       onDone();
       onClose();
     } catch (error) {
-      showError(error?.message || "Could not submit your feedback.");
+      showError(error?.message || tt("Could not submit your feedback."));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Leave Feedback" size="sm">
+    <Modal open={open} onClose={onClose} title={tt("Leave Feedback")} size="sm">
       <div className="space-y-4">
         <div>
-          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Rating *</span>
+          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{tt("Rating *")}</span>
           <StarPicker value={rating} onChange={setRating} />
         </div>
         <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Your Feedback *</span>
+          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{tt("Your Feedback *")}</span>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
-            placeholder="Share your experience with the Pandit Ji and the puja"
+            placeholder={tt("Share your experience with the Pandit Ji and the puja")}
             className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Photos (optional, up to {MAX_REVIEW_PHOTOS})</span>
+          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{tt("Photos (optional, up to")}{' '}{MAX_REVIEW_PHOTOS})</span>
           <input
             type="file"
             accept="image/*"
@@ -265,13 +266,13 @@ function FeedbackModal({ booking, open, onClose, onDone }) {
             onChange={(e) => {
               const chosen = Array.from(e.target.files || []);
               if (chosen.length > MAX_REVIEW_PHOTOS) {
-                showError(`Please choose at most ${MAX_REVIEW_PHOTOS} photos.`);
+                showError(tt("Please choose at most {MAX_REVIEW_PHOTOS} photos.", { MAX_REVIEW_PHOTOS: MAX_REVIEW_PHOTOS }));
               }
               setFiles(chosen.slice(0, MAX_REVIEW_PHOTOS));
             }}
             className="w-full text-xs text-slate-500 file:mr-3 file:rounded-full file:border-0 file:bg-amber-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-maroon"
           />
-          {files.length > 0 && <p className="mt-1 text-xs text-emerald-600">{files.length} photo(s) selected</p>}
+          {files.length > 0 && <p className="mt-1 text-xs text-emerald-600">{files.length}{' '}{tt("photo(s) selected")}</p>}
         </label>
       </div>
       <div className="mt-6 flex justify-end gap-2">
@@ -281,7 +282,7 @@ function FeedbackModal({ booking, open, onClose, onDone }) {
           disabled={submitting}
           className="interactive-button rounded-full border border-amber-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-amber-50"
         >
-          Cancel
+          {tt("Cancel")}
         </button>
         <button
           type="button"
@@ -289,7 +290,7 @@ function FeedbackModal({ booking, open, onClose, onDone }) {
           disabled={submitting}
           className="interactive-button rounded-full bg-maroon px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Submitting..." : "Submit Feedback"}
+          {submitting ? tt("Submitting...") : tt("Submit Feedback")}
         </button>
       </div>
     </Modal>
@@ -339,7 +340,7 @@ export default function ClientBookingsPage() {
         setTotal(data?.total || 0);
       })
       .catch(() => {
-        if (!silentRef.current) showError("Could not load your bookings.");
+        if (!silentRef.current) showError(tt("Could not load your bookings."));
       })
       .finally(() => {
         setLoading(false);
@@ -353,7 +354,7 @@ export default function ClientBookingsPage() {
     listMyPackageBookings()
       .then((data) => setPackageItems(data?.items || []))
       .catch(() => {
-        if (!silentRef.current) showError("Could not load your package requests.");
+        if (!silentRef.current) showError(tt("Could not load your package requests."));
       })
       .finally(() => {
         setPackageLoading(false);
@@ -366,11 +367,11 @@ export default function ClientBookingsPage() {
     setActionLoading(true);
     try {
       await cancelMyPackageBooking(packageCancelTarget.id);
-      showSuccess("Your request has been cancelled.");
+      showSuccess(tt("Your request has been cancelled."));
       setPackageCancelTarget(null);
       refresh();
     } catch (error) {
-      showError(error?.data?.detail?.message || error?.message || "Could not cancel this request.");
+      showError(error?.data?.detail?.message || error?.message || tt("Could not cancel this request."));
     } finally {
       setActionLoading(false);
     }
@@ -398,12 +399,12 @@ export default function ClientBookingsPage() {
     setActionLoading(true);
     try {
       const result = await cancelMyBooking(cancelTarget.id, cancelReason);
-      showSuccess(result?.message || "Booking cancelled.");
+      showSuccess(result?.message || tt("Booking cancelled."));
       setCancelTarget(null);
       setCancelReason("");
       refresh();
     } catch (error) {
-      showError(error?.message || "Could not cancel this booking.");
+      showError(error?.message || tt("Could not cancel this booking."));
     } finally {
       setActionLoading(false);
     }
@@ -421,7 +422,7 @@ export default function ClientBookingsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-serif text-2xl font-semibold text-maroon">My Bookings</h1>
+      <h1 className="font-serif text-2xl font-semibold text-maroon">{tt("My Bookings")}</h1>
 
       <div className="flex flex-wrap gap-2 rounded-full border border-amber-100 bg-white p-1">
         {TABS.map((item) => (
@@ -433,19 +434,19 @@ export default function ClientBookingsPage() {
               tab === item.key ? "bg-maroon text-white" : "text-slate-600 hover:bg-amber-50"
             }`}
           >
-            {item.label} ({item.key === "package" ? packageItems.length : (counts[item.key] ?? 0)})
+            {tt(item.label)} ({item.key === "package" ? packageItems.length : (counts[item.key] ?? 0)})
           </button>
         ))}
       </div>
 
       {tab === "package" ? (
         packageLoading ? (
-          <p className="py-10 text-center text-sm text-slate-400">Loading your package requests...</p>
+          <p className="py-10 text-center text-sm text-slate-400">{tt("Loading your package requests...")}</p>
         ) : packageItems.length === 0 ? (
           <div className="rounded-2xl border border-amber-100 bg-white p-8 text-center text-sm text-slate-400">
-            No package puja requests yet.{" "}
-            <Link to="/book" title="Browse package pujas" className="font-semibold text-maroon hover:underline">
-              Browse package pujas →
+            {tt("No package puja requests yet.")}{" "}
+            <Link to="/book" title={tt("Browse package pujas")} className="font-semibold text-maroon hover:underline">
+              {tt("Browse package pujas →")}
             </Link>
           </div>
         ) : (
@@ -454,7 +455,7 @@ export default function ClientBookingsPage() {
               <div key={booking.id} className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-slate-700">{booking.puja_title || "Package Puja"}</p>
+                    <p className="font-semibold text-slate-700">{booking.puja_title || tt("Package Puja")}</p>
                     <p className="text-xs text-slate-400">
                       {booking.booking_date} • {booking.muhurat_time_slot}
                     </p>
@@ -464,7 +465,7 @@ export default function ClientBookingsPage() {
 
                 {booking.status === "quoted" && (
                   <p className="mt-2 text-sm text-slate-600">
-                    Quoted amount: <span className="font-semibold text-maroon">Rs. {Number(booking.amount || 0).toFixed(2)}</span>
+                    {tt("Quoted amount:")}{' '}<span className="font-semibold text-maroon">{tt("Rs.")}{' '}{Number(booking.amount || 0).toFixed(2)}</span>
                   </p>
                 )}
                 {booking.cancelled_reason && (
@@ -477,7 +478,7 @@ export default function ClientBookingsPage() {
                       to={`/book/package/payment/${booking.id}`}
                       className="interactive-button rounded-full bg-maroon px-3 py-1.5 text-xs font-semibold text-white hover:bg-maroon"
                     >
-                      Pay Now
+                      {tt("Pay Now")}
                     </Link>
                   )}
                   {(booking.status === "pending_review" || booking.status === "quoted") && (
@@ -486,7 +487,7 @@ export default function ClientBookingsPage() {
                       onClick={() => setPackageCancelTarget(booking)}
                       className="interactive-button rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                     >
-                      Cancel Request
+                      {tt("Cancel Request")}
                     </button>
                   )}
                 </div>
@@ -495,39 +496,39 @@ export default function ClientBookingsPage() {
           </div>
         )
       ) : loading ? (
-        <p className="py-10 text-center text-sm text-slate-400">Loading bookings...</p>
+        <p className="py-10 text-center text-sm text-slate-400">{tt("Loading bookings...")}</p>
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-amber-100 bg-white p-8 text-center text-sm text-slate-400">
-          No {tab} bookings right now.
+          {tt("No {tab} bookings right now.", { tab: tt(tab) })}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-amber-100 bg-white shadow-sm">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-amber-50/60 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-4 py-3">Pandit Ji</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Timeslot</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-4 py-3">{tt("Pandit Ji")}</th>
+                <th className="px-4 py-3">{tt("Date")}</th>
+                <th className="px-4 py-3">{tt("Timeslot")}</th>
+                <th className="px-4 py-3">{tt("Amount")}</th>
+                <th className="px-4 py-3">{tt("Status")}</th>
+                <th className="px-4 py-3 text-right">{tt("Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-amber-50">
               {items.map((booking) => (
                 <tr key={booking.id}>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-700">{booking.pandit_name || "Pandit Ji"}</p>
+                    <p className="font-medium text-slate-700">{booking.pandit_name || tt("Pandit Ji")}</p>
                     <p className="text-xs text-slate-400">{booking.pandit_city || ""}</p>
                   </td>
                   <td className="px-4 py-3">
                     {booking.booking_date || booking.date || "—"}
                     {booking.original_booking_date && (
-                      <p className="text-xs italic text-slate-400">was {booking.original_booking_date}</p>
+                      <p className="text-xs italic text-slate-400">{tt("was {date}", { date: booking.original_booking_date })}</p>
                     )}
                   </td>
                   <td className="px-4 py-3">{booking.muhurat_time_slot || booking.timeslot || "—"}</td>
-                  <td className="px-4 py-3">Rs. {Number(booking.amount || 0).toFixed(2)}</td>
+                  <td className="px-4 py-3">{tt("Rs.")}{' '}{Number(booking.amount || 0).toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <StatusPill status={booking.status} />
                   </td>
@@ -538,7 +539,7 @@ export default function ClientBookingsPage() {
                         onClick={() => setDetailTarget(booking)}
                         className="interactive-button rounded-full border border-amber-200 px-3 py-1.5 text-xs font-semibold text-maroon hover:bg-amber-50"
                       >
-                        Details
+                        {tt("Details")}
                       </button>
                     </div>
                     {tab === "upcoming" && (
@@ -546,11 +547,11 @@ export default function ClientBookingsPage() {
                         <button
                           type="button"
                           disabled={!booking.can_reschedule}
-                          title={!booking.can_reschedule ? "Reschedule is disabled within 6 hours of your puja" : ""}
+                          title={!booking.can_reschedule ? tt("Reschedule is disabled within 6 hours of your puja") : ""}
                           onClick={() => setRescheduleTarget(booking)}
                           className="interactive-button rounded-full border border-amber-200 px-3 py-1.5 text-xs font-semibold text-maroon hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          Reschedule
+                          {tt("Reschedule")}
                         </button>
                         <button
                           type="button"
@@ -558,7 +559,7 @@ export default function ClientBookingsPage() {
                           onClick={() => setCancelTarget(booking)}
                           className="interactive-button rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          Cancel
+                          {tt("Cancel")}
                         </button>
                       </div>
                     )}
@@ -570,27 +571,27 @@ export default function ClientBookingsPage() {
                             onClick={() => setFeedbackTarget(booking)}
                             className="interactive-button rounded-full bg-maroon px-3 py-1.5 text-xs font-semibold text-white hover:bg-maroon"
                           >
-                            Leave Feedback
+                            {tt("Leave Feedback")}
                           </button>
                         )}
-                        {booking.has_review && <span className="self-center text-xs text-emerald-600">Feedback submitted ✓</span>}
+                        {booking.has_review && <span className="self-center text-xs text-emerald-600">{tt("Feedback submitted ✓")}</span>}
                         <a
                           href={getMyBookingInvoiceUrl(booking.id)}
                           target="_blank"
                           rel="noreferrer"
-                          title="Download tax invoice"
+                          title={tt("Download tax invoice")}
                           className="interactive-button rounded-full border border-amber-200 px-3 py-1.5 text-xs font-semibold text-maroon hover:bg-amber-50"
                         >
-                          Download Invoice
+                          {tt("Download Invoice")}
                         </a>
                       </div>
                     )}
                     {tab === "cancelled" && (
                       <div className="mt-2 text-right text-xs text-slate-500">
                         {Number(booking.refund_amount || 0) > 0 ? (
-                          <span className="text-emerald-600">Refunded Rs. {Number(booking.refund_amount).toFixed(2)}</span>
+                          <span className="text-emerald-600">{tt("Refunded Rs.")}{' '}{Number(booking.refund_amount).toFixed(2)}</span>
                         ) : (
-                          <span className="text-rose-500">No refund</span>
+                          <span className="text-rose-500">{tt("No refund")}</span>
                         )}
                         {booking.cancelled_reason && <p className="italic">"{booking.cancelled_reason}"</p>}
                       </div>
@@ -606,7 +607,7 @@ export default function ClientBookingsPage() {
       {total > PAGE_SIZE && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
           <span>
-            Showing {items.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, total)} of {total}
+            {tt("Showing {from}-{to} of {total}", { from: items.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1, to: Math.min(page * PAGE_SIZE, total), total })}
           </span>
           <div className="flex gap-2">
             <button
@@ -615,10 +616,10 @@ export default function ClientBookingsPage() {
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               className="interactive-button rounded-lg border border-amber-200 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Previous
+              {tt("Previous")}
             </button>
             <span className="px-2 py-1.5">
-              Page {page} of {totalPages}
+              {tt("Page {page} of {totalPages}", { page, totalPages })}
             </span>
             <button
               type="button"
@@ -626,7 +627,7 @@ export default function ClientBookingsPage() {
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               className="interactive-button rounded-lg border border-amber-200 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Next
+              {tt("Next")}
             </button>
           </div>
         </div>
@@ -654,15 +655,15 @@ export default function ClientBookingsPage() {
 
       <ConfirmDialog
         open={Boolean(cancelTarget)}
-        title="Cancel Booking"
+        title={tt("Cancel Booking")}
         message={
           cancelPreview
             ? cancelPreview.withinCutoff
-              ? "This booking is within 6 hours of the scheduled puja — the full amount will be forfeited, no refund applies."
-              : `Rs. ${cancelPreview.fee.toFixed(2)} cancellation fee applies. Rs. ${cancelPreview.refund.toFixed(2)} will be refunded to your wallet.`
+              ? tt("This booking is within 6 hours of the scheduled puja — the full amount will be forfeited, no refund applies.")
+              : tt("Rs. {v0} cancellation fee applies. Rs. {v1} will be refunded to your wallet.", { v0: cancelPreview.fee.toFixed(2), v1: cancelPreview.refund.toFixed(2) })
             : ""
         }
-        confirmLabel="Cancel Booking"
+        confirmLabel={tt("Cancel Booking")}
         confirmClassName="bg-rose-600 hover:bg-rose-700"
         loading={actionLoading}
         onConfirm={handleCancelConfirm}
@@ -675,16 +676,16 @@ export default function ClientBookingsPage() {
           value={cancelReason}
           onChange={(e) => setCancelReason(e.target.value)}
           rows={2}
-          placeholder="Reason for cancellation (optional)"
+          placeholder={tt("Reason for cancellation (optional)")}
           className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
         />
       </ConfirmDialog>
 
       <ConfirmDialog
         open={Boolean(packageCancelTarget)}
-        title="Cancel this request?"
-        message="No payment has been made yet, so there's nothing to refund -- this just withdraws your request."
-        confirmLabel="Cancel Request"
+        title={tt("Cancel this request?")}
+        message={tt("No payment has been made yet, so there's nothing to refund -- this just withdraws your request.")}
+        confirmLabel={tt("Cancel Request")}
         confirmClassName="bg-rose-600 hover:bg-rose-700"
         loading={actionLoading}
         onConfirm={handlePackageCancelConfirm}

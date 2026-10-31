@@ -19,6 +19,7 @@ import {
   clearSessionBroadcast,
   subscribeToSessionChanges,
 } from "../utils/sessionBroadcast";
+import { t } from "../i18n";
 
 const AuthContext = createContext(null);
 
@@ -76,7 +77,7 @@ export function AuthProvider({ children }) {
     } catch {
       // Cookies may already be gone; the local state is cleared regardless.
     }
-    showInfo(`You were signed out after ${Math.round(IDLE_LOGOUT_MS / 60000)} minutes of inactivity.`);
+    showInfo(t("You were signed out after {v0} minutes of inactivity.", { v0: Math.round(IDLE_LOGOUT_MS / 60000) }));
     navigate(destination, { replace: true });
   });
 
@@ -118,8 +119,8 @@ export function AuthProvider({ children }) {
 
       showInfo(
         marker
-          ? "You were signed out because another account signed in on this browser."
-          : "You were signed out in another tab.",
+          ? t("You were signed out because another account signed in on this browser.")
+          : t("You were signed out in another tab."),
       );
 
       navigate(destination);
@@ -157,7 +158,7 @@ export function AuthProvider({ children }) {
 
       if (!toastShownRef.current) {
         toastShownRef.current = true;
-        showInfo(event.detail?.message || "Your account is no longer active. Please contact support.");
+        showInfo(event.detail?.message || t("Your account is no longer active. Please contact support."));
         setTimeout(() => {
           toastShownRef.current = false;
         }, 3000);

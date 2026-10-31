@@ -5,6 +5,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import "./BrowsePanditsMap.css";
 import { withAbortGet } from "../api";
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 // Only fields a customer needs to pick a nearby Pandit Ji — no phone,
 // email, bank, or other contact/personal detail is ever included, on
@@ -104,8 +105,8 @@ export default function BrowsePanditsMap() {
       <div className="browse-header">
         <input
           className="search"
-          placeholder="Search by name or location"
-          aria-label="Search pandit by name or location"
+          placeholder={t("Search by name or location")}
+          aria-label={t("Search pandit by name or location")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -115,18 +116,18 @@ export default function BrowsePanditsMap() {
           aria-expanded={showListMobile}
           aria-controls="pandit-list"
         >
-          {showListMobile ? "Hide list" : "Show list"}
+          {showListMobile ? t("Hide list") : t("Show list")}
         </button>
       </div>
 
       {loadError && (
         <div className="load-error-banner" role="alert">
-          Couldn't load Pandit Ji listings right now. Please refresh the page.
+          {t("Couldn't load Pandit Ji listings right now. Please refresh the page.")}
         </div>
       )}
 
       <div className={`browse-body ${showListMobile ? "list-visible" : "list-hidden"}`}>
-        <aside id="pandit-list" className="pane list-pane" aria-label="Pandit list">
+        <aside id="pandit-list" className="pane list-pane" aria-label={t("Pandit list")}>
           <PanditList
             pandits={pandits}
             userLoc={userLoc}
@@ -137,7 +138,7 @@ export default function BrowsePanditsMap() {
           />
         </aside>
 
-        <main className="pane map-pane" aria-label="Map showing pandits">
+        <main className="pane map-pane" aria-label={t("Map showing pandits")}>
           {/* Floating toggle sits on top of the map on mobile for quick access */}
           <button
             className="floating-toggle"
@@ -145,10 +146,10 @@ export default function BrowsePanditsMap() {
             aria-expanded={showListMobile}
             aria-controls="pandit-list"
           >
-            {showListMobile ? "Hide list" : "Show list"}
+            {showListMobile ? t("Hide list") : t("Show list")}
           </button>
 
-          <ErrorBoundary message="Couldn't display the map. Please try again.">
+          <ErrorBoundary message={t("Couldn't display the map. Please try again.")}>
             <PanditMap
               pandits={pandits}
               userLoc={userLoc}

@@ -6,6 +6,7 @@ import SelectionCard from '../components/SelectionCard';
 import { fetchAvailablePandits } from '../services/pandits';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 import { missingStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
+import { t } from "../i18n";
 
 export default function SelectPandit() {
   const { state } = useLocation();
@@ -96,39 +97,39 @@ export default function SelectPandit() {
 
   return (
     <BookingFrame
-      title="Select Pandit Ji"
-      description="Choose a trusted priest for your selected date and time slot."
+      title={t("Select Pandit Ji")}
+      description={t("Choose a trusted priest for your selected date and time slot.")}
       accentImage={puja.image || undefined}
-      asideTitle="Your match summary"
+      asideTitle={t("Your match summary")}
       asideItems={[
-        { label: `Ritual: ${puja.title}` },
-        { label: `Date: ${date}` },
-        { label: `Time: ${slot.time}` },
+        { label: t("Ritual: {value}", { value: puja.title }) },
+        { label: t("Date: {value}", { value: date }) },
+        { label: t("Time: {value}", { value: slot.time }) },
       ]}
     >
       <BookingStepper currentStep={stepNumber('pandit', puja)} />
-      <p className="mt-2 text-sm text-slate-600">Ritual: <strong>{puja.title}</strong></p>
-      <p className="mt-1 text-sm text-slate-600">Selected: <strong>{date}</strong> • <strong>{slot.time}</strong></p>
+      <p className="mt-2 text-sm text-slate-600">{t("Ritual:")}{' '}<strong>{t(puja.title)}</strong></p>
+      <p className="mt-1 text-sm text-slate-600">{t("Selected:")}{' '}<strong>{date}</strong> • <strong>{slot.time}</strong></p>
 
       <div className="mt-6 space-y-4">
-        {loading && <p className="text-sm text-slate-500">Loading available pandits…</p>}
+        {loading && <p className="text-sm text-slate-500">{t("Loading available pandits…")}</p>}
 
         {!loading && error && (
-          <p className="text-sm text-red-600">Failed to load available pandits. Please try again.</p>
+          <p className="text-sm text-red-600">{t("Failed to load available pandits. Please try again.")}</p>
         )}
 
         {!loading && !error && pandits.length === 0 && (
           <p className="text-sm text-slate-500">
             {address?.city
-              ? `No Pandit Ji available in ${address.city} for this date/time. Try a different date, time, or address.`
-              : 'No pandits available for the selected date/time.'}
+              ? t("No Pandit Ji available in {city} for this date/time. Try a different date, time, or address.", { city: address.city })
+              : t("No pandits available for the selected date/time.")}
           </p>
         )}
 
         {!loading && pandits.map((p) => (
           <SelectionCard
             key={p.id}
-            ariaLabel={`Select ${p.name}`}
+            ariaLabel={t("Select {name}", { name: p.name })}
             ariaPressed={selected?.id === p.id}
             selected={selected?.id === p.id}
             onClick={() => setSelected(p)}
@@ -139,7 +140,7 @@ export default function SelectPandit() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-maroon to-saffron text-xl font-semibold text-white">👳</div>
                 <div>
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-sm text-slate-500">{(p.languages || []).join(', ')} • {p.experience} yrs{p.city ? ` • ${p.city}` : ''}</p>
+                  <p className="text-sm text-slate-500">{(p.languages || []).join(', ')} • {p.experience}{' '}{t("yrs")}{p.city ? ` • ${p.city}` : ''}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -148,7 +149,7 @@ export default function SelectPandit() {
                   <p className="text-sm text-amber-500">⭐ {p.rating}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${selected?.id === p.id ? 'bg-maroon text-white shadow-sm' : 'bg-amber-50 text-slate-700 group-hover:bg-maroon group-hover:text-white'}`}>
-                  {selected?.id === p.id ? 'Selected' : 'Select'}
+                  {selected?.id === p.id ? t("Selected") : t("Select")}
                 </span>
               </div>
             </div>
@@ -165,9 +166,9 @@ export default function SelectPandit() {
           }}
           className={`min-h-[44px] rounded-full px-5 py-2 font-semibold text-white shadow-sm ${!selected ? 'bg-gray-300' : 'bg-saffron'}`}
         >
-          Next: Payment
+          {t("Next: Payment")}
         </button>
-        <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border px-5 py-2">Back</button>
+        <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border px-5 py-2">{t("Back")}</button>
       </div>
     </BookingFrame>
   );

@@ -1,4 +1,5 @@
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 export default function BookingFrame({
   title,
@@ -19,14 +20,14 @@ export default function BookingFrame({
             screen. The logo and description return from `sm` up, and the
             summary box from `lg` (side-by-side layout). */}
         <div className="relative min-w-0 overflow-hidden rounded-[1.5rem] bg-maroon p-5 text-white shadow-divine-lg sm:rounded-[2rem] sm:p-6 lg:min-h-[620px]">
-          {accentImage && <img src={accentImage} alt="booking preview" className="absolute inset-0 h-full w-full object-cover opacity-30" />}
+          {accentImage && <img src={accentImage} alt={t("booking preview")} className="absolute inset-0 h-full w-full object-cover opacity-30" />}
           <div className="absolute inset-0 bg-gradient-to-br from-maroon-deep via-maroon/80 to-marigold/70" />
           <div className="relative flex h-full flex-col justify-between gap-6">
             <div>
               <div className="hidden h-12 w-12 overflow-hidden rounded-full border border-white/20 sm:block">
-                <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-100 sm:mt-4 sm:text-sm">Booking Journey</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-100 sm:mt-4 sm:text-sm">{t("Booking Journey")}</p>
               <h1 className="mt-2 max-w-xl font-serif text-2xl font-semibold leading-tight sm:mt-3 sm:text-[2rem]">{title}</h1>
               <p className="mt-3 hidden max-w-md text-sm leading-7 text-amber-50 sm:block">{description}</p>
 
@@ -36,7 +37,7 @@ export default function BookingFrame({
                 <ul aria-label={asideTitle} className="mt-3 flex flex-wrap gap-2 lg:hidden">
                   {asideItems.map((item) => (
                     <li key={item.label} className="break-all rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-amber-50">
-                      {item.label}
+                      {t(item.label)}
                     </li>
                   ))}
                 </ul>
@@ -47,7 +48,7 @@ export default function BookingFrame({
               <p className="font-semibold">{asideTitle}</p>
               <div className="mt-3 space-y-2 text-sm text-amber-50">
                 {asideItems.map((item) => (
-                  <div key={item.label} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2">{item.label}</div>
+                  <div key={item.label} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2">{t(item.label)}</div>
                 ))}
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from './Modal';
 import ReferralShare from './ReferralShare';
+import { t } from "../i18n";
 import './modals.css';
 
 export default function ReferEarnModal({ open, onClose, data }) {
@@ -15,15 +16,15 @@ export default function ReferEarnModal({ open, onClose, data }) {
   const totalEarned = d.totalEarned ?? '—';
 
   return (
-    <Modal open={open} onClose={onClose} title="Refer & Earn" size="lg">
+    <Modal open={open} onClose={onClose} title={t("Refer & Earn")} size="lg">
       <div className="refer-grid">
         <div className="reward-card">
           <div className="reward-amount">{signupReward}</div>
-          <div className="reward-sub">You earn when your friend signs up</div>
+          <div className="reward-sub">{t("You earn when your friend signs up")}</div>
         </div>
         <div className="reward-card">
           <div className="reward-amount">{bookingReward}</div>
-          <div className="reward-sub">You earn when your friend completes first puja booking</div>
+          <div className="reward-sub">{t("You earn when your friend completes first puja booking")}</div>
         </div>
       </div>
 
@@ -31,11 +32,11 @@ export default function ReferEarnModal({ open, onClose, data }) {
 
       <div className="earnings-row">
         <div className="earn-col">
-          <div className="earn-label">Your Earnings</div>
+          <div className="earn-label">{t("Your Earnings")}</div>
           <div className="earn-value">{earnings}</div>
         </div>
         <div className="earn-col">
-          <div className="earn-label">Total Earned</div>
+          <div className="earn-label">{t("Total Earned")}</div>
           <div className="earn-value green">{totalEarned}</div>
         </div>
       </div>

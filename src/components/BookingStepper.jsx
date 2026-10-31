@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 // Order matches utils/bookingSteps.js (the address is chosen first).
 const NORMAL_STEPS = [
   'Puja',
@@ -27,13 +28,13 @@ export default function BookingStepper({ currentStep = 1, steps = NORMAL_STEPS }
           out of view on a phone. */}
       <div className="mb-5 sm:hidden">
         <p className="text-sm font-semibold text-maroon">
-          Step {currentStep} of {steps.length}
-          <span className="font-normal text-slate-500"> · {steps[currentStep - 1]}</span>
+          {t("Step {current} of {total}", { current: currentStep, total: steps.length })}
+          <span className="font-normal text-slate-500"> · {t(steps[currentStep - 1])}</span>
         </p>
         <div
           className="mt-2 flex gap-1"
           role="progressbar"
-          aria-label="Booking progress"
+          aria-label={t("Booking progress")}
           aria-valuemin={1}
           aria-valuemax={steps.length}
           aria-valuenow={currentStep}
@@ -74,7 +75,7 @@ function StepperPills({ currentStep, steps }) {
                   {isComplete ? '✓' : index + 1}
                 </div>
                 <span className={`text-xs font-semibold tracking-wide ${isActive ? 'text-maroon' : isComplete ? 'text-emerald-700' : 'text-slate-600'}`}>
-                  {step}
+                  {t(step)}
                 </span>
               </div>
               {index < steps.length - 1 && <span className="text-[12px] text-slate-400">›</span>}

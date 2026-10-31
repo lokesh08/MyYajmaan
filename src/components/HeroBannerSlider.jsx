@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
+import { t } from "../i18n";
 
 export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // Only download a picture when it is shown or up next -- all four were
+  // fetched at once before (the "lazy" hint doesn't help: every slide
+  // sits on screen, just transparent).
+  const [loaded, setLoaded] = useState(() => new Set([0, 1]));
+
+  useEffect(() => {
+    setLoaded((current) => {
+      const next = (activeIndex + 1) % Math.max(images.length, 1);
+      if (current.has(activeIndex) && current.has(next)) return current;
+      return new Set([...current, activeIndex, next]);
+    });
+  }, [activeIndex, images.length]);
 
   useEffect(() => {
     if (images.length <= 1) return undefined;
@@ -23,7 +36,7 @@ export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
 
   return (
     <div className="absolute inset-0">
-      {images.map((image, index) => (
+      {images.map((image, index) => loaded.has(index) && (
         <div
           key={image}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === activeIndex ? "opacity-100" : "opacity-0"}`}
@@ -60,7 +73,7 @@ export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
             <button
               type="button"
               onClick={goToPrevious}
-              aria-label="Previous banner image"
+              aria-label={t("Previous banner image")}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/25 text-white backdrop-blur-sm transition-colors duration-200 hover:bg-black/40"
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
@@ -70,7 +83,7 @@ export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
             <button
               type="button"
               onClick={goToNext}
-              aria-label="Next banner image"
+              aria-label={t("Next banner image")}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/25 text-white backdrop-blur-sm transition-colors duration-200 hover:bg-black/40"
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
@@ -86,7 +99,7 @@ export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
                 key={image}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                aria-label={`Go to banner image ${index + 1}`}
+                aria-label={t("Go to banner image {v0}", { v0: index + 1 })}
                 aria-current={index === activeIndex}
                 className="group flex h-6 min-w-6 items-center justify-center px-1"
               >

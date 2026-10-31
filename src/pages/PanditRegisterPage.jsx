@@ -8,6 +8,7 @@ import WhyJoinMyYajmaan from "../components/pandit/WhyJoinMyYajmaan";
 import { showError, showSuccess } from "../utils/toaster";
 import { isValidEmail, isValidPhone, sanitizeInput, validate } from "../utils/validation";
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 const initialForm = { firstName: "", lastName: "", phone: "", email: "", state: "", city: "", password: "", confirmPassword: "" };
 
@@ -35,7 +36,7 @@ export default function PanditRegisterPage() {
       return { promise: get("/cities", { signal: request.signal }), controller: request };
     })();
     promise.then((data) => setCities(Array.isArray(data) ? data : [])).catch((error) => {
-      if (!error?.isCanceled && error?.name !== "CanceledError") showError("We could not load the city list.");
+      if (!error?.isCanceled && error?.name !== "CanceledError") showError(t("We could not load the city list."));
     }).finally(() => setLoadingCities(false));
     return () => controller.abort();
   }, []);
@@ -65,8 +66,8 @@ export default function PanditRegisterPage() {
       confirmPassword: { required: true, custom: (value, values) => value === values.password || "Passwords do not match." },
     });
     if (!result.valid) return showError(Object.values(result.errors)[0]);
-    if (!isValidPhone(fields.phone) || !isValidEmail(fields.email)) return showError("Please enter a valid mobile number and email address.");
-    if (!agreedToTerms) return showError("Please agree to the Privacy Policy and Terms and Conditions to continue.");
+    if (!isValidPhone(fields.phone) || !isValidEmail(fields.email)) return showError(t("Please enter a valid mobile number and email address."));
+    if (!agreedToTerms) return showError(t("Please agree to the Privacy Policy and Terms and Conditions to continue."));
 
     setLoading(true);
     try {
@@ -80,7 +81,7 @@ export default function PanditRegisterPage() {
         password: fields.password,
         agreed_to_terms: agreedToTerms,
       }).promise;
-      showSuccess("Pandit registration completed. Please verify your email and mobile number.");
+      showSuccess(t("Pandit registration completed. Please verify your email and mobile number."));
       // One-time email + phone OTP verification comes before the
       // first login. The codes were just sent by the registration call.
       navigate("/verify-otp", {
@@ -94,58 +95,57 @@ export default function PanditRegisterPage() {
 
   return (
     <>
-      <FullScreenLoader open={loading} message="Creating your Pandit Ji account..." />
+      <FullScreenLoader open={loading} message={t("Creating your Pandit Ji account...")} />
 
       <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         <div ref={formCardRef} className="grid overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative overflow-hidden bg-parchment-100 p-6 sm:min-h-[300px] sm:p-9 lg:min-h-[650px]">
             <div className="absolute inset-0 bg-gradient-to-br from-parchment-100 via-parchment-50 to-sand-pale" />
             <div className="relative flex h-full flex-col justify-between">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.25em] text-saffron">Join MyYajmaan</p><h1 className="mt-3 max-w-md font-serif text-3xl font-semibold leading-tight text-maroon sm:text-4xl">Become a Pandit Ji</h1><p className="mt-3 max-w-md text-sm leading-6 text-slate-600">Share your seva with families looking for trusted spiritual guidance.</p></div>
-              <img loading="lazy" decoding="async" src={optimizedImage("/images/panditJoin.png")} alt="Pandit Ji performing puja" className="mx-auto mt-8 hidden h-56 w-full max-w-sm object-contain sm:block lg:h-72" />
+              <div><p className="text-xs font-semibold uppercase tracking-[0.25em] text-saffron">{t("Join MyYajmaan")}</p><h1 className="mt-3 max-w-md font-serif text-3xl font-semibold leading-tight text-maroon sm:text-4xl">{t("Become a Pandit Ji")}</h1><p className="mt-3 max-w-md text-sm leading-6 text-slate-600">{t("Share your seva with families looking for trusted spiritual guidance.")}</p></div>
+              <img loading="lazy" decoding="async" src={optimizedImage("/images/panditJoin.png")} alt={t("Pandit Ji performing puja")} className="mx-auto mt-8 hidden h-56 w-full max-w-sm object-contain sm:block lg:h-72" />
             </div>
           </div>
           <div className="p-6 sm:p-9 lg:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-saffron">Pandit Ji registration</p>
-            <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon">Create your profile</h2>
-            <p className="mt-2 text-sm text-slate-600">Start with your basic details. Admin approval will happen after registration.</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-saffron">{t("Pandit Ji registration")}</p>
+            <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon">{t("Create your profile")}</h2>
+            <p className="mt-2 text-sm text-slate-600">{t("Start with your basic details. Admin approval will happen after registration.")}</p>
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input aria-label="First Name" value={form.firstName} onChange={(event) => handleName("firstName", event)} placeholder="First Name *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
-                <input aria-label="Last Name" value={form.lastName} onChange={(event) => handleName("lastName", event)} placeholder="Last Name *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+                <input aria-label={t("First Name")} value={form.firstName} onChange={(event) => handleName("firstName", event)} placeholder={t("First Name *")} disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+                <input aria-label={t("Last Name")} value={form.lastName} onChange={(event) => handleName("lastName", event)} placeholder={t("Last Name *")} disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
               </div>
               <p className="-mt-2 text-xs text-slate-500">
-                Please enter your name exactly as it appears on your Aadhaar card -- it will be verified later. If
-                you have a middle name, include it with your First Name (e.g. "Ramesh Kumar").
+                {t("Please enter your name exactly as it appears on your Aadhaar card -- it will be verified later. If you have a middle name, include it with your First Name (e.g. \"Ramesh Kumar\").")}
               </p>
-              <input aria-label="Mobile Number" value={form.phone} onChange={handlePhone} placeholder="Mobile Number *" inputMode="tel" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
-              <input aria-label="Email" value={form.email} onChange={(event) => update("email", event.target.value)} type="email" placeholder="Email *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label={t("Mobile Number")} value={form.phone} onChange={handlePhone} placeholder={t("Mobile Number *")} inputMode="tel" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label={t("Email")} value={form.email} onChange={(event) => update("email", event.target.value)} type="email" placeholder={t("Email *")} disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
               <div className="grid gap-4 sm:grid-cols-2">
                 <select
                   value={form.state}
                   onChange={(event) => handleStateChange(event.target.value)}
                   disabled={loading || loadingCities}
-                  title="Select your state"
-                  aria-label="State"
+                  title={t("Select your state")}
+                  aria-label={t("State")}
                   className="w-full rounded-xl border border-amber-100 bg-white px-4 py-3 text-slate-700 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 >
-                  <option value="">{loadingCities ? "Loading states..." : "Select State *"}</option>
+                  <option value="">{loadingCities ? t("Loading states...") : t("Select State *")}</option>
                   {states.map((state) => <option key={state} value={state}>{state}</option>)}
                 </select>
                 <select
                   value={form.city}
                   onChange={(event) => update("city", event.target.value)}
                   disabled={loading || loadingCities || !form.state}
-                  title={form.state ? "Select your city" : "Select a state first"}
-                  aria-label="City"
+                  title={form.state ? t("Select your city") : t("Select a state first")}
+                  aria-label={t("City")}
                   className="w-full rounded-xl border border-amber-100 bg-white px-4 py-3 text-slate-700 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 >
-                  <option value="">{form.state ? "Select City *" : "Select a state first"}</option>
+                  <option value="">{form.state ? t("Select City *") : t("Select a state first")}</option>
                   {citiesForState.map((city) => <option key={city.id} value={city.name}>{city.name}</option>)}
                 </select>
               </div>
-              <input aria-label="Create Password" value={form.password} onChange={(event) => update("password", event.target.value)} type="password" placeholder="Create Password *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
-              <input aria-label="Confirm Password" value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} type="password" placeholder="Confirm Password *" disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label={t("Create Password")} value={form.password} onChange={(event) => update("password", event.target.value)} type="password" placeholder={t("Create Password *")} disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
+              <input aria-label={t("Confirm Password")} value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} type="password" placeholder={t("Confirm Password *")} disabled={loading} className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50" />
 
               <label className="flex items-start gap-2 text-sm text-slate-600">
                 <input
@@ -155,13 +155,13 @@ export default function PanditRegisterPage() {
                   className="mt-0.5 h-4 w-4 rounded border-amber-300 text-maroon focus:ring-amber-200"
                 />
                 <span>
-                  I agree to the{" "}
-                  <Link to="/privacy-policy" title="Read the Privacy Policy" target="_blank" className="font-semibold text-maroon hover:underline">
-                    Privacy Policy
+                  {t("I agree to the")}{" "}
+                  <Link to="/privacy-policy" title={t("Read the Privacy Policy")} target="_blank" className="font-semibold text-maroon hover:underline">
+                    {t("Privacy Policy")}
                   </Link>{" "}
-                  and{" "}
-                  <Link to="/terms-and-conditions" title="Read the Terms and Conditions" target="_blank" className="font-semibold text-maroon hover:underline">
-                    Terms and Conditions
+                  {t("and")}{" "}
+                  <Link to="/terms-and-conditions" title={t("Read the Terms and Conditions")} target="_blank" className="font-semibold text-maroon hover:underline">
+                    {t("Terms and Conditions")}
                   </Link>
                   . *
                 </span>
@@ -170,13 +170,13 @@ export default function PanditRegisterPage() {
               <button
                 type="submit"
                 disabled={loading || loadingCities || !agreedToTerms}
-                title={!agreedToTerms ? "Please agree to the Privacy Policy and Terms and Conditions first" : "Register as a Pandit Ji"}
+                title={!agreedToTerms ? t("Please agree to the Privacy Policy and Terms and Conditions first") : t("Register as a Pandit Ji")}
                 className="interactive-button mt-2 rounded-full bg-saffron px-5 py-3 font-semibold text-white hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Register as Pandit Ji
+                {t("Register as Pandit Ji")}
               </button>
             </form>
-            <p className="mt-5 text-center text-sm text-slate-600">Already registered? <Link to="/pandit/login" title="Go to Pandit Ji login" className="font-semibold text-maroon hover:text-saffron">Pandit Ji login</Link></p>
+            <p className="mt-5 text-center text-sm text-slate-600">{t("Already registered?")}{' '}<Link to="/pandit/login" title={t("Go to Pandit Ji login")} className="font-semibold text-maroon hover:text-saffron">{t("Pandit Ji login")}</Link></p>
           </div>
         </div>
       </section>
@@ -185,14 +185,14 @@ export default function PanditRegisterPage() {
           with buttons back up to the form. */}
       <section className="mx-auto max-w-3xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-10">
         <EarningsCalculatorCard
-          ctaLabel="Register as Pandit Ji ↑"
+          ctaLabel={t("Register as Pandit Ji ↑")}
           onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
         />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-10">
         <WhyJoinMyYajmaan
-          ctaLabel="Register as Pandit Ji ↑"
+          ctaLabel={t("Register as Pandit Ji ↑")}
           onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
         />
       </section>

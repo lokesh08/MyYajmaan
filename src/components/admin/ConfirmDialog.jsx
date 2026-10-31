@@ -1,4 +1,5 @@
 import Modal from "../Modal";
+import { t } from "../../i18n";
 
 /**
  * Small reusable confirm modal for admin actions (approve, enable,
@@ -30,7 +31,7 @@ export default function ConfirmDialog({
             disabled={loading}
             className="interactive-button rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"
@@ -38,7 +39,7 @@ export default function ConfirmDialog({
             disabled={loading}
             className={`interactive-button rounded-full px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${confirmClassName}`}
           >
-            {loading ? "Please wait..." : confirmLabel}
+            {loading ? t("Please wait...") : confirmLabel}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { formatCmsUpdatedAt, useCmsContent } from "../hooks/use-cms-content";
 import { colors } from "../theme/tokens";
+import { t } from "../i18n";
 
 const steps = [
   {
@@ -171,15 +172,15 @@ export default function BookingJourney() {
 
       <div className="relative text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">
-          A simple sacred journey
+          {t("A simple sacred journey")}
         </p>
 
         <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon sm:text-4xl">
-          {content.title}
+          {t(content.title)}
         </h2>
 
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-          {content.description}
+          {t(content.description)}
         </p>
 
         <div className="mx-auto mt-5 flex items-center justify-center gap-3">
@@ -207,11 +208,11 @@ export default function BookingJourney() {
 
             <div className="pr-6 sm:pr-0">
               <h3 className="font-serif text-lg font-semibold text-maroon sm:mt-5 sm:text-xl">
-                {step.title}
+                {t(step.title)}
               </h3>
 
               <p className="mt-1 text-sm leading-6 text-slate-600 sm:mt-2">
-                {step.description}
+                {t(step.description)}
               </p>
             </div>
 
@@ -223,12 +224,12 @@ export default function BookingJourney() {
       <div className="relative mt-8 text-center">
         <Link
           to="/book"
-          title="Start your booking"
+          title={t("Start your booking")}
           className="inline-flex rounded-full bg-maroon px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-maroon hover:shadow-lg"
         >
-          Start your booking
+          {t("Start your booking")}
         </Link>
-        {updatedAt && <p className="mt-3 text-xs text-slate-500">Last updated: {formatCmsUpdatedAt(updatedAt)}</p>}
+        {updatedAt && <p className="mt-3 text-xs text-slate-500">{t("Last updated:")}{' '}{formatCmsUpdatedAt(updatedAt)}</p>}
       </div>
     </section>
   );

@@ -12,6 +12,7 @@ import {
 } from "../../services/messagingApi";
 import { showError, showSuccess } from "../../utils/toaster";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
+import { t } from "../../i18n";
 
 const TABS = [
   { key: "inbox", label: "Inbox" },
@@ -74,7 +75,7 @@ export default function MessagingCenterPage({ portal }) {
     setLoadingFolder(true);
     listSentMessages({ limit: 50 })
       .then((data) => setSentItems(data?.items || []))
-      .catch(() => showError("Could not load Sent messages."))
+      .catch(() => showError(t("Could not load Sent messages.")))
       .finally(() => setLoadingFolder(false));
   }
 
@@ -82,7 +83,7 @@ export default function MessagingCenterPage({ portal }) {
     setLoadingFolder(true);
     listDraftMessages({ limit: 50 })
       .then((data) => setDraftItems(data?.items || []))
-      .catch(() => showError("Could not load Drafts."))
+      .catch(() => showError(t("Could not load Drafts.")))
       .finally(() => setLoadingFolder(false));
   }
 
@@ -160,7 +161,7 @@ export default function MessagingCenterPage({ portal }) {
       setCompose((current) => ({ ...current, resolvedRecipient: recipient }));
     } catch (error) {
       setCompose((current) => ({ ...current, resolvedRecipient: null }));
-      showError(error?.data?.detail?.message || error?.message || "No user found with that email address.");
+      showError(error?.data?.detail?.message || error?.message || t("No user found with that email address."));
     } finally {
       setResolving(false);
     }
@@ -168,15 +169,15 @@ export default function MessagingCenterPage({ portal }) {
 
   function validateBeforeSend() {
     if (!compose.resolvedRecipient || compose.resolvedRecipient.email !== compose.recipientEmail.trim()) {
-      showError("Please find and confirm a recipient first.");
+      showError(t("Please find and confirm a recipient first."));
       return false;
     }
     if (!compose.subject.trim()) {
-      showError("Please enter a subject.");
+      showError(t("Please enter a subject."));
       return false;
     }
     if (!compose.body.trim()) {
-      showError("Please write a message.");
+      showError(t("Please write a message."));
       return false;
     }
     return true;
@@ -201,14 +202,14 @@ export default function MessagingCenterPage({ portal }) {
           saveAsDraft: false,
         });
       }
-      showSuccess("Message sent.");
+      showSuccess(t("Message sent."));
       setComposing(false);
       setCompose(EMPTY_COMPOSE);
       setMobileShowDetail(false);
       if (activeTab === "sent") loadSent();
       if (activeTab === "drafts") loadDrafts();
     } catch (error) {
-      showError(error?.data?.detail?.message || error?.message || "Could not send this message.");
+      showError(error?.data?.detail?.message || error?.message || t("Could not send this message."));
     } finally {
       setSending(false);
     }
@@ -216,7 +217,7 @@ export default function MessagingCenterPage({ portal }) {
 
   async function handleSaveDraft() {
     if (!compose.subject.trim() && !compose.body.trim() && !compose.recipientEmail.trim()) {
-      showError("Nothing to save yet.");
+      showError(t("Nothing to save yet."));
       return;
     }
     setSending(true);
@@ -236,13 +237,13 @@ export default function MessagingCenterPage({ portal }) {
           saveAsDraft: true,
         });
       }
-      showSuccess("Draft saved.");
+      showSuccess(t("Draft saved."));
       setComposing(false);
       setCompose(EMPTY_COMPOSE);
       setMobileShowDetail(false);
       if (activeTab === "drafts") loadDrafts();
     } catch (error) {
-      showError(error?.data?.detail?.message || error?.message || "Could not save this draft.");
+      showError(error?.data?.detail?.message || error?.message || t("Could not save this draft."));
     } finally {
       setSending(false);
     }
@@ -252,7 +253,7 @@ export default function MessagingCenterPage({ portal }) {
     if (!deleteTarget) return;
     try {
       await deleteDraft(deleteTarget.id);
-      showSuccess("Draft deleted.");
+      showSuccess(t("Draft deleted."));
       setDraftItems((current) => current.filter((item) => item.id !== deleteTarget.id));
       if (selected?.kind === "draft" && selected.data.id === deleteTarget.id) {
         setSelected(null);
@@ -260,7 +261,7 @@ export default function MessagingCenterPage({ portal }) {
         setMobileShowDetail(false);
       }
     } catch (error) {
-      showError(error?.message || "Could not delete this draft.");
+      showError(error?.message || t("Could not delete this draft."));
     } finally {
       setDeleteTarget(null);
     }
@@ -273,15 +274,15 @@ export default function MessagingCenterPage({ portal }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-semibold text-maroon">Messaging Center</h1>
-          <p className="text-sm text-slate-500">All your updates and messages, in one place.</p>
+          <h1 className="font-serif text-2xl font-semibold text-maroon">{t("Messaging Center")}</h1>
+          <p className="text-sm text-slate-500">{t("All your updates and messages, in one place.")}</p>
         </div>
         <button
           type="button"
           onClick={startCompose}
           className="interactive-button rounded-full bg-maroon px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-maroon"
         >
-          ✎ Compose
+          {t("✎ Compose")}
         </button>
       </div>
 
@@ -301,7 +302,7 @@ export default function MessagingCenterPage({ portal }) {
                   activeTab === tab.key ? "border-b-2 border-maroon text-maroon" : "text-slate-500 hover:text-maroon"
                 }`}
               >
-                {tab.label}
+                {t(tab.label)}
                 {tab.key === "inbox" && inbox.unreadCount > 0 && (
                   <span className="ml-1.5 rounded-full bg-saffron px-1.5 py-0.5 text-[10px] font-bold text-maroon">{inbox.unreadCount}</span>
                 )}
@@ -310,10 +311,10 @@ export default function MessagingCenterPage({ portal }) {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {listLoading && <p className="py-8 text-center text-sm text-slate-400">Loading...</p>}
+            {listLoading && <p className="py-8 text-center text-sm text-slate-400">{t("Loading...")}</p>}
             {!listLoading && listForTab.length === 0 && (
               <p className="px-4 py-8 text-center text-sm text-slate-400">
-                {activeTab === "inbox" ? "You're all caught up." : activeTab === "sent" ? "No sent messages yet." : "No drafts."}
+                {activeTab === "inbox" ? t("You're all caught up.") : activeTab === "sent" ? t("No sent messages yet.") : t("No drafts.")}
               </p>
             )}
 
@@ -335,7 +336,7 @@ export default function MessagingCenterPage({ portal }) {
                       <span className={`truncate text-sm ${!item.is_read ? "font-bold text-slate-800" : "font-medium text-slate-600"}`}>{item.from_name}</span>
                       {!item.is_read && <span className="h-2 w-2 shrink-0 rounded-full bg-saffron" aria-hidden="true" />}
                     </span>
-                    <span className={`block truncate text-xs ${!item.is_read ? "font-semibold text-slate-700" : "text-slate-500"}`}>{item.title}</span>
+                    <span className={`block truncate text-xs ${!item.is_read ? "font-semibold text-slate-700" : "text-slate-500"}`}>{t(item.title)}</span>
                     <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
                   </span>
                 </button>
@@ -352,7 +353,7 @@ export default function MessagingCenterPage({ portal }) {
                   }`}
                 >
                   <span className="flex w-full items-center justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-slate-700">To: {item.recipient_name || item.recipient_email}</span>
+                    <span className="truncate text-sm font-medium text-slate-700">{t("To:")}{' '}{item.recipient_name || item.recipient_email}</span>
                   </span>
                   <span className="block truncate text-xs text-slate-500">{item.subject}</span>
                   <span className="text-xs text-slate-400">{timeAgo(item.sent_at || item.created_at)}</span>
@@ -369,14 +370,14 @@ export default function MessagingCenterPage({ portal }) {
                 >
                   <button type="button" onClick={() => openDraft(item)} className="min-w-0 flex-1 text-left">
                     <span className="block truncate text-sm font-medium text-slate-700">
-                      To: {item.recipient_name || item.recipient_email || <span className="italic text-slate-400">Not addressed yet</span>}
+                      {t("To:")}{' '}{item.recipient_name || item.recipient_email || <span className="italic text-slate-400">{t("Not addressed yet")}</span>}
                     </span>
-                    <span className="block truncate text-xs text-slate-500">{item.subject || "(No subject)"}</span>
+                    <span className="block truncate text-xs text-slate-500">{item.subject || t("(No subject)")}</span>
                     <span className="text-xs text-slate-400">{timeAgo(item.updated_at || item.created_at)}</span>
                   </button>
                   <button
                     type="button"
-                    title="Delete draft"
+                    title={t("Delete draft")}
                     onClick={() => setDeleteTarget(item)}
                     className="interactive-button shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
                   >
@@ -387,7 +388,7 @@ export default function MessagingCenterPage({ portal }) {
 
             {activeTab === "inbox" && inbox.hasMore && !listLoading && (
               <button type="button" onClick={inbox.loadMore} className="interactive-button w-full py-3 text-center text-xs font-semibold text-maroon hover:bg-amber-50">
-                Load more
+                {t("Load more")}
               </button>
             )}
           </div>
@@ -396,25 +397,25 @@ export default function MessagingCenterPage({ portal }) {
         {/* Detail / compose pane */}
         <div className={`min-w-0 flex-1 flex-col ${mobileShowDetail ? "flex" : "hidden md:flex"}`}>
           <button type="button" onClick={backToList} className="interactive-button flex items-center gap-1.5 border-b border-amber-100 px-4 py-3 text-sm font-semibold text-maroon md:hidden">
-            ← Back
+            {t("← Back")}
           </button>
 
           {!composing && !selected && (
             <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-slate-400">
-              Select a message, or click Compose to write a new one.
+              {t("Select a message, or click Compose to write a new one.")}
             </div>
           )}
 
           {!composing && selected?.kind === "inbox-item" && (
             <div className="flex-1 overflow-y-auto p-5">
-              <h2 className="font-serif text-xl font-semibold text-maroon">{selected.data.title}</h2>
+              <h2 className="font-serif text-xl font-semibold text-maroon">{t(selected.data.title)}</h2>
               <p className="mt-1 text-sm text-slate-500">
-                From: {selected.data.from_name} · {timeAgo(selected.data.created_at)}
+                {t("From:")}{' '}{selected.data.from_name} · {timeAgo(selected.data.created_at)}
               </p>
               <div className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-700">{selected.data.body}</div>
               {selected.data.link && (
                 <a href={selected.data.link} className="mt-4 inline-block text-sm font-semibold text-maroon hover:underline">
-                  View details →
+                  {t("View details →")}
                 </a>
               )}
             </div>
@@ -424,7 +425,7 @@ export default function MessagingCenterPage({ portal }) {
             <div className="flex-1 overflow-y-auto p-5">
               <h2 className="font-serif text-xl font-semibold text-maroon">{selected.data.subject}</h2>
               <p className="mt-1 text-sm text-slate-500">
-                To: {selected.data.recipient_name || selected.data.recipient_email} · {timeAgo(selected.data.sent_at || selected.data.created_at)}
+                {t("To:")}{' '}{selected.data.recipient_name || selected.data.recipient_email} · {timeAgo(selected.data.sent_at || selected.data.created_at)}
               </p>
               <div className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-700">{selected.data.body}</div>
             </div>
@@ -434,12 +435,12 @@ export default function MessagingCenterPage({ portal }) {
             <div className="flex flex-1 flex-col overflow-y-auto p-5">
               <div className="space-y-3">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">To (email address)</span>
+                  <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{t("To (email address)")}</span>
                   <div className="relative flex gap-2">
                     <input
                       value={compose.recipientEmail}
                       onChange={(event) => updateComposeField("recipientEmail", event.target.value)}
-                      placeholder="name@example.com"
+                      placeholder={t("name@example.com")}
                       className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
                     />
                     <button
@@ -448,7 +449,7 @@ export default function MessagingCenterPage({ portal }) {
                       disabled={resolving || !compose.recipientEmail.trim()}
                       className="interactive-button shrink-0 rounded-xl border border-amber-200 px-3 py-2 text-xs font-semibold text-maroon disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {resolving ? "Finding..." : "Find"}
+                      {resolving ? t("Finding...") : t("Find")}
                     </button>
 
                     {suggestions.length > 0 && (
@@ -469,28 +470,28 @@ export default function MessagingCenterPage({ portal }) {
                   </div>
                   {compose.resolvedRecipient && compose.resolvedRecipient.email === compose.recipientEmail.trim() && (
                     <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                      ✓ To: {compose.resolvedRecipient.full_name} ({compose.resolvedRecipient.role_label})
+                      {t("✓ To:")}{' '}{compose.resolvedRecipient.full_name} ({compose.resolvedRecipient.role_label})
                     </span>
                   )}
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Subject</span>
+                  <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{t("Subject")}</span>
                   <input
                     value={compose.subject}
                     onChange={(event) => updateComposeField("subject", event.target.value)}
-                    placeholder="Subject"
+                    placeholder={t("Subject")}
                     className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
                   />
                 </label>
 
                 <label className="block flex-1">
-                  <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Message</span>
+                  <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{t("Message")}</span>
                   <textarea
                     value={compose.body}
                     onChange={(event) => updateComposeField("body", event.target.value)}
                     rows={10}
-                    placeholder="Write your message..."
+                    placeholder={t("Write your message...")}
                     className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
                   />
                 </label>
@@ -503,7 +504,7 @@ export default function MessagingCenterPage({ portal }) {
                   disabled={sending}
                   className="interactive-button rounded-full bg-maroon px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-maroon disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {sending ? "Sending..." : "Send"}
+                  {sending ? t("Sending...") : t("Send")}
                 </button>
                 <button
                   type="button"
@@ -511,7 +512,7 @@ export default function MessagingCenterPage({ portal }) {
                   disabled={sending}
                   className="interactive-button rounded-full border border-amber-200 bg-white px-5 py-2.5 text-sm font-semibold text-maroon hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Save as Draft
+                  {t("Save as Draft")}
                 </button>
                 <button
                   type="button"
@@ -522,7 +523,7 @@ export default function MessagingCenterPage({ portal }) {
                   }}
                   className="interactive-button rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
                 >
-                  Cancel
+                  {t("Cancel")}
                 </button>
               </div>
             </div>
@@ -532,9 +533,9 @@ export default function MessagingCenterPage({ portal }) {
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete draft?"
-        message="This draft will be permanently deleted."
-        confirmLabel="Delete"
+        title={t("Delete draft?")}
+        message={t("This draft will be permanently deleted.")}
+        confirmLabel={t("Delete")}
         confirmClassName="bg-rose-600 hover:bg-rose-700"
         onConfirm={confirmDeleteDraft}
         onClose={() => setDeleteTarget(null)}

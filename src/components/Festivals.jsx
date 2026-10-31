@@ -3,13 +3,14 @@ import { withAbortGet } from "../api";
 import Loader from "./common/Loader";
 import SwipeRow from "./common/SwipeRow";
 import { optimizedImage } from "../utils/image";
+import { getLanguage, t } from "../i18n";
 
 /* FestivalCard unchanged (keeps image/title/date rendering) */
 function formatFestivalDate(f) {
   if (f?.start_date) {
     const d = new Date(f.start_date);
     if (!isNaN(d)) {
-      return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+      return d.toLocaleDateString(getLanguage() === "hi" ? "hi-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" });
     }
   }
   return f?.date || "";
@@ -24,7 +25,7 @@ function FestivalCard({ festival }) {
       </div>
       <div className="flex flex-1 flex-col justify-center px-3 py-3 text-center">
         <p className="text-sm font-semibold text-slate-800">{festival.title || festival.name}</p>
-        <p className="text-sm text-slate-600">{festival.description}</p>
+        <p className="text-sm text-slate-600">{t(festival.description)}</p>
         <p className="text-xs font-semibold text-slate-800">{formatFestivalDate(festival)}</p>
       </div>
     </div>
@@ -50,7 +51,7 @@ export default function Festivals({ limit = 4 }) {
       .catch((err) => {
         if (err?.isCanceled || err?.name === "CanceledError") return;
         console.error("Festivals load error:", err);
-        setError(err?.message || "Failed to load festivals");
+        setError(err?.message || t("Failed to load festivals"));
       })
       .finally(() => setLoading(false));
 
@@ -62,14 +63,14 @@ export default function Festivals({ limit = 4 }) {
   }, [limit]);
 
   if (loading) return <div className="p-4"><Loader variant="card" count={limit} /></div>;
-  if (error) return <div className="p-4 text-center text-sm text-red-500">Error loading festivals: {error}</div>;
-  if (!items || items.length === 0) return <div className="p-4 text-center text-sm text-slate-500">No highlighted festivals right now.</div>;
+  if (error) return <div className="p-4 text-center text-sm text-red-500">{t("Error loading festivals:")}{' '}{error}</div>;
+  if (!items || items.length === 0) return <div className="p-4 text-center text-sm text-slate-500">{t("No highlighted festivals right now.")}</div>;
 
   return (
     <>
       {/* Mobile: swipeable row instead of a tall stacked list */}
       <div className="sm:hidden">
-        <SwipeRow label="Upcoming festivals" itemClassName="w-[70%]">
+        <SwipeRow label={t("Upcoming festivals")} itemClassName="w-[70%]">
           {items.map((festival) => (
             <FestivalCard key={festival.id || festival.title} festival={festival} />
           ))}

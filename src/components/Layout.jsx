@@ -9,6 +9,8 @@ import { ADMIN_BASE_PATH, ADMIN_DASHBOARD_PATH } from "../constants/adminRoutes"
 import Footer from "./Footer";
 import MobileNav from "./MobileNav";
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
+import LanguageToggle from "../i18n/LanguageToggle";
 
 const commonLinks = [
   { label: "Home", to: "/" },
@@ -69,7 +71,7 @@ export default function Layout({ children }) {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-maroon focus:shadow-card"
       >
-        Skip to main content
+        {t("Skip to main content")}
       </a>
       <header className="relative overflow-hidden bg-gradient-to-r from-maroon-night via-maroon-dark to-maroon-night shadow-panel-dark">
         {/* ambient golden light, like diya glow either side of a temple arch */}
@@ -81,23 +83,23 @@ export default function Layout({ children }) {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/70 to-transparent" />
 
         <div className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" title="MyYajmaan home" className="flex items-center gap-3">
+          <Link to="/" title={t("MyYajmaan home")} className="flex items-center gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
               <div className="pointer-events-none absolute inset-0 animate-[spin_16s_linear_infinite] rounded-full border border-dashed border-amber-200/40" />
               <div className="pointer-events-none absolute -inset-1.5 animate-[spin_26s_linear_infinite_reverse] rounded-full border border-amber-200/20" />
 
               <div className="h-11 w-11 overflow-hidden rounded-full shadow-glow-gold">
-                <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
               </div>
             </div>
 
             <div>
               <p className="font-serif text-xl font-semibold text-amber-50">
-                MyYajmaan
+                {t("MyYajmaan")}
               </p>
 
               <p className="text-sm text-amber-200/70">
-                Divine puja booking
+                {t("Divine puja booking")}
               </p>
             </div>
           </Link>
@@ -121,28 +123,30 @@ export default function Layout({ children }) {
                   }`
                 }
               >
-                {item.label}
+                {t(item.label)}
               </NavLink>
             ))}
           </nav>
 
           <div className="ml-4 flex items-center gap-3">
+            {/* EN | हिं -- on phones it is in the ☰ menu instead (no room here). */}
+            <LanguageToggle tone="dark" className="hidden sm:inline-flex" />
             {!isAuthenticated ? (
               <>
                 <Link
                   to="/login"
-                  title="Login to your account"
+                  title={t("Login to your account")}
                   className="interactive-button hidden rounded-full px-4 py-2 text-sm font-medium text-amber-50 hover:bg-white/10 md:inline-block"
                 >
-                  Login
+                  {t("Login")}
                 </Link>
 
                 <Link
                   to="/register"
-                  title="Create a new account"
+                  title={t("Create a new account")}
                   className="interactive-button hidden rounded-full bg-gradient-to-r from-saffron to-sand px-4 py-2 text-sm font-semibold text-maroon shadow-glow-gold-sm hover:shadow-glow-gold-md md:inline-block"
                 >
-                  Register
+                  {t("Register")}
                 </Link>
               </>
             ) : (
@@ -151,11 +155,11 @@ export default function Layout({ children }) {
 
                 <div className="hidden text-right md:block">
                   <p className="text-sm font-semibold text-amber-50">
-                    Hello, {userName}
+                    {t("Hello,")}{' '}{userName}
                   </p>
 
                   <p className="text-xs text-amber-200/70">
-                    {formatRoleLabel(role)}
+                    {t(formatRoleLabel(role))}
                   </p>
                 </div>
 
@@ -165,7 +169,7 @@ export default function Layout({ children }) {
                   onClick={handleLogout}
                   className="interactive-button hidden rounded-full border border-amber-200/40 px-4 py-2 text-sm font-semibold text-amber-50 hover:bg-white/10 md:inline-block"
                 >
-                  Logout
+                  {t("Logout")}
                 </button>
               </div>
             )}
@@ -173,7 +177,7 @@ export default function Layout({ children }) {
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              aria-label="Open menu"
+              aria-label={t("Open menu")}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
               className="flex h-11 w-11 items-center justify-center rounded-full border border-amber-200/40 text-amber-50 hover:bg-white/10 md:hidden"

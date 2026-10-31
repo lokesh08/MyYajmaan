@@ -8,6 +8,7 @@ import SwipeRow from "./common/SwipeRow";
 import { optimizedImage } from "../utils/image";
 import { startBookingDraft } from "../utils/bookingFlowStorage";
 import { BOOKING_START_PATH } from "../utils/bookingSteps";
+import { t } from "../i18n";
 
 const DESKTOP_WINDOW = 4;
 
@@ -34,16 +35,16 @@ function PujaCard({ puja, selectedPandit }) {
         <img loading="lazy" decoding="async" src={optimizedImage(image)} alt={puja.title} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-3 left-3 right-3 text-white">
-          <p className="font-serif text-base font-semibold leading-tight">{puja.title}</p>
+          <p className="font-serif text-base font-semibold leading-tight">{t(puja.title)}</p>
           {puja.duration_minutes ? (
-            <p className="text-xs text-amber-100">{puja.duration_minutes} mins</p>
+            <p className="text-xs text-amber-100">{puja.duration_minutes}{' '}{t("mins")}</p>
           ) : null}
         </div>
       </div>
 
       <div className="flex flex-1 flex-col justify-between p-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">From</span>
+          <span className="text-slate-500">{t("From")}</span>
           <span className="font-semibold text-maroon">
             {puja.base_price ? `₹${puja.base_price}` : "-"}
           </span>
@@ -55,14 +56,14 @@ function PujaCard({ puja, selectedPandit }) {
             onClick={() => navigate(`/book/${puja.id}`)}
             className="interactive-button min-h-[44px] flex-1 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-maroon hover:text-maroon"
           >
-            View
+            {t("View")}
           </button>
           <button
             type="button"
             onClick={handleBook}
             className="interactive-button min-h-[44px] flex-1 rounded-full bg-maroon px-3 py-1.5 text-xs font-semibold text-white hover:bg-maroon"
           >
-            Book
+            {t("Book")}
           </button>
         </div>
       </div>
@@ -158,8 +159,8 @@ export default function PujaSlider({
 
         <div className="flex items-center gap-2">
           {viewAllLink && (
-            <a href={viewAllLink} title="View all pujas" className="text-sm font-semibold text-saffron">
-              View All
+            <a href={viewAllLink} title={t("View all pujas")} className="text-sm font-semibold text-saffron">
+              {t("View All")}
             </a>
           )}
           {canSlide && (
@@ -167,7 +168,7 @@ export default function PujaSlider({
               <button
                 type="button"
                 onClick={() => goTo(activeIndex - 1)}
-                aria-label="Previous puja"
+                aria-label={t("Previous puja")}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-200 bg-white text-maroon transition hover:bg-maroon hover:text-white"
               >
                 ‹
@@ -175,7 +176,7 @@ export default function PujaSlider({
               <button
                 type="button"
                 onClick={() => goTo(activeIndex + 1)}
-                aria-label="Next puja"
+                aria-label={t("Next puja")}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-200 bg-white text-maroon transition hover:bg-maroon hover:text-white"
               >
                 ›
@@ -187,7 +188,7 @@ export default function PujaSlider({
 
       {/* Mobile: swipeable row of every card */}
       <div className="mt-4 sm:hidden">
-        <SwipeRow label={title || "Pujas"}>
+        <SwipeRow label={title || t("Pujas")}>
           {items.map((puja) => (
             <PujaCard key={puja.id} puja={puja} selectedPandit={selectedPandit} />
           ))}
@@ -208,7 +209,7 @@ export default function PujaSlider({
               key={puja.id}
               type="button"
               onClick={() => goTo(index)}
-              aria-label={`Show puja ${index + 1}`}
+              aria-label={t("Show puja {v0}", { v0: index + 1 })}
               className={`h-2.5 rounded-full transition-all duration-300 ${
                 index === activeIndex ? "w-7 bg-saffron" : "w-2.5 bg-amber-200 hover:bg-amber-400"
               }`}

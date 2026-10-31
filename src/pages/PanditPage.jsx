@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { getPanditStatus } from "../services/panditApi";
 import PanditOnboardingWizard from "../components/pandit/onboarding/PanditOnboardingWizard";
 import LockedNotice from "../components/pandit/LockedNotice";
+import { t } from "../i18n";
 
 export default function PanditPage() {
   const [state, setState] = useState({ loading: true, stage: null, rejectionReason: null });
@@ -24,7 +25,7 @@ export default function PanditPage() {
   if (state.loading) {
     return (
       <section className="mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center px-6 py-10 lg:px-8">
-        <p className="text-sm text-slate-500">Loading your Pandit Ji profile...</p>
+        <p className="text-sm text-slate-500">{t("Loading your Pandit Ji profile...")}</p>
       </section>
     );
   }
@@ -36,7 +37,7 @@ export default function PanditPage() {
   if (state.stage === "onboarding") {
     return (
       <section className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
-        <h1 className="mb-6 text-center font-serif text-3xl font-semibold text-maroon">Complete Your Pandit Ji Registration</h1>
+        <h1 className="mb-6 text-center font-serif text-3xl font-semibold text-maroon">{t("Complete Your Pandit Ji Registration")}</h1>
         <PanditOnboardingWizard onCompleted={load} />
       </section>
     );

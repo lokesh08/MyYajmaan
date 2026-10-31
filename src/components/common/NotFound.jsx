@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
 import Seo from "../Seo";
+import { t } from "../../i18n";
 
 export default function NotFound({
   title = "Page not found",
@@ -16,23 +17,23 @@ export default function NotFound({
         </div>
 
         <p className="mt-6 text-sm font-semibold uppercase tracking-[0.2em] text-saffron">
-          Not found
+          {t("Not found")}
         </p>
 
         <h1 className="mt-3 font-serif text-3xl font-semibold text-maroon">
-          {title}
+          {t(title)}
         </h1>
 
         <p className="mt-3 text-slate-600">
-          {message}
+          {t(message)}
         </p>
 
         <Link
           to="/"
-          title="Back to Home"
+          title={t("Back to Home")}
           className="mt-6 inline-flex rounded-full bg-maroon px-6 py-3 font-semibold text-white"
         >
-          Back to Home
+          {t("Back to Home")}
         </Link>
       </div>
     </section>

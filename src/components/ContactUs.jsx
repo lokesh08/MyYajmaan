@@ -6,6 +6,7 @@ import { isValidEmail, isValidPhone, sanitizeInput, validate } from "../utils/va
 import FullScreenLoader from "./common/FullScreenLoader";
 import { useAuth } from "../context/AuthContext";
 import { optimizedImage } from "../utils/image";
+import { t, translateServerText } from "../i18n";
 
 const bannerImage = optimizedImage("/images/banners/banner3.png");
 
@@ -46,7 +47,7 @@ export default function ContactUs() {
       .then((data) => setCaptcha(data))
       .catch((error) => {
         if (!error?.isCanceled && error?.name !== "CanceledError") {
-          showError("We could not load the security check. Please refresh the page.");
+          showError(t("We could not load the security check. Please refresh the page."));
         }
       })
       .finally(() => setLoadingCaptcha(false));
@@ -113,17 +114,17 @@ export default function ContactUs() {
     });
 
     if (!validationResult.valid) {
-      showError(Object.values(validationResult.errors)[0] || "Please check the entered information.");
+      showError(Object.values(validationResult.errors)[0] || t("Please check the entered information."));
       return;
     }
 
     if (!isValidPhone(fields.phone) || !isValidEmail(fields.email)) {
-      showError("Please enter a valid phone number and email address.");
+      showError(t("Please enter a valid phone number and email address."));
       return;
     }
 
     if (!captcha?.token) {
-      showError("The security check is not ready. Please try again.");
+      showError(t("The security check is not ready. Please try again."));
       return;
     }
 
@@ -132,7 +133,7 @@ export default function ContactUs() {
 
     promise
       .then(() => {
-        showSuccess("Thank you. Your message has been sent successfully.");
+        showSuccess(t("Thank you. Your message has been sent successfully."));
         setForm({ firstName: "", lastName: "", phone: "", email: "", message: "" });
         setCaptchaAnswer("");
         loadCaptcha();
@@ -146,12 +147,12 @@ export default function ContactUs() {
 
   return (
     <>
-      <FullScreenLoader open={loading} message="Sending your message..." />
+      <FullScreenLoader open={loading} message={t("Sending your message...")} />
 
       <section className="min-h-screen bg-cream pb-14">
       <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">
         <div className="relative isolate min-h-[330px] overflow-hidden rounded-[2rem] bg-maroon shadow-divine-lg sm:min-h-[360px] lg:min-h-[390px]">
-          <img src={bannerImage} alt="A family receiving personal guidance from a Pandit Ji" className="absolute inset-0 h-full w-full object-cover object-center" />
+          <img src={bannerImage} alt={t("A family receiving personal guidance from a Pandit Ji")} className="absolute inset-0 h-full w-full object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-r from-maroon-deep via-maroon/90 to-marigold-deep/65" />
           <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border border-amber-100/20 bg-saffron/15 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full border border-white/10 bg-rose-200/10 blur-3xl" />
@@ -159,20 +160,20 @@ export default function ContactUs() {
           <div className="relative flex min-h-[330px] flex-col justify-between px-6 py-8 sm:min-h-[360px] sm:px-10 sm:py-10 lg:min-h-[390px] lg:px-16 lg:py-14">
             <div className="flex items-center gap-3 text-amber-100">
               <span className="block h-11 w-11 overflow-hidden rounded-full border border-white/25">
-                <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
               </span>
-              <span className="text-xs font-semibold uppercase tracking-[0.3em]">MyYajmaan support</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em]">{t("MyYajmaan support")}</span>
             </div>
 
             <div className="max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-amber-200">We are here to help</p>
-              <h1 className="mt-3 max-w-xl font-serif text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-5xl">Plan your sacred occasion with us.</h1>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">Ask about a puja, find the right Pandit Ji, or get help with your booking. Our team will get back to you with care.</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-amber-200">{t("We are here to help")}</p>
+              <h1 className="mt-3 max-w-xl font-serif text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-5xl">{t("Plan your sacred occasion with us.")}</h1>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">{t("Ask about a puja, find the right Pandit Ji, or get help with your booking. Our team will get back to you with care.")}</p>
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs font-semibold text-amber-50 sm:gap-3 sm:text-sm">
-              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">Trusted guidance</span>
-              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">Personal support</span>
+              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">{t("Trusted guidance")}</span>
+              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">{t("Personal support")}</span>
             </div>
           </div>
         </div>
@@ -182,30 +183,30 @@ export default function ContactUs() {
             <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-full bg-saffron/10 blur-3xl" />
             <div className="relative">
               <div className="text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">Start a conversation</p>
-                <h2 className="mt-2 font-serif text-2xl font-semibold text-maroon sm:text-3xl">How can we help you?</h2>
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">Fill in your details and tell us what you need. Fields marked with * are required.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">{t("Start a conversation")}</p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold text-maroon sm:text-3xl">{t("How can we help you?")}</h2>
+                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">{t("Fill in your details and tell us what you need. Fields marked with * are required.")}</p>
               </div>
 
               <form onSubmit={handleSubmit} className="mt-7 grid gap-4" noValidate>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <input aria-label="First Name" value={form.firstName} onChange={(event) => handleNameChange("firstName", event)} placeholder="First Name *" autoComplete="given-name" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
-                  <input aria-label="Last Name" value={form.lastName} onChange={(event) => handleNameChange("lastName", event)} placeholder="Last Name *" autoComplete="family-name" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
-                  <input aria-label="Phone" value={form.phone} onChange={handlePhoneChange} placeholder="Phone *" autoComplete="tel" inputMode="tel" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
-                  <input aria-label="Email" value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="Email *" type="email" autoComplete="email" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
+                  <input aria-label={t("First Name")} value={form.firstName} onChange={(event) => handleNameChange("firstName", event)} placeholder={t("First Name *")} autoComplete="given-name" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
+                  <input aria-label={t("Last Name")} value={form.lastName} onChange={(event) => handleNameChange("lastName", event)} placeholder={t("Last Name *")} autoComplete="family-name" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
+                  <input aria-label={t("Phone")} value={form.phone} onChange={handlePhoneChange} placeholder={t("Phone *")} autoComplete="tel" inputMode="tel" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
+                  <input aria-label={t("Email")} value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder={t("Email *")} type="email" autoComplete="email" disabled={loading} className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
                 </div>
 
-                <textarea aria-label="Message" value={form.message} onChange={(event) => updateField("message", event.target.value)} placeholder="Message *" rows={5} disabled={loading} className="min-h-32 resize-y rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
+                <textarea aria-label={t("Message")} value={form.message} onChange={(event) => updateField("message", event.target.value)} placeholder={t("Message *")} rows={5} disabled={loading} className="min-h-32 resize-y rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
 
                 <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
                   <label className="block text-sm font-semibold text-maroon" htmlFor="contact-captcha">
-                    Security check: {loadingCaptcha ? "Loading..." : captcha?.question || "Unavailable"}
+                    {t("Security check:")}{' '}{loadingCaptcha ? t("Loading...") : translateServerText(captcha?.question) || t("Unavailable")}
                   </label>
-                  <input id="contact-captcha" value={captchaAnswer} onChange={(event) => setCaptchaAnswer(event.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" placeholder="Enter answer *" disabled={loading || loadingCaptcha} className="mt-2 w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
+                  <input id="contact-captcha" value={captchaAnswer} onChange={(event) => setCaptchaAnswer(event.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" placeholder={t("Enter answer *")} disabled={loading || loadingCaptcha} className="mt-2 w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100 disabled:opacity-60" />
                 </div>
 
                 <button type="submit" disabled={loading || loadingCaptcha || !captcha} className="interactive-button mx-auto mt-2 inline-flex min-w-36 items-center justify-center rounded-full bg-maroon px-7 py-3 text-sm font-semibold text-white shadow-md hover:bg-maroon disabled:cursor-not-allowed disabled:opacity-60">
-                  Send message
+                  {t("Send message")}
                 </button>
               </form>
             </div>

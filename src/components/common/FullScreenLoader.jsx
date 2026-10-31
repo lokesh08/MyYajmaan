@@ -1,4 +1,5 @@
 import { optimizedImage } from "../../utils/image";
+import { t } from "../../i18n";
 
 export default function FullScreenLoader({
   open,
@@ -12,7 +13,7 @@ export default function FullScreenLoader({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/35 px-6 backdrop-blur-[3px]">
       <div className="w-full max-w-sm rounded-3xl border border-white/60 bg-white/85 p-8 text-center shadow-2xl backdrop-blur-xl">
         <div className="mx-auto h-16 w-16 overflow-hidden rounded-full shadow-lg">
-          <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full animate-pulse object-cover" />
+          <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full animate-pulse object-cover" />
         </div>
 
         <div className="mt-5 flex justify-center gap-2">
@@ -32,7 +33,7 @@ export default function FullScreenLoader({
         </p>
 
         <p className="mt-2 text-sm text-slate-500">
-          Please wait while we securely complete your request.
+          {t("Please wait while we securely complete your request.")}
         </p>
       </div>
     </div>

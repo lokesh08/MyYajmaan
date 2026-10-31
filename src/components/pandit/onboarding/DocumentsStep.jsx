@@ -3,6 +3,7 @@ import { useState } from "react";
 import AadharVerificationCard from "../AadharVerificationCard";
 import { savePanditBankDetails, savePanditDocuments } from "../../../services/panditApi";
 import { showError } from "../../../utils/toaster";
+import { t } from "../../../i18n";
 
 const inputClass =
   "w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100";
@@ -89,7 +90,7 @@ export default function DocumentsStep({ onNext, onBack }) {
 
       onNext();
     } catch (error) {
-      showError(error?.message || "Could not submit your documents.");
+      showError(error?.message || t("Could not submit your documents."));
     } finally {
       setSubmitting(false);
     }
@@ -98,17 +99,17 @@ export default function DocumentsStep({ onNext, onBack }) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="mb-2 text-sm font-semibold text-slate-700">Aadhaar Authentication *</p>
+        <p className="mb-2 text-sm font-semibold text-slate-700">{t("Aadhaar Authentication *")}</p>
         <AadharVerificationCard onVerified={() => setAadharDone(true)} />
       </div>
 
       {aadharDone && (
         <>
           <div>
-            <p className="mb-2 text-sm font-semibold text-slate-700">Passport-size Photo *</p>
+            <p className="mb-2 text-sm font-semibold text-slate-700">{t("Passport-size Photo *")}</p>
             <div className="grid gap-3 sm:grid-cols-3">
               <FileTile
-                label="Passport-size Photo"
+                label={t("Passport-size Photo")}
                 file={photo}
                 preview={photoPreview}
                 onChange={(file) => handleFile(setPhoto, setPhotoPreview, file)}
@@ -118,11 +119,11 @@ export default function DocumentsStep({ onNext, onBack }) {
 
           <div>
             <p className="mb-2 text-sm font-semibold text-slate-700">
-              Bank Account Details <span className="font-normal text-slate-400">(optional for now — required later to receive payments)</span>
+              {t("Bank Account Details")}{' '}<span className="font-normal text-slate-400">{t("(optional for now — required later to receive payments)")}</span>
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className={labelClass}>Account Holder Name</span>
+                <span className={labelClass}>{t("Account Holder Name")}</span>
                 <input
                   value={bankForm.accountHolderName}
                   onChange={(event) => updateBankField("accountHolderName", event.target.value)}
@@ -130,7 +131,7 @@ export default function DocumentsStep({ onNext, onBack }) {
                 />
               </label>
               <label className="block">
-                <span className={labelClass}>Bank Name</span>
+                <span className={labelClass}>{t("Bank Name")}</span>
                 <input
                   value={bankForm.bankName}
                   onChange={(event) => updateBankField("bankName", event.target.value)}
@@ -138,7 +139,7 @@ export default function DocumentsStep({ onNext, onBack }) {
                 />
               </label>
               <label className="block">
-                <span className={labelClass}>Account Number</span>
+                <span className={labelClass}>{t("Account Number")}</span>
                 <input
                   value={bankForm.accountNumber}
                   onChange={(event) => updateBankField("accountNumber", event.target.value)}
@@ -146,7 +147,7 @@ export default function DocumentsStep({ onNext, onBack }) {
                 />
               </label>
               <label className="block">
-                <span className={labelClass}>IFSC Code</span>
+                <span className={labelClass}>{t("IFSC Code")}</span>
                 <input
                   value={bankForm.ifsc}
                   onChange={(event) => updateBankField("ifsc", event.target.value.toUpperCase())}
@@ -154,11 +155,11 @@ export default function DocumentsStep({ onNext, onBack }) {
                 />
               </label>
               <label className="block md:col-span-2">
-                <span className={labelClass}>UPI ID</span>
+                <span className={labelClass}>{t("UPI ID")}</span>
                 <input
                   value={bankForm.upiId}
                   onChange={(event) => updateBankField("upiId", event.target.value)}
-                  placeholder="yourname@upi"
+                  placeholder={t("yourname@upi")}
                   className={inputClass}
                 />
               </label>
@@ -173,16 +174,16 @@ export default function DocumentsStep({ onNext, onBack }) {
           onClick={onBack}
           className="interactive-button rounded-full border border-amber-200 px-6 py-2.5 text-sm font-semibold text-slate-600 hover:bg-amber-50"
         >
-          Back
+          {t("Back")}
         </button>
         <button
           type="button"
           onClick={handleSubmit}
           disabled={submitting || !aadharDone}
-          title={!aadharDone ? "Please complete Aadhaar authentication first" : "Submit registration"}
+          title={!aadharDone ? t("Please complete Aadhaar authentication first") : t("Submit registration")}
           className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Submitting..." : "Submit Registration"}
+          {submitting ? t("Submitting...") : t("Submit Registration")}
         </button>
       </div>
     </div>

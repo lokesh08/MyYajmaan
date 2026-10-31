@@ -13,6 +13,7 @@ import { breadcrumbSchema, panditSchema } from "../seo/structuredData";
 import NotFound from "../components/common/NotFound";
 import { panditPlaceholderImage } from "../constants/visualAssets";
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 export default function PanditDetailPage() {
   const { id } = useParams();
@@ -66,8 +67,8 @@ export default function PanditDetailPage() {
   if (notFound || !pandit) {
     return (
       <NotFound
-        title="Pandit not found"
-        message="The pandit profile you are looking for does not exist or is no longer available."
+        title={t("Pandit not found")}
+        message={t("The pandit profile you are looking for does not exist or is no longer available.")}
       />
     );
   }
@@ -120,12 +121,12 @@ export default function PanditDetailPage() {
           <div className="bg-gradient-to-br from-maroon via-maroon to-saffron p-6 text-white">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-full border border-white/25">
-                <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
               </div>
 
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-100">
-                  Pandit Profile
+                  {t("Pandit Profile")}
                 </p>
 
                 <h1 className="mt-1 font-serif text-2xl font-semibold">
@@ -149,7 +150,7 @@ export default function PanditDetailPage() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-saffron">
-                  {pandit.rating_avg ? `${pandit.rating_avg} ★ rated` : "New on MyYajmaan"}
+                  {pandit.rating_avg ? t("{rating_avg} ★ rated", { rating_avg: pandit.rating_avg }) : t("New on MyYajmaan")}
                 </p>
 
                 {pandit.city && (
@@ -159,7 +160,7 @@ export default function PanditDetailPage() {
 
               {pandit.starting_price ? (
                 <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 px-4 py-2 text-right ring-1 ring-amber-200/70">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Starts from</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Starts from")}</p>
                   <p className="font-serif text-xl font-bold text-maroon">₹{pandit.starting_price}</p>
                 </div>
               ) : null}
@@ -176,7 +177,7 @@ export default function PanditDetailPage() {
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-amber-100 bg-cream/60 px-2 py-2.5 text-center">
                   <p className="text-lg leading-none">{item.icon}</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-600">{item.label}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-600">{t(item.label)}</p>
                 </div>
               ))}
             </div>
@@ -185,7 +186,7 @@ export default function PanditDetailPage() {
               {languages?.length > 0 && (
                 <div className="rounded-2xl bg-cream p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Languages
+                    {t("Languages")}
                   </p>
 
                   <p className="mt-2 font-medium text-slate-800">
@@ -196,7 +197,7 @@ export default function PanditDetailPage() {
 
               <div className="rounded-2xl bg-cream p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Experience
+                  {t("Experience")}
                 </p>
 
                 <p className="mt-2 font-medium text-slate-800">
@@ -207,7 +208,7 @@ export default function PanditDetailPage() {
               {specialities.length > 0 && (
                 <div className="rounded-2xl bg-cream p-4 sm:col-span-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Specialities
+                    {t("Specialities")}
                   </p>
 
                   <p className="mt-2 font-medium text-slate-800">
@@ -219,7 +220,7 @@ export default function PanditDetailPage() {
               {pandit.about || pandit.bio ? (
                 <div className="rounded-2xl bg-cream p-4 sm:col-span-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    About
+                    {t("About")}
                   </p>
 
                   <p className="mt-2 font-medium text-slate-800">
@@ -232,19 +233,19 @@ export default function PanditDetailPage() {
             <div ref={actionsRef} className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
-                aria-label={`Select ${name} for your puja booking`}
+                aria-label={t("Select {name} for your puja booking", { name: name })}
                 onClick={selectThisPandit}
                 className="min-h-[44px] rounded-full bg-maroon px-5 py-2.5 font-semibold text-white shadow-sm"
               >
-                Select this pandit
+                {t("Select this pandit")}
               </button>
 
               <Link
                 to="/"
-                title="Back to Home"
+                title={t("Back to Home")}
                 className="rounded-full border border-amber-200 bg-white px-5 py-2.5 font-semibold text-slate-700"
               >
-                Back to Home
+                {t("Back to Home")}
               </Link>
             </div>
           </div>
@@ -253,9 +254,9 @@ export default function PanditDetailPage() {
 
       <div ref={pujasRef} className="mt-8 scroll-mt-24">
         <PujaSlider
-          title={`Pujas by ${name}`}
+          title={t("Pujas by {name}", { name: name })}
           fetchUrl={`/pandits/${id}/pujas`}
-          emptyMessage="This Pandit Ji hasn't been assigned any pujas yet."
+          emptyMessage={t("This Pandit Ji hasn't been assigned any pujas yet.")}
           selectedPandit={pandit}
           limit={8}
         />
@@ -267,11 +268,11 @@ export default function PanditDetailPage() {
         <p className="min-w-0 truncate text-sm font-semibold text-maroon">{name}</p>
         <button
           type="button"
-          aria-label={`Select ${name} for your puja booking`}
+          aria-label={t("Select {name} for your puja booking", { name: name })}
           onClick={selectThisPandit}
           className="min-h-[44px] shrink-0 rounded-full bg-maroon px-5 text-sm font-semibold text-white"
         >
-          Select this pandit
+          {t("Select this pandit")}
         </button>
       </StickyActionBar>
     </section>

@@ -106,3 +106,10 @@ body {
   }
 }
 
+
+/* Hindi: Devanagari letters join up, so wide letter-spacing (used on the
+   small uppercase eyebrow labels) splits words apart. LanguageProvider
+   sets <html lang="hi">. */
+html[lang="hi"] [class*="tracking-"] {
+  letter-spacing: normal;
+}
