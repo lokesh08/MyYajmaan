@@ -3,13 +3,11 @@ import { Link } from "react-router-dom";
 import MandalaMotif from "./common/MandalaMotif";
 import { optimizedImage } from "../utils/image";
 import { get } from "../api";
+import { SOCIAL_ICONS } from "../constants/socialIcons";
 
 const mainLinks = [
   { label: "Home", to: "/" },
   { label: "Book a Puja", to: "/book" },
-  // Temporarily disabled per request -- not needed right now. Uncomment
-  // to bring it back.
-  // { label: "Browse Pandits", to: "/browse-pandits" },
   { label: "Contact Us", to: "/contact-us" },
   { label: "Help Center", to: "/help-center" },
   { label: "Privacy Policy", to: "/privacy-policy" },
@@ -28,13 +26,13 @@ const mainLinks = [
 // admin fills in a given platform's URL, it stays "#" so the icon
 // shows but doesn't link anywhere broken.
 const socialLinksBase = [
-  { label: "Instagram", icon: "/images/social-icons/instagram.webp", key: "instagram" },
-  { label: "Facebook", icon: "/images/social-icons/facebook.webp", key: "facebook" },
-  { label: "WhatsApp", icon: "/images/social-icons/whatsapp.webp", key: "whatsapp" },
-  { label: "X (Twitter)", icon: "/images/social-icons/x-twitter.webp", key: "x_twitter" },
-  { label: "LinkedIn", icon: "/images/social-icons/linkedin.webp", key: "linkedin" },
-  { label: "YouTube", icon: "/images/social-icons/youtube.webp", key: "youtube" },
-  { label: "Threads", icon: "/images/social-icons/threads.webp", key: "threads" },
+  { label: "Instagram", icon: SOCIAL_ICONS.instagram, key: "instagram" },
+  { label: "Facebook", icon: SOCIAL_ICONS.facebook, key: "facebook" },
+  { label: "WhatsApp", icon: SOCIAL_ICONS.whatsapp, key: "whatsapp" },
+  { label: "X (Twitter)", icon: SOCIAL_ICONS.x_twitter, key: "x_twitter" },
+  { label: "LinkedIn", icon: SOCIAL_ICONS.linkedin, key: "linkedin" },
+  { label: "YouTube", icon: SOCIAL_ICONS.youtube, key: "youtube" },
+  { label: "Threads", icon: SOCIAL_ICONS.threads, key: "threads" },
 ];
 
 export default function Footer() {

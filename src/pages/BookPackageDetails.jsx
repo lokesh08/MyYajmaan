@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import BookingStepper, { PACKAGE_STEPS } from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import ThemeNotice from '../components/ThemeNotice';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+import { missingStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
 import { createPackageBooking } from '../services/packageBookingsApi';
 import { showError } from '../utils/toaster';
 
@@ -12,19 +13,16 @@ export default function BookPackageDetails() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const draft = getBookingDraft();
-  const preserved = state?.date ? state : draft;
+  const preserved = resolveBookingData(state, draft);
 
-  const { date, slot, puja, address } = preserved || {};
+  const { date, slot, puja, address } = preserved;
   const [eventDetails, setEventDetails] = useState('');
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (!date || !slot || !address || puja?.pujaType !== 'package') {
-    return (
-      <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">Incomplete request data. Go back and complete earlier steps.</p>
-      </section>
-    );
+  const missingPath = missingStepPath('packageDetails', preserved);
+  if (missingPath) {
+    return <Navigate to={missingPath} replace state={puja ? { puja } : undefined} />;
   }
 
   async function handleSubmit() {
@@ -69,7 +67,7 @@ export default function BookPackageDetails() {
         { label: `Address: ${address?.city || ''}` },
       ]}
     >
-      <BookingStepper currentStep={4} steps={PACKAGE_STEPS} />
+      <BookingStepper currentStep={stepNumber('packageDetails', puja)} steps={PACKAGE_STEPS} />
 
       <div className="mt-6">
         <label className="block text-sm font-medium text-slate-700" htmlFor="event-details">

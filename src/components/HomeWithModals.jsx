@@ -26,6 +26,8 @@ export default function HomeWithModals() {
   const [referralData, setReferralData] = useState(null);
   const [muhrat, setMuhrat] = useState(null);
   const [countdown, setCountdown] = useState(null);
+  // Admin-configured referral amounts (public); fallbacks until loaded.
+  const [rewards, setRewards] = useState({ signupReward: "₹25", bookingReward: "₹51" });
 
   // keep refs to controllers so we can abort on unmount
   const muhratControllerRef = useRef(null);
@@ -41,6 +43,25 @@ export default function HomeWithModals() {
         setMuhrat({ active: false });
       });
   }
+
+  useEffect(() => {
+    const { promise, controller } = withAbortGet("/referral/rewards");
+    promise
+      .then((data) => {
+        setRewards((current) => ({
+          signupReward: data?.signupReward && data.signupReward !== "—" ? data.signupReward : current.signupReward,
+          bookingReward: data?.bookingReward && data.bookingReward !== "—" ? data.bookingReward : current.bookingReward,
+        }));
+      })
+      .catch(() => {});
+    return () => {
+      try {
+        controller?.abort();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, []);
 
   useEffect(() => {
     loadMuhrat();
@@ -144,21 +165,44 @@ export default function HomeWithModals() {
         )}
       </div>
 
-      <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
-          Refer & Earn
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          Invite friends and earn ₹51 for every successful booking.
-        </p>
-        <button
-          type="button"
-          aria-label="Refer and earn rewards"
-          className="interactive-button mt-3 min-h-[44px] rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-maroon"
-          onClick={handleReferNow}
-        >
-          Refer Now
-        </button>
+      {/* Refer & Earn is a headline feature, so this card stands out from
+          its two neighbours: brand gradient, gold CTA, both rewards. */}
+      <div className="relative overflow-hidden rounded-[1rem] bg-gradient-to-br from-maroon-deep via-maroon to-marigold p-4 text-white shadow-lg ring-1 ring-gold/50">
+        <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-gold/25 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-12 -left-6 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
+        <span aria-hidden="true" className="pointer-events-none absolute right-3 top-2 text-5xl opacity-90 drop-shadow-lg">
+          🎁
+        </span>
+
+        <div className="relative">
+          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-gold">
+            Refer & Earn
+            <span className="rounded-full bg-gold px-2 py-0.5 text-[11px] font-bold tracking-normal text-maroon-dark">BONUS</span>
+          </p>
+          <p className="mt-1 pr-14 font-serif text-xl font-semibold leading-snug">Invite friends, earn wallet cash</p>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
+              <p className="text-lg font-bold text-gold">{rewards.signupReward}</p>
+              <p className="text-xs leading-4 text-amber-50">when your friend signs up</p>
+            </div>
+            <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
+              <p className="text-lg font-bold text-gold">{rewards.bookingReward}</p>
+              <p className="text-xs leading-4 text-amber-50">on their first puja booking</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Refer and earn rewards"
+            className="interactive-button mt-3 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gold to-sand px-4 py-2 text-sm font-bold text-maroon-dark shadow-md transition hover:shadow-lg"
+            onClick={handleReferNow}
+          >
+            Refer Now & Earn
+            <span aria-hidden="true">→</span>
+          </button>
+          <p className="mt-2 text-center text-xs text-amber-100/90">Share your link · Friend joins · You both earn</p>
+        </div>
       </div>
 
       <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">

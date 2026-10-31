@@ -389,6 +389,24 @@ async def mark_booking_completed(
             metadata={"booking_id": booking_id},
         )
 
+    # The Pandit Ji fee is not credited automatically -- admin releases it
+    # from Wallet → Pandit Ji Earnings. Best-effort heads-up.
+    try:
+        pandit_name = pandit.get("display_name") or pandit.get("name") or "A Pandit Ji"
+        fee = float(booking.get("pandit_fee_amount") or 0)
+        admins_resp = client.table("users").select("id").eq("role", "admin").execute()
+        for admin_row in getattr(admins_resp, "data", None) or []:
+            await notify_user(
+                user_id=admin_row["id"],
+                type="PANDIT_EARNING_PENDING",
+                title="Puja completed — Pandit Ji fee to release",
+                message=f"{pandit_name} marked a puja as completed. Fee of Rs. {fee:.2f} is waiting to be released to their wallet.",
+                link="/admin/wallet?tab=earnings",
+                metadata={"booking_id": booking_id},
+            )
+    except Exception:
+        logger.exception("Could not notify admins about completed booking %s", booking_id)
+
     # Generate both invoices now rather than waiting for the first
     # download -- best-effort, must never block the completion itself
     # that already succeeded. See invoicing.py for what each contains.

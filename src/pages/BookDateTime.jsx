@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { get } from '../api';
-import BookingStepper from '../components/BookingStepper';
+import BookingStepper, { PACKAGE_STEPS } from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import { getAvailability } from '../services/availability';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+import { isPackagePuja, missingStepPath, nextStepLabel, nextStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
 
 const DEFAULT_MIN_LEAD_HOURS = 6;
 
@@ -25,9 +26,15 @@ function parseSlotDateTime(dateStr, timeStr) {
 
 export default function BookDateTime() {
   const { state } = useLocation();
+  // Step 3: comes after the address (router state from the address
+  // step, or the saved draft after a refresh / login trip).
   const draft = getBookingDraft();
-  const preserved = state?.puja ? state : draft;
-  const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
+  const preserved = resolveBookingData(state, draft);
+  const puja = preserved.puja;
+  const address = preserved.address;
+  // Opened directly / old bookmark without an address yet -> send the
+  // user to the earliest step still missing (see bookingSteps.js).
+  const missingPath = missingStepPath('datetime', preserved);
 
   const [date, setDate] = useState(() => preserved?.date || new Date().toISOString().slice(0, 10));
   const [availability, setAvailability] = useState(null);
@@ -58,6 +65,7 @@ export default function BookDateTime() {
   }, []);
 
   useEffect(() => {
+    if (missingPath) return undefined;
     const controller = new AbortController();
     let mounted = true;
 
@@ -104,11 +112,16 @@ export default function BookDateTime() {
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, puja.id]);
+  }, [date, puja?.id]);
 
   useEffect(() => {
+    if (missingPath) return;
     saveBookingDraft({ puja, date, slot: selectedSlot });
-  }, [puja, date, selectedSlot]);
+  }, [puja, date, selectedSlot, missingPath]);
+
+  if (missingPath) {
+    return <Navigate to={missingPath} replace state={puja ? { puja } : undefined} />;
+  }
 
   function isPast(selectedDate) {
     const today = new Date();
@@ -124,11 +137,11 @@ export default function BookDateTime() {
       asideTitle="Puja summary"
       asideItems={[
         { label: `Ritual: ${puja.title}` },
-        { label: 'Verified priest availability' },
+        { label: `Address: ${address?.city || ''}` },
         { label: 'Shubh muhurat friendly slots' },
       ]}
     >
-      <BookingStepper currentStep={2} />
+      <BookingStepper currentStep={stepNumber('datetime', puja)} steps={isPackagePuja(puja) ? PACKAGE_STEPS : undefined} />
       <p className="mt-2 text-sm text-slate-600">Selected ritual: <strong>{puja.title}</strong></p>
 
       <div className="mt-6">
@@ -192,12 +205,12 @@ export default function BookDateTime() {
           <button
             disabled={!selectedSlot || isPast(date)}
             onClick={() => {
-              saveBookingDraft({ puja, date, slot: selectedSlot });
-              navigate('/book/address', { state: { date, slot: selectedSlot, puja } });
+              saveBookingDraft({ puja, address, date, slot: selectedSlot });
+              navigate(nextStepPath('datetime', puja), { state: { puja, address, date, slot: selectedSlot } });
             }}
             className={`min-h-[44px] rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
           >
-            Next: Address
+            {nextStepLabel('datetime', puja)}
           </button>
           <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">Back</button>
         </div>

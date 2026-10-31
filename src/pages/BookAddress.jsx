@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import BookingStepper, { PACKAGE_STEPS } from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import Modal from '../components/Modal';
 import ThemeDialog from '../components/ThemeDialog';
 import ThemeNotice from '../components/ThemeNotice';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+import { BOOKING_PATHS, isPackagePuja, nextStepLabel, nextStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
 import { useAuth } from '../context/AuthContext';
 import { addMyAddress, listCities, listMyAddresses } from '../services/clientApi';
 import { showError, showSuccess } from '../utils/toaster';
@@ -16,8 +17,10 @@ export default function BookAddress() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  // Step 2 of the wizard (right after choosing the puja): router state
+  // from the puja page, or the saved draft after a refresh / login trip.
   const draft = getBookingDraft();
-  const preserved = state?.date ? state : draft;
+  const preserved = resolveBookingData(state, draft);
 
   const [contact, setContact] = useState(() => ({
     name: preserved?.address?.name || profile?.full_name || '',
@@ -80,12 +83,15 @@ export default function BookAddress() {
     [cities, newAddress.state],
   );
 
-  const { date, slot, puja, pandit } = preserved || {};
+  const { puja } = preserved;
 
-  if (!date || !slot) {
+  if (!puja?.id) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">Incomplete booking data. Please complete the earlier steps first.</p>
+        <p className="text-slate-600">Please choose a puja first to start your booking.</p>
+        <Link to={BOOKING_PATHS.choosePuja} className="mt-4 inline-flex min-h-[44px] items-center rounded-full bg-saffron px-5 py-2 font-semibold text-white">
+          Choose a Puja
+        </Link>
       </section>
     );
   }
@@ -153,17 +159,11 @@ export default function BookAddress() {
       bookingAddress = { ...contact, note, ...fallbackForm };
     }
 
-    saveBookingDraft({ date, slot, puja, pandit, address: bookingAddress });
-
-    if (puja?.pujaType === 'package') {
-      navigate('/book/package/details', {
-        state: { date, slot, puja, address: bookingAddress },
-      });
-      return;
-    }
-
-    navigate('/book/select-pandit', {
-      state: { date, slot, puja, address: bookingAddress },
+    // Merged into the draft, so a date/slot picked earlier (user came
+    // Back to change the address) is kept for the next step.
+    saveBookingDraft({ puja, address: bookingAddress });
+    navigate(nextStepPath('address', puja), {
+      state: { puja, address: bookingAddress },
     });
   }
 
@@ -175,11 +175,11 @@ export default function BookAddress() {
       asideTitle="Service summary"
       asideItems={[
         { label: `Ritual: ${puja?.title || 'Selected puja'}` },
-        { label: `Date: ${date}` },
-        { label: `Time: ${slot?.time || ''}` },
+        ...(puja?.packageName ? [{ label: `Package: ${puja.packageName}` }] : []),
+        { label: 'Next: pick a date & time' },
       ]}
     >
-      <BookingStepper currentStep={3} steps={puja?.pujaType === 'package' ? PACKAGE_STEPS : undefined} />
+      <BookingStepper currentStep={stepNumber('address', puja)} steps={isPackagePuja(puja) ? PACKAGE_STEPS : undefined} />
       <p className="mt-2 text-sm text-slate-600">Ritual: <strong>{puja?.title || 'Selected puja'}</strong></p>
 
       <div className="mt-6">
@@ -264,7 +264,7 @@ export default function BookAddress() {
 
         <div className="mt-6 flex gap-3">
           <button onClick={handleNext} className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500">
-            {puja?.pujaType === 'package' ? 'Next: Requirements' : 'Next: Select Pandit'}
+            {nextStepLabel('address', puja)}
           </button>
           <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
         </div>

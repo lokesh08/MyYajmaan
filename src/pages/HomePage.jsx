@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { pujaImages, bannerImages } from "../constants/visualAssets";
+import { bannerImages } from "../constants/visualAssets";
 import { clearBookingDraft } from "../utils/bookingFlowStorage";
 import HeroBannerSlider from "../components/HeroBannerSlider";
 import HomeWithModals from "../components/HomeWithModals";
@@ -11,77 +11,98 @@ import OffersBanner from "../components/OffersBanner";
 import CouponsShowcase from "../components/CouponsShowcase";
 import Testimonials from "../components/Testimonials";
 import PanditJoinBanner from "../components/PanditJoinBanner";
+import { useAuth } from "../context/AuthContext";
+import { showInfo } from "../utils/toaster";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  // Pandit Ji registration is for a new, separate account: someone
+  // already logged in would just be bounced back to their dashboard.
+  const handleBecomePandit = (event) => {
+    if (profile) {
+      event.preventDefault();
+      showInfo("Please log out first to register as a Pandit Ji with a separate account.");
+    }
+  };
 
   const handleViewPandit = (pandit) => {
     navigate(`/pandit/${pandit.id}`);
   };
 
+  // A booking needs a real puja first: open the Pandit Ji's page, which
+  // lists the pujas they perform (it used to start the wizard with a
+  // made-up "Ganesh Puja", id 1, that isn't in the catalogue).
   const handleSelectPandit = (pandit) => {
-    navigate("/book/datetime", {
-      state: {
-        puja: { id: 1, title: "Ganesh Puja", image: pujaImages.ganesh },
-        selectedPandit: pandit,
-      },
-    });
+    navigate(`/pandit/${pandit.id}`, { state: { scrollToPujas: true } });
   };
 
   return (
     <section className="mx-auto max-w-[1320px] px-4 py-5 sm:px-6 lg:px-8">
       <div className="overflow-hidden rounded-[2.2rem] border border-amber-200 bg-white shadow-card-lg">
-        <div className="relative min-h-[440px] overflow-hidden bg-maroon">
-          <HeroBannerSlider
-            images={[
-              bannerImages.banner1,
-              bannerImages.banner2,
-              bannerImages.banner3,
-              bannerImages.banner4,
-            ]}
-          />
+        <div className="relative min-h-[360px] overflow-hidden bg-maroon md:min-h-[440px]">
+          {/* The banner fills the hero behind the text on every screen. On
+              phones HeroBannerSlider shows each wide image whole (with a
+              blurred fill) instead of a zoomed-in slice. */}
+          <div className="absolute inset-0">
+            <HeroBannerSlider
+              images={[
+                bannerImages.banner1,
+                bannerImages.banner2,
+                bannerImages.banner3,
+                bannerImages.banner4,
+              ]}
+            />
+          </div>
 
           {/* Fixed contrast backing for the white text below -- the rotating
               banner photos don't all have a naturally light/plain area (unlike
               the old single banner1), so this keeps the text readable no
-              matter which of the 4 images is currently showing. */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+              matter which of the 4 images is currently showing. Only needed
+              Phones get a bottom-up shade, since there the text spans the
+              full width of the photo. */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/25 md:hidden" />
+          <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/60 via-black/25 to-transparent md:block" />
 
-          <div className="relative flex h-full flex-col justify-between gap-6 p-5 sm:p-8 lg:p-9">
+          <div className="relative flex min-h-[360px] flex-col justify-between gap-4 p-4 pb-9 sm:gap-6 sm:p-8 md:min-h-[440px] lg:p-9">
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-amber-50 sm:text-sm">
+              <span className="rounded-full border border-white/25 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50 backdrop-blur-sm sm:bg-white/10 sm:px-3 sm:text-sm">
                 Book Trusted Pandit Ji
               </span>
-              <span className="rounded-full border border-amber-100/30 bg-amber-100/15 px-3 py-1 text-xs font-semibold text-amber-50 sm:text-sm">
+              <span className="rounded-full border border-amber-100/30 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50 backdrop-blur-sm sm:bg-amber-100/15 sm:px-3 sm:text-sm">
                 Trusted by 10k+ families
               </span>
             </div>
 
             <div className="max-w-[40rem]">
-              <h1 className="font-serif text-[2.15rem] font-semibold leading-[1.05] text-white sm:text-[2.9rem]">Book Trusted Pandit Ji for every auspicious occasion</h1>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-amber-50 sm:text-base">
+              <h1 className="font-serif text-[1.7rem] font-semibold leading-[1.1] text-white drop-shadow-md sm:text-[2.9rem] sm:leading-[1.05]">Book Trusted Pandit Ji for every auspicious occasion</h1>
+              <p className="mt-2 max-w-lg text-[13px] leading-5 text-amber-50 drop-shadow sm:mt-3 sm:text-base sm:leading-6">
                 Experience divine blessings with verified pandits, guided
                 booking, and festive puja support.
               </p>
 
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-3 flex flex-wrap gap-2 sm:mt-4 sm:gap-3">
                 <Link
                   to="/book"
                   aria-label="Book a puja"
                   title="Book a puja"
                   onClick={clearBookingDraft}
-                  className="interactive-button rounded-full bg-white px-5 py-3 text-sm font-semibold text-maroon shadow-sm"
+                  className="interactive-button inline-flex min-h-[44px] items-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-maroon shadow-sm sm:px-5 sm:py-3"
                 >
                   Book a Puja
                 </Link>
-                <Link
-                  to="/browse-pandits"
-                  aria-label="Browse pandit registration"
-                  title="Browse pandits"
-                  className="interactive-button rounded-full border border-white/35 px-5 py-3 text-sm font-semibold text-white hover:bg-white/15"
-                >
-                  Browse Pandit Ji
-                </Link>
+                {profile?.role !== "pandit" && (
+                  <Link
+                    to="/pandit/register"
+                    onClick={handleBecomePandit}
+                    aria-label="Become a Pandit Ji - register as a pandit"
+                    title="Register as a Pandit Ji"
+                    className="interactive-button inline-flex min-h-[44px] items-center rounded-full border border-white/50 bg-black/20 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/15 sm:border-white/35 sm:bg-transparent sm:px-5 sm:py-3 sm:backdrop-blur-none"
+                  >
+                    Become a Pandit Ji
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -138,14 +159,6 @@ export default function HomePage() {
             <h2 className="font-serif text-[1.6rem] font-semibold text-maroon">
               Popular Pandit Ji
             </h2>
-            <Link
-              to="/browse-pandits"
-              aria-label="View all pandits"
-              title="View all pandits"
-              className="text-sm font-semibold text-saffron"
-            >
-              View All
-            </Link>
           </div>
           <div className="flex-1">
             {" "}

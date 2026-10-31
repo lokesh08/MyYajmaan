@@ -459,8 +459,28 @@ export function listWithdrawalRequests({ status = "pending", page = 1, pageSize 
   return get("/admin/wallet/withdrawals", { params: { status, page, page_size: pageSize } });
 }
 
-export function processWithdrawalRequest(withdrawalId, action, adminNotes) {
-  return patch(`/admin/wallet/withdrawals/${withdrawalId}`, { action, admin_notes: adminNotes || undefined });
+export function processWithdrawalRequest(withdrawalId, action, adminNotes, { payoutReference = "", payoutMethod = "" } = {}) {
+  return patch(`/admin/wallet/withdrawals/${withdrawalId}`, {
+    action,
+    admin_notes: adminNotes || undefined,
+    payout_reference: payoutReference || undefined,
+    payout_method: payoutMethod || undefined,
+  });
+}
+
+export function revealWithdrawalBankDetails(withdrawalId) {
+  return get(`/admin/wallet/withdrawals/${withdrawalId}/bank-details`);
+}
+
+export function listPanditEarnings({ status = "pending", page = 1, pageSize = 20 }) {
+  return get("/admin/wallet/pandit-earnings", { params: { status, page, page_size: pageSize } });
+}
+
+export function releasePanditEarning(bookingId, { amount, adminNotes } = {}) {
+  return post(`/admin/wallet/pandit-earnings/${bookingId}/release`, {
+    amount: amount || undefined,
+    admin_notes: adminNotes || undefined,
+  });
 }
 
 // --- Reports & analytics ---

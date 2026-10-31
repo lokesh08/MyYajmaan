@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import BookingStepper from '../components/BookingStepper';
 import BookingFrame from '../components/BookingFrame';
 import SelectionCard from '../components/SelectionCard';
 import { fetchAvailablePandits } from '../services/pandits';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+import { missingStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
 
 export default function SelectPandit() {
   const { state } = useLocation();
   const navigate = useNavigate();
 
   const draft = getBookingDraft();
-  const preserved = state?.date ? state : draft;
-  const date = preserved?.date;
-  const slot = preserved?.slot;
-  const address = preserved?.address;
-  const puja = preserved?.puja || { id: 1, title: 'Grah Shanti' };
+  const preserved = resolveBookingData(state, draft);
+  const date = preserved.date;
+  const slot = preserved.slot;
+  const address = preserved.address;
+  const puja = preserved.puja;
+  const missingPath = missingStepPath('pandit', preserved);
 
   const [pandits, setPandits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +30,8 @@ export default function SelectPandit() {
     let mounted = true;
 
     async function load() {
-      // If no date/slot, nothing to fetch
-      if (!date || !slot) {
+      // Earlier step missing (redirecting below) -- nothing to fetch
+      if (missingPath) {
         if (mounted) {
           setPandits([]);
           setLoading(false);
@@ -47,7 +49,7 @@ export default function SelectPandit() {
         // for it (pandit_puja.price_override, falling back to the
         // puja's base_price) -- no more generic-price fallback needed,
         // p.price is always the real per-puja price when present at all.
-        const res = await fetchAvailablePandits(puja.id, date, slot.time, { city: address?.city, signal: controller.signal });
+        const res = await fetchAvailablePandits(puja?.id, date, slot.time, { city: address?.city, signal: controller.signal });
         if (!mounted) return;
 
         const rows = Array.isArray(res?.pandits) ? res.pandits : [];
@@ -81,18 +83,15 @@ export default function SelectPandit() {
     };
     // Note: selected intentionally not in deps to avoid clearing selection while user interacts
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, slot?.time, puja.id, address?.city]);
+  }, [date, slot?.time, puja?.id, address?.city]);
 
   useEffect(() => {
+    if (missingPath) return;
     saveBookingDraft({ puja, date, slot, pandit: selected });
-  }, [puja, date, slot, selected]);
+  }, [puja, date, slot, selected, missingPath]);
 
-  if (!date || !slot || !address) {
-    return (
-      <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">Incomplete booking data. Please complete the earlier steps first.</p>
-      </section>
-    );
+  if (missingPath) {
+    return <Navigate to={missingPath} replace state={puja ? { puja } : undefined} />;
   }
 
   return (
@@ -107,7 +106,7 @@ export default function SelectPandit() {
         { label: `Time: ${slot.time}` },
       ]}
     >
-      <BookingStepper currentStep={4} />
+      <BookingStepper currentStep={stepNumber('pandit', puja)} />
       <p className="mt-2 text-sm text-slate-600">Ritual: <strong>{puja.title}</strong></p>
       <p className="mt-1 text-sm text-slate-600">Selected: <strong>{date}</strong> • <strong>{slot.time}</strong></p>
 
