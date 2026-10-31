@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from postgrest.exceptions import APIError
 
+from response_cache import ResponseCacheMiddleware
 from security_middleware import CsrfHeaderMiddleware, SecurityHeadersMiddleware
 
 load_dotenv()
@@ -146,6 +147,9 @@ origins = [
 # Registered before CORSMiddleware so CORS ends up outermost (Starlette
 # applies middleware in reverse of registration order) -- see
 # security_middleware.py for why that ordering matters.
+# Innermost: cached public responses still pass through the security
+# and CORS layers below/around it (see response_cache.py).
+app.add_middleware(ResponseCacheMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CsrfHeaderMiddleware)
 

@@ -3,6 +3,18 @@ import { t } from "../i18n";
 
 export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // Only download a picture when it is shown or up next -- all four were
+  // fetched at once before (the "lazy" hint doesn't help: every slide
+  // sits on screen, just transparent).
+  const [loaded, setLoaded] = useState(() => new Set([0, 1]));
+
+  useEffect(() => {
+    setLoaded((current) => {
+      const next = (activeIndex + 1) % Math.max(images.length, 1);
+      if (current.has(activeIndex) && current.has(next)) return current;
+      return new Set([...current, activeIndex, next]);
+    });
+  }, [activeIndex, images.length]);
 
   useEffect(() => {
     if (images.length <= 1) return undefined;
@@ -24,7 +36,7 @@ export default function HeroBannerSlider({ images = [], intervalMs = 4000 }) {
 
   return (
     <div className="absolute inset-0">
-      {images.map((image, index) => (
+      {images.map((image, index) => loaded.has(index) && (
         <div
           key={image}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === activeIndex ? "opacity-100" : "opacity-0"}`}
