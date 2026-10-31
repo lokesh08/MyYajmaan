@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { t, translateServerText } from "../../i18n";
 
 function timeAgo(isoString) {
   if (!isoString) return "";
@@ -44,27 +45,27 @@ const NotificationPanel = forwardRef(function NotificationPanel(
     <div
       ref={ref}
       role="menu"
-      aria-label="Notifications"
+      aria-label={t("Notifications")}
       style={style}
       className="z-[9999] w-[22rem] max-w-[90vw] overflow-hidden rounded-2xl border border-amber-100 bg-white text-slate-800 shadow-xl"
     >
       <div className="flex items-center justify-between border-b border-amber-100 px-4 py-3">
-        <p className="font-serif text-base font-semibold text-maroon">Notifications</p>
+        <p className="font-serif text-base font-semibold text-maroon">{t("Notifications")}</p>
         {items.length > 0 && (
           <button
             type="button"
             onClick={onMarkAllRead}
-            title="Mark all notifications as read"
+            title={t("Mark all notifications as read")}
             className="text-xs font-semibold text-maroon hover:text-saffron"
           >
-            Mark all as read
+            {t("Mark all as read")}
           </button>
         )}
       </div>
 
       <div onScroll={handleScroll} className="max-h-96 overflow-y-auto">
         {items.length === 0 && !loading && (
-          <p className="px-4 py-8 text-center text-sm text-slate-400">You're all caught up.</p>
+          <p className="px-4 py-8 text-center text-sm text-slate-400">{t("You're all caught up.")}</p>
         )}
 
         {items.map((item) => (
@@ -76,15 +77,15 @@ const NotificationPanel = forwardRef(function NotificationPanel(
             className="flex w-full flex-col items-start gap-0.5 border-b border-amber-50 px-4 py-3 text-left transition hover:bg-amber-50/60"
           >
             <span className="flex w-full items-start justify-between gap-2">
-              <span className="text-sm font-semibold text-slate-700">{item.title}</span>
+              <span className="text-sm font-semibold text-slate-700">{translateServerText(item.title)}</span>
               <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-saffron" aria-hidden="true" />
             </span>
-            {item.message && <span className="text-xs text-slate-500">{item.message}</span>}
+            {item.message && <span className="text-xs text-slate-500">{translateServerText(item.message)}</span>}
             <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
           </button>
         ))}
 
-        {loading && <p className="py-3 text-center text-xs text-slate-400">Loading...</p>}
+        {loading && <p className="py-3 text-center text-xs text-slate-400">{t("Loading...")}</p>}
       </div>
 
       {inboxPath && (
@@ -96,7 +97,7 @@ const NotificationPanel = forwardRef(function NotificationPanel(
           }}
           className="block w-full border-t border-amber-100 px-4 py-2.5 text-center text-xs font-semibold text-maroon hover:bg-amber-50"
         >
-          View all in Messaging Center →
+          {t("View all in Messaging Center →")}
         </button>
       )}
     </div>

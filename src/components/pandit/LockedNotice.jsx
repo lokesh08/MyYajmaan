@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { t } from "../../i18n";
 
 /**
  * Shown in place of a portal page's real content while the Pandit
@@ -19,28 +20,28 @@ export default function LockedNotice({ stage, rejectionReason }) {
       </div>
 
       <h2 className="mt-4 font-serif text-xl font-semibold text-maroon">
-        {isRejected ? "Registration declined" : "Available after approval"}
+        {isRejected ? t("Registration declined") : t("Available after approval")}
       </h2>
 
       <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
         {isRejected
-          ? "Your registration was declined by admin. Review the note below and re-submit your documents to continue."
-          : "This section unlocks once admin approves your Pandit Ji registration. We'll let you know as soon as it's reviewed."}
+          ? t("Your registration was declined by admin. Review the note below and re-submit your documents to continue.")
+          : t("This section unlocks once admin approves your Pandit Ji registration. We'll let you know as soon as it's reviewed.")}
       </p>
 
       {isRejected && rejectionReason && (
         <div className="mx-auto mt-4 max-w-md rounded-2xl border border-rose-100 bg-rose-50 p-4 text-left text-sm text-rose-700">
-          <p className="font-semibold">Admin's note</p>
+          <p className="font-semibold">{t("Admin's note")}</p>
           <p className="mt-1">{rejectionReason}</p>
         </div>
       )}
 
       <Link
         to="/pandit/profile"
-        title={isRejected ? "Go to My Profile and re-submit documents" : "View My Profile"}
+        title={isRejected ? t("Go to My Profile and re-submit documents") : t("View My Profile")}
         className="interactive-button mt-6 inline-block rounded-full bg-maroon px-5 py-2.5 text-sm font-semibold text-white hover:bg-maroon"
       >
-        {isRejected ? "Go to My Profile & Re-submit" : "View My Profile"}
+        {isRejected ? t("Go to My Profile & Re-submit") : t("View My Profile")}
       </Link>
     </div>
   );

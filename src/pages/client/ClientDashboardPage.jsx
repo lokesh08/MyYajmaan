@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { useClientPortal } from "../../context/ClientPortalContext";
 import { getMyBookingCounts, getMyClientWallet, listMyClientBookings } from "../../services/clientApi";
+import { t } from "../../i18n";
 
 function StatCard({ label, value, accent = "text-maroon", to }) {
   const content = (
@@ -17,7 +18,7 @@ function StatCard({ label, value, accent = "text-maroon", to }) {
     return (
       <Link
         to={to}
-        title={`View ${label.toLowerCase()}`}
+        title={t("View {v0}", { v0: label.toLowerCase() })}
         className="interactive-button block rounded-2xl border border-amber-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-saffron/40 hover:shadow-md"
       >
         {content}
@@ -58,32 +59,32 @@ export default function ClientDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-maroon">Welcome, {profile?.full_name || "there"} 🙏</h1>
-        <p className="text-sm text-slate-500">Here's an overview of your pujas and wallet.</p>
+        <h1 className="font-serif text-2xl font-semibold text-maroon">{t("Welcome,")}{' '}{profile?.full_name || "there"} 🙏</h1>
+        <p className="text-sm text-slate-500">{t("Here's an overview of your pujas and wallet.")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Upcoming Bookings" value={counts.upcoming} to="/dashboard/bookings?tab=upcoming" />
-        <StatCard label="Completed Bookings" value={counts.completed} accent="text-emerald-600" to="/dashboard/bookings?tab=completed" />
-        <StatCard label="Cancelled" value={counts.cancelled} accent="text-rose-500" to="/dashboard/bookings?tab=cancelled" />
-        <StatCard label="Wallet Balance" value={`Rs. ${walletBalance.toFixed(2)}`} accent="text-amber-600" to="/dashboard/wallet" />
+        <StatCard label={t("Upcoming Bookings")} value={counts.upcoming} to="/dashboard/bookings?tab=upcoming" />
+        <StatCard label={t("Completed Bookings")} value={counts.completed} accent="text-emerald-600" to="/dashboard/bookings?tab=completed" />
+        <StatCard label={t("Cancelled")} value={counts.cancelled} accent="text-rose-500" to="/dashboard/bookings?tab=cancelled" />
+        <StatCard label={t("Wallet Balance")} value={`Rs. ${walletBalance.toFixed(2)}`} accent="text-amber-600" to="/dashboard/wallet" />
       </div>
 
       <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-serif text-lg font-semibold text-maroon">Upcoming Bookings</h2>
-          <Link to="/dashboard/bookings" title="View all bookings" className="text-sm font-semibold text-maroon hover:underline">
-            View all
+          <h2 className="font-serif text-lg font-semibold text-maroon">{t("Upcoming Bookings")}</h2>
+          <Link to="/dashboard/bookings" title={t("View all bookings")} className="text-sm font-semibold text-maroon hover:underline">
+            {t("View all")}
           </Link>
         </div>
 
         {loading ? (
-          <p className="py-6 text-center text-sm text-slate-400">Loading...</p>
+          <p className="py-6 text-center text-sm text-slate-400">{t("Loading...")}</p>
         ) : upcoming.length === 0 ? (
           <div className="py-6 text-center text-sm text-slate-400">
-            No upcoming bookings.{" "}
-            <Link to="/book" title="Book a puja" className="font-semibold text-maroon hover:underline">
-              Book a puja →
+            {t("No upcoming bookings.")}{" "}
+            <Link to="/book" title={t("Book a puja")} className="font-semibold text-maroon hover:underline">
+              {t("Book a puja →")}
             </Link>
           </div>
         ) : (
@@ -91,22 +92,22 @@ export default function ClientDashboardPage() {
             <table className="w-full min-w-[500px] text-left text-sm">
               <thead className="text-xs uppercase text-slate-500">
                 <tr>
-                  <th className="pb-2">Pandit Ji</th>
-                  <th className="pb-2">Date</th>
-                  <th className="pb-2">Timeslot</th>
-                  <th className="pb-2">Amount</th>
-                  <th className="pb-2">Status</th>
+                  <th className="pb-2">{t("Pandit Ji")}</th>
+                  <th className="pb-2">{t("Date")}</th>
+                  <th className="pb-2">{t("Timeslot")}</th>
+                  <th className="pb-2">{t("Amount")}</th>
+                  <th className="pb-2">{t("Status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-amber-50">
                 {upcoming.map((booking) => (
                   <tr key={booking.id}>
-                    <td className="py-2">{booking.pandit_name || "Pandit Ji"}</td>
+                    <td className="py-2">{booking.pandit_name || t("Pandit Ji")}</td>
                     <td className="py-2">{booking.booking_date || booking.date || "—"}</td>
                     <td className="py-2">{booking.muhurat_time_slot || booking.timeslot || "—"}</td>
-                    <td className="py-2">Rs. {Number(booking.amount || 0).toFixed(2)}</td>
+                    <td className="py-2">{t("Rs.")}{' '}{Number(booking.amount || 0).toFixed(2)}</td>
                     <td className="py-2 capitalize">
-                      {booking.status === "pending_pandit" || booking.status === "declined" ? "Awaiting confirmation" : booking.status}
+                      {booking.status === "pending_pandit" || booking.status === "declined" ? t("Awaiting confirmation") : booking.status}
                     </td>
                   </tr>
                 ))}

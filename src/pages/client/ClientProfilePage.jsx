@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useClientPortal } from "../../context/ClientPortalContext";
 import { saveMyProfile } from "../../services/clientApi";
 import { showError, showSuccess } from "../../utils/toaster";
+import { t } from "../../i18n";
 
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const LANGUAGE_OPTIONS = [
@@ -64,42 +65,42 @@ export default function ClientProfilePage() {
         address: form.address.trim(),
         language: form.language,
       });
-      showSuccess("Profile updated successfully.");
+      showSuccess(t("Profile updated successfully."));
       refetch();
     } catch (error) {
-      showError(error?.message || "Could not save your profile.");
+      showError(error?.message || t("Could not save your profile."));
     } finally {
       setSaving(false);
     }
   }
 
   if (loading || !form) {
-    return <p className="py-10 text-center text-sm text-slate-400">Loading your profile...</p>;
+    return <p className="py-10 text-center text-sm text-slate-400">{t("Loading your profile...")}</p>;
   }
 
   return (
     <div className="space-y-4">
-      <h1 className="font-serif text-2xl font-semibold text-maroon">My Profile</h1>
+      <h1 className="font-serif text-2xl font-semibold text-maroon">{t("My Profile")}</h1>
 
       <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm sm:p-6">
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block md:col-span-2">
-            <span className={labelClass}>Full Name *</span>
+            <span className={labelClass}>{t("Full Name *")}</span>
             <input value={form.fullName} onChange={(e) => updateField("fullName", e.target.value)} className={inputClass} />
           </label>
 
           <label className="block">
-            <span className={labelClass}>Email</span>
+            <span className={labelClass}>{t("Email")}</span>
             <input value={profile.email || ""} disabled className={inputClass} />
           </label>
 
           <label className="block">
-            <span className={labelClass}>Mobile Number *</span>
+            <span className={labelClass}>{t("Mobile Number *")}</span>
             <input value={form.phone} onChange={(e) => updateField("phone", e.target.value)} className={inputClass} />
           </label>
 
           <label className="block">
-            <span className={labelClass}>Date of Birth *</span>
+            <span className={labelClass}>{t("Date of Birth *")}</span>
             <input
               type="date"
               value={form.dateOfBirth}
@@ -109,9 +110,9 @@ export default function ClientProfilePage() {
           </label>
 
           <label className="block">
-            <span className={labelClass}>Gender *</span>
+            <span className={labelClass}>{t("Gender *")}</span>
             <select value={form.gender} onChange={(e) => updateField("gender", e.target.value)} className={inputClass}>
-              <option value="">Select gender</option>
+              <option value="">{t("Select gender")}</option>
               {GENDER_OPTIONS.map((option) => (
                 <option key={option} value={option.toLowerCase()}>
                   {option}
@@ -121,7 +122,7 @@ export default function ClientProfilePage() {
           </label>
 
           <label className="block md:col-span-2">
-            <span className={labelClass}>Address *</span>
+            <span className={labelClass}>{t("Address *")}</span>
             <textarea
               value={form.address}
               onChange={(e) => updateField("address", e.target.value)}
@@ -131,12 +132,12 @@ export default function ClientProfilePage() {
           </label>
 
           <label className="block">
-            <span className={labelClass}>Preferred Language *</span>
+            <span className={labelClass}>{t("Preferred Language *")}</span>
             <select value={form.language} onChange={(e) => updateField("language", e.target.value)} className={inputClass}>
-              <option value="">Select language</option>
+              <option value="">{t("Select language")}</option>
               {LANGUAGE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.label)}
                 </option>
               ))}
             </select>
@@ -150,7 +151,7 @@ export default function ClientProfilePage() {
             disabled={saving}
             className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Update Profile"}
+            {saving ? t("Saving...") : t("Update Profile")}
           </button>
         </div>
       </div>

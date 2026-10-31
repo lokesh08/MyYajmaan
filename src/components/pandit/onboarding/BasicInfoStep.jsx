@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { savePanditProfile } from "../../../services/panditApi";
 import { showError } from "../../../utils/toaster";
+import { t } from "../../../i18n";
 
 const inputClass =
   "w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100";
@@ -78,7 +79,7 @@ export default function BasicInfoStep({ initialValue, onNext }) {
       });
       onNext(pandit);
     } catch (error) {
-      showError(error?.message || "Could not save your basic information.");
+      showError(error?.message || t("Could not save your basic information."));
     } finally {
       setSaving(false);
     }
@@ -88,21 +89,21 @@ export default function BasicInfoStep({ initialValue, onNext }) {
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block md:col-span-2">
-          <span className={labelClass}>Full Name</span>
+          <span className={labelClass}>{t("Full Name")}</span>
           <input
             value={form.fullName}
             readOnly
             disabled
-            title="Set during registration to match your Aadhaar card. Contact admin if this needs to change."
+            title={t("Set during registration to match your Aadhaar card. Contact admin if this needs to change.")}
             className={disabledInputClass}
           />
           <p className="mt-1 text-xs text-slate-400">
-            This is the name you registered with. It has to match your Aadhaar card, so it can't be changed here.
+            {t("This is the name you registered with. It has to match your Aadhaar card, so it can't be changed here.")}
           </p>
         </label>
 
         <label className="block">
-          <span className={labelClass}>Date of Birth *</span>
+          <span className={labelClass}>{t("Date of Birth *")}</span>
           <input
             type="date"
             value={form.dateOfBirth}
@@ -112,7 +113,7 @@ export default function BasicInfoStep({ initialValue, onNext }) {
         </label>
 
         <label className="block">
-          <span className={labelClass}>Years of Experience *</span>
+          <span className={labelClass}>{t("Years of Experience *")}</span>
           <input
             type="number"
             min="0"
@@ -124,38 +125,38 @@ export default function BasicInfoStep({ initialValue, onNext }) {
         </label>
 
         <label className="block md:col-span-2">
-          <span className={labelClass}>Languages Spoken (comma separated) *</span>
+          <span className={labelClass}>{t("Languages Spoken (comma separated) *")}</span>
           <input
             value={form.languages}
             onChange={(event) => updateField("languages", event.target.value)}
-            placeholder="Hindi, Sanskrit, English"
+            placeholder={t("Hindi, Sanskrit, English")}
             className={inputClass}
           />
         </label>
 
         <label className="block md:col-span-2">
-          <span className={labelClass}>Address *</span>
+          <span className={labelClass}>{t("Address *")}</span>
           <textarea
             value={form.address}
             onChange={(event) => updateField("address", event.target.value)}
             rows={2}
-            placeholder="House no., street, locality"
+            placeholder={t("House no., street, locality")}
             className={inputClass}
           />
         </label>
 
         <label className="block">
-          <span className={labelClass}>City *</span>
+          <span className={labelClass}>{t("City *")}</span>
           <input
             value={form.city}
             onChange={(event) => updateField("city", event.target.value)}
-            placeholder="e.g. Jaipur"
+            placeholder={t("e.g. Jaipur")}
             className={inputClass}
           />
         </label>
 
         <label className="block">
-          <span className={labelClass}>PIN Code *</span>
+          <span className={labelClass}>{t("PIN Code *")}</span>
           <input
             value={form.pin}
             onChange={(event) => updateField("pin", event.target.value)}
@@ -172,7 +173,7 @@ export default function BasicInfoStep({ initialValue, onNext }) {
           disabled={saving}
           className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save & Next"}
+          {saving ? t("Saving...") : t("Save & Next")}
         </button>
       </div>
     </div>

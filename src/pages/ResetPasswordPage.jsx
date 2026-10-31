@@ -5,6 +5,7 @@ import { post } from "../api";
 import { supabase, isConfigured } from "../services/supabaseClient";
 import { showError, showSuccess } from "../utils/toaster";
 import FullScreenLoader from "../components/common/FullScreenLoader";
+import { t } from "../i18n";
 
 // Where the emailed recovery link lands. supabase-js processes the
 // link's token from the URL automatically (hash fragment or PKCE code,
@@ -59,11 +60,11 @@ export default function ResetPasswordPage() {
     event.preventDefault();
 
     if (password.length < 6) {
-      showError("Password must contain at least 6 characters.");
+      showError(t("Password must contain at least 6 characters."));
       return;
     }
     if (password !== confirmPassword) {
-      showError("Passwords do not match.");
+      showError(t("Passwords do not match."));
       return;
     }
 
@@ -88,13 +89,13 @@ export default function ResetPasswordPage() {
 
       await supabase.auth.signOut();
       setStatus("done");
-      showSuccess("Password updated. Please log in with your new password.");
+      showSuccess(t("Password updated. Please log in with your new password."));
 
       setTimeout(() => {
         navigate(role === "pandit" ? "/pandit/login" : "/login", { replace: true });
       }, 1500);
     } catch (error) {
-      showError(error?.message || "Could not update your password. Please request a new reset link.");
+      showError(error?.message || t("Could not update your password. Please request a new reset link."));
     } finally {
       setSubmitting(false);
     }
@@ -102,26 +103,26 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <FullScreenLoader open={submitting} message="Updating your password..." />
+      <FullScreenLoader open={submitting} message={t("Updating your password...")} />
 
       <section className="mx-auto max-w-md px-4 py-12 sm:px-6">
         <div className="rounded-[2rem] border border-amber-100 bg-white p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-marigold">Account</p>
-          <h1 className="mt-2 font-serif text-3xl font-semibold text-maroon-dark">Reset your password</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-marigold">{t("Account")}</p>
+          <h1 className="mt-2 font-serif text-3xl font-semibold text-maroon-dark">{t("Reset your password")}</h1>
 
-          {status === "waiting" && <p className="mt-4 text-sm text-slate-600">Checking your reset link...</p>}
+          {status === "waiting" && <p className="mt-4 text-sm text-slate-600">{t("Checking your reset link...")}</p>}
 
           {status === "invalid" && (
             <>
               <p className="mt-4 text-sm text-slate-600">
-                This reset link is invalid or has expired. Please request a new one.
+                {t("This reset link is invalid or has expired. Please request a new one.")}
               </p>
               <Link
                 to="/forgot-password"
-                title="Request a new reset link"
+                title={t("Request a new reset link")}
                 className="interactive-button mt-6 inline-block rounded-full bg-maroon-dark px-6 py-3 text-sm font-semibold text-white hover:bg-maroon"
               >
-                Request a new link
+                {t("Request a new link")}
               </Link>
             </>
           )}
@@ -129,25 +130,25 @@ export default function ResetPasswordPage() {
           {status === "ready" && (
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4" noValidate>
               <label className="block">
-                <span className="sr-only">New password</span>
+                <span className="sr-only">{t("New password")}</span>
                 <input
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   type="password"
                   autoComplete="new-password"
-                  placeholder="New password"
+                  placeholder={t("New password")}
                   disabled={submitting}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 />
               </label>
               <label className="block">
-                <span className="sr-only">Confirm new password</span>
+                <span className="sr-only">{t("Confirm new password")}</span>
                 <input
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Confirm new password"
+                  placeholder={t("Confirm new password")}
                   disabled={submitting}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 />
@@ -157,13 +158,13 @@ export default function ResetPasswordPage() {
                 disabled={submitting}
                 className="interactive-button mt-2 rounded-full bg-maroon-dark px-6 py-3 font-semibold text-white hover:bg-maroon disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Set new password
+                {t("Set new password")}
               </button>
             </form>
           )}
 
           {status === "done" && (
-            <p className="mt-4 text-sm text-slate-600">Redirecting you to login...</p>
+            <p className="mt-4 text-sm text-slate-600">{t("Redirecting you to login...")}</p>
           )}
         </div>
       </section>

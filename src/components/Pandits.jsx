@@ -3,6 +3,7 @@ import { withAbortGet } from "../api";
 import { Loader } from "./common";
 import { panditPlaceholderImage } from "../constants/visualAssets";
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 /**
  * Pandits component
@@ -30,18 +31,18 @@ function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-slate-900">{p.name}</p>
-              <p className="text-sm text-slate-500">Vedic rituals • {p.languages?.join(", ") || "Hindi, English"}</p>
+              <p className="text-sm text-slate-500">{t("Vedic rituals •")}{' '}{p.languages?.join(", ") || t("Hindi, English")}</p>
             </div>
             <div className="text-right">
               {p.starting_price ? (
-                <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-maroon">Starts from ₹{p.starting_price}</div>
+                <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-maroon">{t("Starts from ₹")}{p.starting_price}</div>
               ) : null}
               <p className="mt-1 text-sm text-amber-500">⭐ {p.rating ?? "-"}</p>
             </div>
           </div>
           <div className="mt-3 flex gap-2">
-            <button onClick={() => onView(p)} className="interactive-button rounded-full border border-amber-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-maroon hover:text-maroon">View</button>
-            <button onClick={() => onSelect(p)} className="interactive-button ml-auto rounded-full bg-saffron px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-500">Select</button>
+            <button onClick={() => onView(p)} className="interactive-button rounded-full border border-amber-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-maroon hover:text-maroon">{t("View")}</button>
+            <button onClick={() => onSelect(p)} className="interactive-button ml-auto rounded-full bg-saffron px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-500">{t("Select")}</button>
           </div>
         </div>
       </div>
@@ -65,7 +66,7 @@ export default function Pandits({ limit = 4, onView, onSelect }) {
       .catch((err) => {
         if (err?.isCanceled || err?.name === "CanceledError") return;
         console.error("Pandits load error:", err);
-        setError(err?.message || "Failed to load pandits");
+        setError(err?.message || t("Failed to load pandits"));
       })
       .finally(() => setLoading(false));
 
@@ -77,8 +78,8 @@ export default function Pandits({ limit = 4, onView, onSelect }) {
   }, [limit]);
 
   if (loading) return <div className="p-4"><Loader variant="card" count={limit} /></div>;
-  if (error) return <div className="p-4 text-center text-sm text-red-500">Error loading pandits: {error}</div>;
-  if (!items || items.length === 0) return <div className="p-4 text-center text-sm text-slate-500">No pandits available.</div>;
+  if (error) return <div className="p-4 text-center text-sm text-red-500">{t("Error loading pandits:")}{' '}{error}</div>;
+  if (!items || items.length === 0) return <div className="p-4 text-center text-sm text-slate-500">{t("No pandits available.")}</div>;
 
   return (
     <div className="grid gap-4">

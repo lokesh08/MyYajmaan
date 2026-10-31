@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { addMyPujas, listMyPujas, listPublicPujas, savePanditAvailability } from "../../../services/panditApi";
 import { showError } from "../../../utils/toaster";
+import { t } from "../../../i18n";
 
 const DAYS = [
   { key: "mon", label: "Mon" },
@@ -38,7 +39,7 @@ export default function ServicesStep({ onNext, onBack }) {
         });
         setSelected(already);
       })
-      .catch(() => showError("Could not load the puja list."))
+      .catch(() => showError(t("Could not load the puja list.")))
       .finally(() => setLoadingCatalog(false));
   }, []);
 
@@ -103,7 +104,7 @@ export default function ServicesStep({ onNext, onBack }) {
       await savePanditAvailability({ days, start_time: timeslot.start, end_time: timeslot.end });
       onNext();
     } catch (error) {
-      showError(error?.message || "Could not save your services & availability.");
+      showError(error?.message || t("Could not save your services & availability."));
     } finally {
       setSaving(false);
     }
@@ -112,9 +113,9 @@ export default function ServicesStep({ onNext, onBack }) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="mb-2 text-sm font-semibold text-slate-700">Select the pujas you perform *</p>
+        <p className="mb-2 text-sm font-semibold text-slate-700">{t("Select the pujas you perform *")}</p>
         {loadingCatalog ? (
-          <p className="py-6 text-center text-sm text-slate-400">Loading pujas...</p>
+          <p className="py-6 text-center text-sm text-slate-400">{t("Loading pujas...")}</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {catalog.map((puja) => {
@@ -133,7 +134,7 @@ export default function ServicesStep({ onNext, onBack }) {
                       onChange={() => togglePuja(puja.id)}
                       className="mt-0.5 h-4 w-4 rounded border-amber-300 text-maroon focus:ring-amber-200"
                     />
-                    <span className="text-sm font-medium text-slate-700">{puja.title}</span>
+                    <span className="text-sm font-medium text-slate-700">{t(puja.title)}</span>
                   </label>
 
                   {isChecked && (
@@ -143,7 +144,7 @@ export default function ServicesStep({ onNext, onBack }) {
                         min="1"
                         value={selected[puja.id]}
                         onChange={(event) => updateFee(puja.id, event.target.value)}
-                        placeholder="Your fee (Rs.) *"
+                        placeholder={t("Your fee (Rs.) *")}
                         className="w-full rounded-lg border border-amber-200 px-2.5 py-1.5 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
                       />
                     </div>
@@ -156,7 +157,7 @@ export default function ServicesStep({ onNext, onBack }) {
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-semibold text-slate-700">Available Days *</p>
+        <p className="mb-2 text-sm font-semibold text-slate-700">{t("Available Days *")}</p>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -165,7 +166,7 @@ export default function ServicesStep({ onNext, onBack }) {
               days.length === DAYS.length ? "border-maroon bg-maroon text-white" : "border-amber-200 text-slate-600 hover:bg-amber-50"
             }`}
           >
-            All Days
+            {t("All Days")}
           </button>
           {DAYS.map((day) => (
             <button
@@ -176,23 +177,23 @@ export default function ServicesStep({ onNext, onBack }) {
                 days.includes(day.key) ? "border-maroon bg-maroon text-white" : "border-amber-200 text-slate-600 hover:bg-amber-50"
               }`}
             >
-              {day.label}
+              {t(day.label)}
             </button>
           ))}
         </div>
       </div>
 
       <label className="block max-w-sm">
-        <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Timeslot *</span>
+        <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">{t("Timeslot *")}</span>
         <select
           value={timeslotKey}
           onChange={(event) => setTimeslotKey(event.target.value)}
           className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
         >
-          <option value="">Select a timeslot</option>
+          <option value="">{t("Select a timeslot")}</option>
           {TIMESLOTS.map((slot) => (
             <option key={slot.key} value={slot.key}>
-              {slot.label}
+              {t(slot.label)}
             </option>
           ))}
         </select>
@@ -204,7 +205,7 @@ export default function ServicesStep({ onNext, onBack }) {
           onClick={onBack}
           className="interactive-button rounded-full border border-amber-200 px-6 py-2.5 text-sm font-semibold text-slate-600 hover:bg-amber-50"
         >
-          Back
+          {t("Back")}
         </button>
         <button
           type="button"
@@ -212,7 +213,7 @@ export default function ServicesStep({ onNext, onBack }) {
           disabled={saving}
           className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save & Next"}
+          {saving ? t("Saving...") : t("Save & Next")}
         </button>
       </div>
     </div>

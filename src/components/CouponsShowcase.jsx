@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { listActiveCoupons } from "../services/coupons";
 import { showSuccess } from "../utils/toaster";
+import { t } from "../i18n";
 
 function formatDiscount(coupon) {
   if (coupon.discount_type === "percentage") {
@@ -26,9 +27,9 @@ function formatValidUntil(value) {
 async function copyCode(code) {
   try {
     await navigator.clipboard.writeText(code);
-    showSuccess(`Code ${code} copied.`);
+    showSuccess(t("Code {code} copied.", { code: code }));
   } catch {
-    showSuccess(`Your coupon code is ${code}.`);
+    showSuccess(t("Your coupon code is {code}.", { code: code }));
   }
 }
 
@@ -79,24 +80,24 @@ export default function CouponsShowcase({ variant = "banner", onSelectCode }) {
   return (
     <>
       {variant === "banner" ? (
-        <section className="mt-8" aria-label="Available coupons">
+        <section className="mt-8" aria-label={t("Available coupons")}>
           <button
             type="button"
             onClick={() => setOpen(true)}
-            title="View all available coupons"
+            title={t("View all available coupons")}
             className="interactive-button flex w-full flex-wrap items-center justify-between gap-4 rounded-[1.4rem] border border-amber-200 bg-gradient-to-r from-maroon via-maroon to-saffron px-5 py-5 text-left text-white shadow-lift sm:px-8"
           >
             <span className="flex items-center gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15 text-2xl">🎁</span>
               <span>
-                <span className="block font-serif text-xl font-semibold">Available Coupons</span>
+                <span className="block font-serif text-xl font-semibold">{t("Available Coupons")}</span>
                 <span className="mt-0.5 block text-sm text-amber-50">
-                  Tap to see live discount codes for your next puja.
+                  {t("Tap to see live discount codes for your next puja.")}
                 </span>
               </span>
             </span>
             <span className="rounded-full border border-white/40 px-4 py-2 text-sm font-semibold">
-              View {coupons.length} coupon{coupons.length === 1 ? "" : "s"} →
+              {t(coupons.length === 1 ? "View {count} coupon" : "View {count} coupons", { count: coupons.length })} →
             </span>
           </button>
         </section>
@@ -104,14 +105,14 @@ export default function CouponsShowcase({ variant = "banner", onSelectCode }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          title="View available coupons"
+          title={t("View available coupons")}
           className="inline-flex min-h-[44px] items-center text-sm font-semibold text-saffron hover:text-maroon"
         >
-          View available coupons
+          {t("View available coupons")}
         </button>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Available Coupons">
+      <Modal open={open} onClose={() => setOpen(false)} title={t("Available Coupons")}>
         <div className="grid gap-3">
           {coupons.map((coupon) => {
             const validUntil = formatValidUntil(coupon.valid_until);
@@ -127,18 +128,18 @@ export default function CouponsShowcase({ variant = "banner", onSelectCode }) {
                     </span>
                     <p className="mt-2 text-sm font-semibold text-maroon">{formatDiscount(coupon)}</p>
                     {coupon.description && (
-                      <p className="mt-1 text-sm text-slate-600">{coupon.description}</p>
+                      <p className="mt-1 text-sm text-slate-600">{t(coupon.description)}</p>
                     )}
                     <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
                       {coupon.min_booking_amount ? (
-                        <span>Min. booking ₹{Math.round(coupon.min_booking_amount).toLocaleString("en-IN")}</span>
+                        <span>{t("Min. booking ₹")}{Math.round(coupon.min_booking_amount).toLocaleString("en-IN")}</span>
                       ) : null}
                       {coupon.applicable_puja_ids?.length ? (
-                        <span>Valid on select pujas</span>
+                        <span>{t("Valid on select pujas")}</span>
                       ) : (
-                        <span>Valid on all pujas</span>
+                        <span>{t("Valid on all pujas")}</span>
                       )}
-                      {validUntil && <span>Valid until {validUntil}</span>}
+                      {validUntil && <span>{t("Valid until")}{' '}{validUntil}</span>}
                     </div>
                   </div>
                   <button
@@ -146,7 +147,7 @@ export default function CouponsShowcase({ variant = "banner", onSelectCode }) {
                     onClick={() => handleCardClick(coupon)}
                     className="interactive-button shrink-0 rounded-full bg-maroon px-4 py-2 text-xs font-semibold text-white"
                   >
-                    {onSelectCode ? "Use code" : "Copy code"}
+                    {onSelectCode ? t("Use code") : t("Copy code")}
                   </button>
                 </div>
               </article>

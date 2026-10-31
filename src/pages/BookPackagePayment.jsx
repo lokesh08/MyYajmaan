@@ -6,6 +6,7 @@ import { payWithRazorpay } from '../services/razorpay';
 import { confirmPackageBookingPayment, listMyPackageBookings } from '../services/packageBookingsApi';
 import { showError, showSuccess } from '../utils/toaster';
 import ThemeDialog from '../components/ThemeDialog';
+import { t } from "../i18n";
 
 export default function BookPackagePayment() {
   const { id } = useParams();
@@ -42,19 +43,19 @@ export default function BookPackagePayment() {
       });
       paymentRef = verification.sessionId;
       await confirmPackageBookingPayment(booking.id, paymentRef);
-      showSuccess('Payment received. Our team will now assign a Pandit Ji.');
+      showSuccess(t("Payment received. Our team will now assign a Pandit Ji."));
       navigate('/dashboard/bookings?tab=package');
     } catch (error) {
       if (error?.isPaymentCancelled) {
-        setDialog({ open: true, title: 'Payment cancelled', message: 'You closed the payment window before completing the payment. No money was charged.' });
+        setDialog({ open: true, title: t("Payment cancelled"), message: t("You closed the payment window before completing the payment. No money was charged.") });
       } else if (paymentRef) {
         setDialog({
           open: true,
-          title: 'Payment received',
-          message: `Your payment (ref: ${paymentRef}) was received, but we could not update your request. Please do not pay again - contact support with this reference.`,
+          title: t("Payment received"),
+          message: t("Your payment (ref: {paymentRef}) was received, but we could not update your request. Please do not pay again - contact support with this reference.", { paymentRef: paymentRef }),
         });
       } else {
-        showError(error?.data?.detail?.message || error?.message || 'Something went wrong while processing your payment.');
+        showError(error?.data?.detail?.message || error?.message || t("Something went wrong while processing your payment."));
       }
     } finally {
       setPaying(false);
@@ -64,7 +65,7 @@ export default function BookPackagePayment() {
   if (loading) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">Loading...</p>
+        <p className="text-slate-600">{t("Loading...")}</p>
       </section>
     );
   }
@@ -72,7 +73,7 @@ export default function BookPackagePayment() {
   if (!booking) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">This request could not be found.</p>
+        <p className="text-slate-600">{t("This request could not be found.")}</p>
       </section>
     );
   }
@@ -80,7 +81,7 @@ export default function BookPackagePayment() {
   if (booking.status !== 'quoted') {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">This request isn't awaiting payment right now.</p>
+        <p className="text-slate-600">{t("This request isn't awaiting payment right now.")}</p>
       </section>
     );
   }
@@ -88,16 +89,16 @@ export default function BookPackagePayment() {
   return (
     <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <div className="rounded-[1.5rem] border border-amber-100 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-saffron">Package Puja Payment</p>
-        <h1 className="mt-2 font-serif text-2xl font-semibold text-maroon">{booking.puja_title || 'Your package puja'}</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-saffron">{t("Package Puja Payment")}</p>
+        <h1 className="mt-2 font-serif text-2xl font-semibold text-maroon">{booking.puja_title || t("Your package puja")}</h1>
         <p className="mt-1 text-sm text-slate-500">
           {booking.booking_date} • {booking.muhurat_time_slot}
         </p>
 
         <div className="mt-6 rounded-[1.25rem] border border-amber-100 bg-amber-50/50 p-4">
           <div className="flex items-center justify-between border-t border-amber-100 pt-2 text-base font-bold text-maroon">
-            <span>Quoted Amount</span>
-            <span>Rs. {Number(booking.amount || 0).toFixed(2)}</span>
+            <span>{t("Quoted Amount")}</span>
+            <span>{t("Rs.")}{' '}{Number(booking.amount || 0).toFixed(2)}</span>
           </div>
         </div>
 
@@ -107,10 +108,10 @@ export default function BookPackagePayment() {
             disabled={paying}
             className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {paying ? 'Processing…' : `Pay Rs. ${Number(booking.amount || 0).toFixed(2)}`}
+            {paying ? t("Processing…") : t("Pay Rs. {v0}", { v0: Number(booking.amount || 0).toFixed(2) })}
           </button>
           <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">
-            Back
+            {t("Back")}
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import BookingFrame from '../components/BookingFrame';
 import { getAvailability } from '../services/availability';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 import { isPackagePuja, missingStepPath, nextStepLabel, nextStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
+import { t } from "../i18n";
 
 const DEFAULT_MIN_LEAD_HOURS = 6;
 
@@ -131,21 +132,21 @@ export default function BookDateTime() {
 
   return (
     <BookingFrame
-      title="Select date & time"
-      description="Choose a convenient date and available time slot for your puja."
+      title={t("Select date & time")}
+      description={t("Choose a convenient date and available time slot for your puja.")}
       accentImage={puja.image || undefined}
-      asideTitle="Puja summary"
+      asideTitle={t("Puja summary")}
       asideItems={[
-        { label: `Ritual: ${puja.title}` },
-        { label: `Address: ${address?.city || ''}` },
+        { label: t("Ritual: {value}", { value: puja.title }) },
+        { label: t("Address: {value}", { value: address?.city || '' }) },
         { label: 'Shubh muhurat friendly slots' },
       ]}
     >
       <BookingStepper currentStep={stepNumber('datetime', puja)} steps={isPackagePuja(puja) ? PACKAGE_STEPS : undefined} />
-      <p className="mt-2 text-sm text-slate-600">Selected ritual: <strong>{puja.title}</strong></p>
+      <p className="mt-2 text-sm text-slate-600">{t("Selected ritual:")}{' '}<strong>{t(puja.title)}</strong></p>
 
       <div className="mt-6">
-        <label className="block text-sm font-medium text-slate-700">Select Date</label>
+        <label className="block text-sm font-medium text-slate-700">{t("Select Date")}</label>
         <div className="mt-2 rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-amber-50/70 p-3 shadow-sm">
           <input
             type="date"
@@ -154,25 +155,25 @@ export default function BookDateTime() {
             className="w-full rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm"
           />
         </div>
-        {isPast(date) && <p className="mt-2 text-sm text-red-600">Please select a future date.</p>}
+        {isPast(date) && <p className="mt-2 text-sm text-red-600">{t("Please select a future date.")}</p>}
 
         <div className="mt-6">
-          <h3 className="font-semibold text-slate-700">Available Time Slots</h3>
+          <h3 className="font-semibold text-slate-700">{t("Available Time Slots")}</h3>
           <p className="mt-1 text-sm text-slate-500">
-            Bookings need at least {minLeadHours} hour{minLeadHours === 1 ? '' : 's'}' notice so we can arrange your Pandit Ji.
+            {t(minLeadHours === 1 ? "Bookings need at least {hours} hour's notice so we can arrange your Pandit Ji." : "Bookings need at least {hours} hours' notice so we can arrange your Pandit Ji.", { hours: minLeadHours })}
           </p>
 
-          {loadingAvailability && <p className="mt-2 text-sm text-slate-500">Loading availability…</p>}
+          {loadingAvailability && <p className="mt-2 text-sm text-slate-500">{t("Loading availability…")}</p>}
 
           {!loadingAvailability && availabilityError && (
-            <p className="mt-2 text-sm text-red-600">Failed to load availability. Please try again.</p>
+            <p className="mt-2 text-sm text-red-600">{t("Failed to load availability. Please try again.")}</p>
           )}
 
           {availability && (
             <div className="mt-3 space-y-4">
               {Object.entries(availability).map(([group, slots]) => (
                 <div key={group}>
-                  <p className="mb-2 text-sm font-semibold capitalize text-slate-600">{group}</p>
+                  <p className="mb-2 text-sm font-semibold capitalize text-slate-600">{t(group)}</p>
                   <div className="flex flex-wrap gap-2">
                     {slots.map((s) => {
                       const slotDT = parseSlotDateTime(date, s.time);
@@ -182,7 +183,7 @@ export default function BookDateTime() {
                         <button
                           key={s.id}
                           disabled={!selectable}
-                          title={tooSoon ? `Needs at least ${minLeadHours} hours' notice` : undefined}
+                          title={tooSoon ? t("Needs at least {minLeadHours} hours' notice", { minLeadHours: minLeadHours }) : undefined}
                           onClick={() => setSelectedSlot(s)}
                           className={`min-h-[44px] rounded-full px-3 py-2 text-sm font-medium transition ${selectable ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
                         >
@@ -197,7 +198,7 @@ export default function BookDateTime() {
           )}
 
           {!loadingAvailability && !availability && !availabilityError && (
-            <p className="mt-2 text-sm text-slate-500">No slots available for the selected date.</p>
+            <p className="mt-2 text-sm text-slate-500">{t("No slots available for the selected date.")}</p>
           )}
         </div>
 
@@ -210,9 +211,9 @@ export default function BookDateTime() {
             }}
             className={`min-h-[44px] rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
           >
-            {nextStepLabel('datetime', puja)}
+            {t(nextStepLabel('datetime', puja))}
           </button>
-          <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">Back</button>
+          <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">{t("Back")}</button>
         </div>
       </div>
     </BookingFrame>

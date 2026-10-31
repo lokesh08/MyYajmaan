@@ -14,6 +14,7 @@ import {
   savePanditProfile,
 } from "../../services/panditApi";
 import { showError, showSuccess } from "../../utils/toaster";
+import { t } from "../../i18n";
 
 const TABS = [
   { key: "profile", label: "Profile" },
@@ -49,17 +50,16 @@ function LockedBanner({ stage, rejectionReason }) {
   if (stage === "pending") {
     return (
       <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Your profile is under admin review. You can view your details below, but editing is disabled until the
-        review is complete.
+        {t("Your profile is under admin review. You can view your details below, but editing is disabled until the review is complete.")}
       </div>
     );
   }
   if (stage === "rejected") {
     return (
       <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-        <p className="font-semibold">Your registration was declined.</p>
-        {rejectionReason && <p className="mt-1">Admin's note: {rejectionReason}</p>}
-        <p className="mt-1">Update the details/documents below and re-submit to be reviewed again.</p>
+        <p className="font-semibold">{t("Your registration was declined.")}</p>
+        {rejectionReason && <p className="mt-1">{t("Admin's note:")}{' '}{rejectionReason}</p>}
+        <p className="mt-1">{t("Update the details/documents below and re-submit to be reviewed again.")}</p>
       </div>
     );
   }
@@ -85,7 +85,7 @@ function ProfileTab({ locked }) {
           pin: pandit.pin || "",
         });
       })
-      .catch(() => showError("Could not load your profile."))
+      .catch(() => showError(t("Could not load your profile.")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -105,25 +105,25 @@ function ProfileTab({ locked }) {
         city: form.city.trim(),
         pin: form.pin.trim(),
       });
-      showSuccess("Profile updated successfully.");
+      showSuccess(t("Profile updated successfully."));
     } catch (error) {
-      showError(error?.message || "Could not save your profile.");
+      showError(error?.message || t("Could not save your profile."));
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading || !form) return <p className="py-6 text-center text-sm text-slate-400">Loading...</p>;
+  if (loading || !form) return <p className="py-6 text-center text-sm text-slate-400">{t("Loading...")}</p>;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block md:col-span-2">
-          <span className={labelClass}>Full Name</span>
+          <span className={labelClass}>{t("Full Name")}</span>
           <input disabled={locked} value={form.fullName} onChange={(e) => updateField("fullName", e.target.value)} className={inputClass} />
         </label>
         <label className="block">
-          <span className={labelClass}>Date of Birth</span>
+          <span className={labelClass}>{t("Date of Birth")}</span>
           <input
             type="date"
             disabled={locked}
@@ -133,7 +133,7 @@ function ProfileTab({ locked }) {
           />
         </label>
         <label className="block">
-          <span className={labelClass}>Years of Experience</span>
+          <span className={labelClass}>{t("Years of Experience")}</span>
           <input
             type="number"
             min="0"
@@ -144,19 +144,19 @@ function ProfileTab({ locked }) {
           />
         </label>
         <label className="block md:col-span-2">
-          <span className={labelClass}>Languages Spoken</span>
+          <span className={labelClass}>{t("Languages Spoken")}</span>
           <input disabled={locked} value={form.languages} onChange={(e) => updateField("languages", e.target.value)} className={inputClass} />
         </label>
         <label className="block md:col-span-2">
-          <span className={labelClass}>Address</span>
+          <span className={labelClass}>{t("Address")}</span>
           <textarea disabled={locked} rows={2} value={form.address} onChange={(e) => updateField("address", e.target.value)} className={inputClass} />
         </label>
         <label className="block">
-          <span className={labelClass}>City</span>
+          <span className={labelClass}>{t("City")}</span>
           <input disabled={locked} value={form.city} onChange={(e) => updateField("city", e.target.value)} className={inputClass} />
         </label>
         <label className="block">
-          <span className={labelClass}>PIN Code</span>
+          <span className={labelClass}>{t("PIN Code")}</span>
           <input disabled={locked} value={form.pin} onChange={(e) => updateField("pin", e.target.value)} className={inputClass} />
         </label>
       </div>
@@ -169,7 +169,7 @@ function ProfileTab({ locked }) {
             disabled={saving}
             className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? t("Saving...") : t("Save Changes")}
           </button>
         </div>
       )}
@@ -184,35 +184,35 @@ function ServicesTab() {
   useEffect(() => {
     listMyPujas()
       .then((data) => setItems(data?.items || []))
-      .catch(() => showError("Could not load your services."))
+      .catch(() => showError(t("Could not load your services.")))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="py-6 text-center text-sm text-slate-400">Loading...</p>;
+  if (loading) return <p className="py-6 text-center text-sm text-slate-400">{t("Loading...")}</p>;
 
   return (
     <div className="space-y-4">
       {items.length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-400">You haven't added any pujas yet.</p>
+        <p className="py-6 text-center text-sm text-slate-400">{t("You haven't added any pujas yet.")}</p>
       ) : (
         <div className="divide-y divide-amber-50 overflow-hidden rounded-2xl border border-amber-100">
           {items.map((row) => (
             <div key={row.id} className="flex items-center justify-between px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-slate-700">{row.puja?.title || "Puja"}</p>
+                <p className="text-sm font-semibold text-slate-700">{row.puja?.title || t("Puja")}</p>
                 <p className="text-xs text-slate-400">{row.puja?.duration_minutes ? `${row.puja.duration_minutes} min` : ""}</p>
               </div>
-              <p className="text-sm font-semibold text-maroon">Rs. {Number(row.price_override || 0).toFixed(2)}</p>
+              <p className="text-sm font-semibold text-maroon">{t("Rs.")}{' '}{Number(row.price_override || 0).toFixed(2)}</p>
             </div>
           ))}
         </div>
       )}
       <Link
         to="/pandit/pujas"
-        title="Manage in My Pujas"
+        title={t("Manage in My Pujas")}
         className="interactive-button inline-block rounded-full border border-amber-200 px-5 py-2 text-sm font-semibold text-maroon hover:bg-amber-50"
       >
-        Manage in My Pujas →
+        {t("Manage in My Pujas →")}
       </Link>
     </div>
   );
@@ -232,7 +232,7 @@ function AvailabilityTab({ locked }) {
         const match = TIMESLOTS.find((slot) => slot.start === pattern.start_time && slot.end === pattern.end_time);
         setTimeslotKey(match?.key || "");
       })
-      .catch(() => showError("Could not load your availability."))
+      .catch(() => showError(t("Could not load your availability.")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -242,31 +242,31 @@ function AvailabilityTab({ locked }) {
 
   async function handleSave() {
     if (days.length === 0) {
-      showError("Please select at least one available day.");
+      showError(t("Please select at least one available day."));
       return;
     }
     const timeslot = TIMESLOTS.find((slot) => slot.key === timeslotKey);
     if (!timeslot) {
-      showError("Please select a timeslot.");
+      showError(t("Please select a timeslot."));
       return;
     }
     setSaving(true);
     try {
       await savePanditAvailability({ days, start_time: timeslot.start, end_time: timeslot.end });
-      showSuccess("Availability updated successfully.");
+      showSuccess(t("Availability updated successfully."));
     } catch (error) {
-      showError(error?.message || "Could not save your availability.");
+      showError(error?.message || t("Could not save your availability."));
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <p className="py-6 text-center text-sm text-slate-400">Loading...</p>;
+  if (loading) return <p className="py-6 text-center text-sm text-slate-400">{t("Loading...")}</p>;
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="mb-2 text-sm font-semibold text-slate-700">Available Days</p>
+        <p className="mb-2 text-sm font-semibold text-slate-700">{t("Available Days")}</p>
         <div className="flex flex-wrap gap-2">
           {DAYS.map((day) => (
             <button
@@ -278,19 +278,19 @@ function AvailabilityTab({ locked }) {
                 days.includes(day.key) ? "border-maroon bg-maroon text-white" : "border-amber-200 text-slate-600 hover:bg-amber-50"
               }`}
             >
-              {day.label}
+              {t(day.label)}
             </button>
           ))}
         </div>
       </div>
 
       <label className="block max-w-sm">
-        <span className={labelClass}>Timeslot</span>
+        <span className={labelClass}>{t("Timeslot")}</span>
         <select disabled={locked} value={timeslotKey} onChange={(e) => setTimeslotKey(e.target.value)} className={inputClass}>
-          <option value="">Select a timeslot</option>
+          <option value="">{t("Select a timeslot")}</option>
           {TIMESLOTS.map((slot) => (
             <option key={slot.key} value={slot.key}>
-              {slot.label}
+              {t(slot.label)}
             </option>
           ))}
         </select>
@@ -304,7 +304,7 @@ function AvailabilityTab({ locked }) {
             disabled={saving}
             className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? t("Saving...") : t("Save Changes")}
           </button>
         </div>
       )}
@@ -330,7 +330,7 @@ function DocumentsTab({ locked }) {
     setLoading(true);
     getPanditDocuments()
       .then((data) => setRegistration(data?.registration || null))
-      .catch(() => showError("Could not load your documents."))
+      .catch(() => showError(t("Could not load your documents.")))
       .finally(() => setLoading(false));
   }
 
@@ -338,31 +338,31 @@ function DocumentsTab({ locked }) {
 
   async function handleUpload() {
     if (!photo) {
-      showError("Please choose a photo to update.");
+      showError(t("Please choose a photo to update."));
       return;
     }
     setSubmitting(true);
     try {
       await savePanditDocuments({ photo });
-      showSuccess("Photo updated successfully.");
+      showSuccess(t("Photo updated successfully."));
       setPhoto(null);
       load();
     } catch (error) {
-      showError(error?.message || "Could not submit your photo.");
+      showError(error?.message || t("Could not submit your photo."));
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (loading) return <p className="py-6 text-center text-sm text-slate-400">Loading...</p>;
+  if (loading) return <p className="py-6 text-center text-sm text-slate-400">{t("Loading...")}</p>;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-amber-200 bg-white p-3">
-          <p className={labelClass}>Passport-size Photo</p>
+          <p className={labelClass}>{t("Passport-size Photo")}</p>
           {registration?.photo_url && !photo && (
-            <img src={registration.photo_url} alt="Passport-size Photo" className="mb-2 h-28 w-full rounded-lg object-cover" />
+            <img src={registration.photo_url} alt={t("Passport-size Photo")} className="mb-2 h-28 w-full rounded-lg object-cover" />
           )}
           {!locked && (
             <input
@@ -383,7 +383,7 @@ function DocumentsTab({ locked }) {
             disabled={submitting}
             className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? "Submitting..." : "Update Photo"}
+            {submitting ? t("Submitting...") : t("Update Photo")}
           </button>
         </div>
       )}
@@ -411,7 +411,7 @@ function BankDetailsTab({ locked }) {
           setMasked({ accountNumber: details.account_number_masked, ifsc: details.ifsc_masked });
         }
       })
-      .catch(() => showError("Could not load your bank details."))
+      .catch(() => showError(t("Could not load your bank details.")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -421,7 +421,7 @@ function BankDetailsTab({ locked }) {
 
   async function handleSave() {
     if (!form.accountHolderName.trim() || !form.bankName.trim()) {
-      showError("Account holder name and bank name are required.");
+      showError(t("Account holder name and bank name are required."));
       return;
     }
 
@@ -430,7 +430,7 @@ function BankDetailsTab({ locked }) {
     // existing one" (e.g. when you're only here to add a UPI ID).
     const hasExistingAccount = Boolean(masked?.accountNumber && masked?.ifsc);
     if (!hasExistingAccount && (!form.accountNumber.trim() || !form.ifsc.trim())) {
-      showError("Please enter your account number and IFSC code.");
+      showError(t("Please enter your account number and IFSC code."));
       return;
     }
 
@@ -443,57 +443,57 @@ function BankDetailsTab({ locked }) {
         ifsc: form.ifsc.trim() || undefined,
         upi_id: form.upiId.trim() || undefined,
       });
-      showSuccess("Bank details saved successfully.");
+      showSuccess(t("Bank details saved successfully."));
       setForm((current) => ({ ...current, accountNumber: "", ifsc: "" }));
       const data = await getPanditBankDetails();
       const details = data?.bank_details;
       if (details) setMasked({ accountNumber: details.account_number_masked, ifsc: details.ifsc_masked });
     } catch (error) {
-      showError(error?.message || "Could not save your bank details.");
+      showError(error?.message || t("Could not save your bank details."));
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <p className="py-6 text-center text-sm text-slate-400">Loading...</p>;
+  if (loading) return <p className="py-6 text-center text-sm text-slate-400">{t("Loading...")}</p>;
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Bank details are mandatory to receive payments from your bookings.
+        {t("Bank details are mandatory to receive payments from your bookings.")}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className={labelClass}>Account Holder Name</span>
+          <span className={labelClass}>{t("Account Holder Name")}</span>
           <input disabled={locked} value={form.accountHolderName} onChange={(e) => updateField("accountHolderName", e.target.value)} className={inputClass} />
         </label>
         <label className="block">
-          <span className={labelClass}>Bank Name</span>
+          <span className={labelClass}>{t("Bank Name")}</span>
           <input disabled={locked} value={form.bankName} onChange={(e) => updateField("bankName", e.target.value)} className={inputClass} />
         </label>
         <label className="block">
-          <span className={labelClass}>Account Number {masked?.accountNumber && `(current: ${masked.accountNumber})`}</span>
+          <span className={labelClass}>{t("Account Number")}{' '}{masked?.accountNumber && t("(current: {accountNumber})", { accountNumber: masked.accountNumber })}</span>
           <input
             disabled={locked}
             value={form.accountNumber}
             onChange={(e) => updateField("accountNumber", e.target.value)}
-            placeholder={masked?.accountNumber ? "Enter to replace" : ""}
+            placeholder={masked?.accountNumber ? t("Enter to replace") : ""}
             className={inputClass}
           />
         </label>
         <label className="block">
-          <span className={labelClass}>IFSC Code {masked?.ifsc && `(current: ${masked.ifsc})`}</span>
+          <span className={labelClass}>{t("IFSC Code")}{' '}{masked?.ifsc && t("(current: {ifsc})", { ifsc: masked.ifsc })}</span>
           <input
             disabled={locked}
             value={form.ifsc}
             onChange={(e) => updateField("ifsc", e.target.value.toUpperCase())}
-            placeholder={masked?.ifsc ? "Enter to replace" : ""}
+            placeholder={masked?.ifsc ? t("Enter to replace") : ""}
             className={inputClass}
           />
         </label>
         <label className="block md:col-span-2">
-          <span className={labelClass}>UPI ID</span>
+          <span className={labelClass}>{t("UPI ID")}</span>
           <input disabled={locked} value={form.upiId} onChange={(e) => updateField("upiId", e.target.value)} className={inputClass} />
         </label>
       </div>
@@ -506,7 +506,7 @@ function BankDetailsTab({ locked }) {
             disabled={saving}
             className="interactive-button rounded-full bg-maroon px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save Bank Details"}
+            {saving ? t("Saving...") : t("Save Bank Details")}
           </button>
         </div>
       )}
@@ -521,7 +521,7 @@ export default function PanditProfilePage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-serif text-2xl font-semibold text-maroon">My Profile</h1>
+      <h1 className="font-serif text-2xl font-semibold text-maroon">{t("My Profile")}</h1>
 
       <LockedBanner stage={stage} rejectionReason={rejectionReason} />
 
@@ -535,7 +535,7 @@ export default function PanditProfilePage() {
               tab === item.key ? "bg-maroon text-white" : "text-slate-600 hover:bg-amber-50"
             }`}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>

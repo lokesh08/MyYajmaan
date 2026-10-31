@@ -8,6 +8,7 @@ import {
 } from "../services/otpApi";
 import { showError, showInfo, showSuccess } from "../utils/toaster";
 import FullScreenLoader from "../components/common/FullScreenLoader";
+import { t } from "../i18n";
 
 const CHANNELS = [
   { key: "email", label: "Email", placeholder: "6-digit code from your email" },
@@ -74,7 +75,7 @@ export default function VerifyOtpPage() {
   function finish() {
     if (finishedRef.current) return;
     finishedRef.current = true;
-    showSuccess("Email and mobile verified. You can now log in.");
+    showSuccess(t("Email and mobile verified. You can now log in."));
     navigate(loginPathFor(portal), { replace: true, state: { email } });
   }
 
@@ -90,7 +91,7 @@ export default function VerifyOtpPage() {
         if (cancelled) return;
 
         if (!status?.pending) {
-          showInfo("This account is already verified. Please log in.");
+          showInfo(t("This account is already verified. Please log in."));
           navigate(loginPathFor(portal), { replace: true, state: { email } });
           return;
         }
@@ -103,7 +104,7 @@ export default function VerifyOtpPage() {
           applySendResults((await sendSignupOtp(email, "both"))?.results);
         }
       } catch (error) {
-        if (!cancelled) showError(error?.message || "Could not start verification. Please try again.");
+        if (!cancelled) showError(error?.message || t("Could not start verification. Please try again."));
       } finally {
         if (!cancelled) setChecking(false);
       }
@@ -131,7 +132,7 @@ export default function VerifyOtpPage() {
   async function handleVerify(channel) {
     const code = codes[channel].trim();
     if (!/^\d{6}$/.test(code)) {
-      showError("Please enter the 6-digit code.");
+      showError(t("Please enter the 6-digit code."));
       return;
     }
 
@@ -140,16 +141,16 @@ export default function VerifyOtpPage() {
       const result = await verifySignupOtp(email, channel, code);
 
       if (!result?.verified) {
-        showError(result?.message || "That code could not be verified.");
+        showError(result?.message || t("That code could not be verified."));
         return;
       }
 
       setVerified({ email: result.email_verified, phone: result.phone_verified });
-      showSuccess(`${channel === "email" ? "Email" : "Mobile number"} verified.`);
+      showSuccess(t("{v0} verified.", { v0: channel === "email" ? "Email" : "Mobile number" }));
 
       if (result.fully_verified) finish();
     } catch (error) {
-      showError(error?.message || "Could not verify the code. Please try again.");
+      showError(error?.message || t("Could not verify the code. Please try again."));
     } finally {
       setBusy((current) => ({ ...current, [channel]: false }));
     }
@@ -160,7 +161,7 @@ export default function VerifyOtpPage() {
     try {
       applySendResults((await sendSignupOtp(email, channel))?.results);
     } catch (error) {
-      showError(error?.message || "Could not send a new code. Please try again.");
+      showError(error?.message || t("Could not send a new code. Please try again."));
     } finally {
       setBusy((current) => ({ ...current, [channel]: false }));
     }
@@ -173,19 +174,18 @@ export default function VerifyOtpPage() {
 
   return (
     <>
-      <FullScreenLoader open={checking} message="Preparing verification..." />
+      <FullScreenLoader open={checking} message={t("Preparing verification...")} />
 
       <section className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <div className="rounded-[2rem] border border-amber-100 bg-white p-6 shadow-sm sm:p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-marigold">
-            One-time verification
+            {t("One-time verification")}
           </p>
           <h1 className="mt-2 font-serif text-3xl font-semibold text-maroon-dark">
-            Verify your email and mobile number
+            {t("Verify your email and mobile number")}
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            We sent a code to <span className="font-semibold">{email}</span> and to your mobile
-            number. Enter both codes to activate your account. You only need to do this once.
+            {t("We sent a code to")}{' '}<span className="font-semibold">{email}</span>{' '}{t("and to your mobile number. Enter both codes to activate your account. You only need to do this once.")}
           </p>
 
           <div className="mt-6 space-y-4">
@@ -195,7 +195,7 @@ export default function VerifyOtpPage() {
                   <p className="font-semibold text-slate-800">{label}</p>
                   {verified[key] && (
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                      ✓ Verified
+                      {t("✓ Verified")}
                     </span>
                   )}
                 </div>
@@ -215,7 +215,7 @@ export default function VerifyOtpPage() {
                         autoComplete="one-time-code"
                         maxLength={6}
                         placeholder={placeholder}
-                        aria-label={`${label} verification code`}
+                        aria-label={t("{label} verification code", { label: label })}
                         className="min-w-0 flex-1 rounded-xl border border-amber-100 px-4 py-3 tracking-[0.3em] outline-none focus:border-amber-400"
                       />
                       <button
@@ -224,7 +224,7 @@ export default function VerifyOtpPage() {
                         disabled={busy[key] || codes[key].length !== 6}
                         className="interactive-button rounded-full bg-maroon-dark px-5 py-3 text-sm font-semibold text-white hover:bg-maroon disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {busy[key] ? "Checking..." : "Verify"}
+                        {busy[key] ? t("Checking...") : t("Verify")}
                       </button>
                     </div>
 
@@ -235,12 +235,12 @@ export default function VerifyOtpPage() {
                         disabled={busy[key] || cooldown[key] > 0}
                         className="font-semibold text-maroon hover:underline disabled:cursor-not-allowed disabled:text-slate-400 disabled:no-underline"
                       >
-                        {cooldown[key] > 0 ? `Resend code in ${cooldown[key]}s` : "Resend code"}
+                        {cooldown[key] > 0 ? t("Resend code in {v0}s", { v0: cooldown[key] }) : t("Resend code")}
                       </button>
 
                       {devOtps[key] && (
                         <span className="rounded bg-amber-50 px-2 py-1 font-mono text-amber-800">
-                          DEV ONLY: {devOtps[key]}
+                          {t("DEV ONLY:")}{' '}{devOtps[key]}
                         </span>
                       )}
                     </div>
@@ -251,9 +251,9 @@ export default function VerifyOtpPage() {
           </div>
 
           <p className="mt-6 text-sm text-slate-500">
-            Didn't get a code? Use "Resend code" above. Already verified both?{" "}
+            {t("Didn't get a code? Use \"Resend code\" above. Already verified both?")}{" "}
             <Link to={loginPathFor(portal)} className="font-semibold text-maroon hover:underline">
-              Go to log in
+              {t("Go to log in")}
             </Link>
             .
           </p>

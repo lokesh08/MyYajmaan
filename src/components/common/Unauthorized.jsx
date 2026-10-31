@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { t } from "../../i18n";
 
 export default function Unauthorized() {
   return (
@@ -9,23 +10,23 @@ export default function Unauthorized() {
         </div>
 
         <p className="mt-6 text-sm font-semibold uppercase tracking-[0.2em] text-saffron">
-          Access restricted
+          {t("Access restricted")}
         </p>
 
         <h1 className="mt-3 font-serif text-3xl font-semibold text-maroon">
-          You are not authorized
+          {t("You are not authorized")}
         </h1>
 
         <p className="mt-3 text-slate-600">
-          You do not have permission to access this page.
+          {t("You do not have permission to access this page.")}
         </p>
 
         <Link
           to="/"
-          title="Back to Home"
+          title={t("Back to Home")}
           className="mt-6 inline-flex rounded-full bg-maroon px-6 py-3 font-semibold text-white"
         >
-          Back to Home
+          {t("Back to Home")}
         </Link>
       </div>
     </section>

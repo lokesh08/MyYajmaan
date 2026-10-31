@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test:unit": "node --test src/utils/referral.test.js src/utils/bookingSteps.test.js",
+    "test:unit": "node --test src/utils/referral.test.js src/utils/bookingSteps.test.js src/i18n/i18n.test.js",
     "check:colors": "node scripts/check-colors.mjs",
     "check:seo": "node scripts/check-seo.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",

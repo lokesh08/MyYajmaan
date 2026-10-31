@@ -7,6 +7,7 @@ import { completeBooking, getMyBookingInvoiceUrl, getMyBookingTabCounts, listMyB
 import { showError, showSuccess } from "../../utils/toaster";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import LockedNotice from "../../components/pandit/LockedNotice";
+import { t as tt } from "../../i18n";
 
 const TABS = [
   { key: "upcoming", label: "Upcoming" },
@@ -83,7 +84,7 @@ export default function PanditBookingsPage() {
         setTotal(data?.total || 0);
       })
       .catch(() => {
-        if (!silentRef.current) showError("Could not load your bookings.");
+        if (!silentRef.current) showError(tt("Could not load your bookings."));
       })
       .finally(() => {
         setLoading(false);
@@ -119,10 +120,10 @@ export default function PanditBookingsPage() {
     setActionLoading(true);
     try {
       await respondToBooking(booking.id, "accept");
-      showSuccess("Booking confirmed.");
+      showSuccess(tt("Booking confirmed."));
       setRefreshKey((k) => k + 1);
     } catch (error) {
-      showError(error?.message || "Could not accept this booking.");
+      showError(error?.message || tt("Could not accept this booking."));
     } finally {
       setActionLoading(false);
     }
@@ -131,18 +132,18 @@ export default function PanditBookingsPage() {
   async function handleDeclineConfirm() {
     if (!declineTarget) return;
     if (!declineReason.trim()) {
-      showError("Please enter a reason for declining.");
+      showError(tt("Please enter a reason for declining."));
       return;
     }
     setActionLoading(true);
     try {
       await respondToBooking(declineTarget.id, "decline", declineReason.trim());
-      showSuccess("Booking declined.");
+      showSuccess(tt("Booking declined."));
       setDeclineTarget(null);
       setDeclineReason("");
       setRefreshKey((k) => k + 1);
     } catch (error) {
-      showError(error?.message || "Could not decline this booking.");
+      showError(error?.message || tt("Could not decline this booking."));
     } finally {
       setActionLoading(false);
     }
@@ -152,10 +153,10 @@ export default function PanditBookingsPage() {
     setActionLoading(true);
     try {
       await completeBooking(booking.id);
-      showSuccess("Booking marked as completed.");
+      showSuccess(tt("Booking marked as completed."));
       setRefreshKey((k) => k + 1);
     } catch (error) {
-      showError(error?.message || "Could not update this booking.");
+      showError(error?.message || tt("Could not update this booking."));
     } finally {
       setActionLoading(false);
     }
@@ -163,13 +164,13 @@ export default function PanditBookingsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-serif text-2xl font-semibold text-maroon">Manage Bookings</h1>
+      <h1 className="font-serif text-2xl font-semibold text-maroon">{tt("Manage Bookings")}</h1>
 
       {currentStreak >= 2 && (
         <div className={`rounded-2xl border px-4 py-3 text-sm font-medium ${currentStreak >= 3 ? "border-rose-200 bg-rose-50 text-rose-700" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
           {currentStreak >= 3 ? "⚠️ " : ""}
-          You've declined {currentStreak} booking{currentStreak === 1 ? "" : "s"} in a row.
-          {currentStreak >= 3 ? " Please accept bookings when you can -- admin has been notified." : " One more decline will flag this to admin."}
+          {tt(currentStreak === 1 ? "You've declined {count} booking in a row." : "You've declined {count} bookings in a row.", { count: currentStreak })}
+          {currentStreak >= 3 ? tt(" Please accept bookings when you can -- admin has been notified.") : tt(" One more decline will flag this to admin.")}
         </div>
       )}
 
@@ -183,39 +184,39 @@ export default function PanditBookingsPage() {
               tab === item.key ? "bg-maroon text-white" : "text-slate-600 hover:bg-amber-50"
             }`}
           >
-            {item.label} ({item.key === "declined" ? declinedCount : counts[item.key] ?? 0})
+            {tt(item.label)} ({item.key === "declined" ? declinedCount : counts[item.key] ?? 0})
           </button>
         ))}
       </div>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-slate-400">Loading bookings...</p>
+        <p className="py-10 text-center text-sm text-slate-400">{tt("Loading bookings...")}</p>
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-amber-100 bg-white p-8 text-center text-sm text-slate-400">
-          No {tab} bookings right now.
+          {tt("No {tab} bookings right now.", { tab: tt(tab) })}
         </div>
       ) : tab === "declined" ? (
         <div className="overflow-x-auto rounded-2xl border border-amber-100 bg-white shadow-sm">
           <table className="w-full min-w-[600px] text-left text-sm">
             <thead className="bg-amber-50/60 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-4 py-3">Puja</th>
-                <th className="px-4 py-3">Original Date</th>
-                <th className="px-4 py-3">Declined On</th>
-                <th className="px-4 py-3">Your Reason</th>
+                <th className="px-4 py-3">{tt("Puja")}</th>
+                <th className="px-4 py-3">{tt("Original Date")}</th>
+                <th className="px-4 py-3">{tt("Declined On")}</th>
+                <th className="px-4 py-3">{tt("Your Reason")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-amber-50">
               {items.map((entry) => (
                 <tr key={entry.booking?.id}>
                   <td className="px-4 py-3 font-medium text-slate-700">
-                    {(entry.booking?.notes || "").replace(/^Puja:\s*/, "") || "Puja"}
+                    {(entry.booking?.notes || "").replace(/^Puja:\s*/, "") || tt("Puja")}
                   </td>
                   <td className="px-4 py-3">
                     {entry.booking?.booking_date || entry.booking?.date || "—"} · {entry.booking?.muhurat_time_slot || entry.booking?.timeslot || ""}
                   </td>
                   <td className="px-4 py-3">{entry.declined_at ? new Date(entry.declined_at).toLocaleDateString() : "—"}</td>
-                  <td className="max-w-xs px-4 py-3 italic text-slate-500">"{entry.decline_reason || "No reason given"}"</td>
+                  <td className="max-w-xs px-4 py-3 italic text-slate-500">"{entry.decline_reason || tt("No reason given")}"</td>
                 </tr>
               ))}
             </tbody>
@@ -226,19 +227,19 @@ export default function PanditBookingsPage() {
           <table className="w-full min-w-[700px] text-left text-sm">
             <thead className="bg-amber-50/60 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Timeslot</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-4 py-3">{tt("Customer")}</th>
+                <th className="px-4 py-3">{tt("Date")}</th>
+                <th className="px-4 py-3">{tt("Timeslot")}</th>
+                <th className="px-4 py-3">{tt("Amount")}</th>
+                <th className="px-4 py-3">{tt("Status")}</th>
+                <th className="px-4 py-3 text-right">{tt("Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-amber-50">
               {items.map((booking) => (
                 <tr key={booking.id}>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-700">{booking.customer_name || "Customer"}</p>
+                    <p className="font-medium text-slate-700">{booking.customer_name || tt("Customer")}</p>
                     <p className="text-xs text-slate-400">{booking.customer_phone || booking.customer_email || ""}</p>
                     {booking.special_instructions && (
                       <p className="mt-1 max-w-xs text-xs italic text-amber-700" title={booking.special_instructions}>
@@ -248,7 +249,7 @@ export default function PanditBookingsPage() {
                   </td>
                   <td className="px-4 py-3">{booking.booking_date || booking.date || "—"}</td>
                   <td className="px-4 py-3">{booking.muhurat_time_slot || booking.timeslot || "—"}</td>
-                  <td className="px-4 py-3">Rs. {Number(booking.amount || 0).toFixed(2)}</td>
+                  <td className="px-4 py-3">{tt("Rs.")}{' '}{Number(booking.amount || 0).toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <StatusPill status={booking.status} />
                   </td>
@@ -261,7 +262,7 @@ export default function PanditBookingsPage() {
                           onClick={() => handleAccept(booking)}
                           className="interactive-button rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                         >
-                          Confirm
+                          {tt("Confirm")}
                         </button>
                         <button
                           type="button"
@@ -269,7 +270,7 @@ export default function PanditBookingsPage() {
                           onClick={() => setDeclineTarget(booking)}
                           className="interactive-button rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-60"
                         >
-                          Decline
+                          {tt("Decline")}
                         </button>
                       </div>
                     ) : booking.status === "confirmed" ? (
@@ -279,17 +280,17 @@ export default function PanditBookingsPage() {
                         onClick={() => handleComplete(booking)}
                         className="interactive-button rounded-full border border-amber-200 px-3 py-1.5 text-xs font-semibold text-maroon hover:bg-amber-50 disabled:opacity-60"
                       >
-                        Mark Completed
+                        {tt("Mark Completed")}
                       </button>
                     ) : booking.status === "completed" ? (
                       <a
                         href={getMyBookingInvoiceUrl(booking.id)}
                         target="_blank"
                         rel="noreferrer"
-                        title="Download payment statement"
+                        title={tt("Download payment statement")}
                         className="interactive-button rounded-full border border-amber-200 px-3 py-1.5 text-xs font-semibold text-maroon hover:bg-amber-50"
                       >
-                        Download Invoice
+                        {tt("Download Invoice")}
                       </a>
                     ) : booking.status === "declined" && booking.cancelled_reason ? (
                       <span className="text-xs italic text-slate-400">"{booking.cancelled_reason}"</span>
@@ -307,7 +308,7 @@ export default function PanditBookingsPage() {
       {total > PAGE_SIZE && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
           <span>
-            Showing {items.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, total)} of {total}
+            {tt("Showing {from}-{to} of {total}", { from: items.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1, to: Math.min(page * PAGE_SIZE, total), total })}
           </span>
           <div className="flex gap-2">
             <button
@@ -316,10 +317,10 @@ export default function PanditBookingsPage() {
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               className="interactive-button rounded-lg border border-amber-200 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Previous
+              {tt("Previous")}
             </button>
             <span className="px-2 py-1.5">
-              Page {page} of {totalPages}
+              {tt("Page {page} of {totalPages}", { page, totalPages })}
             </span>
             <button
               type="button"
@@ -327,7 +328,7 @@ export default function PanditBookingsPage() {
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               className="interactive-button rounded-lg border border-amber-200 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Next
+              {tt("Next")}
             </button>
           </div>
         </div>
@@ -335,9 +336,9 @@ export default function PanditBookingsPage() {
 
       <ConfirmDialog
         open={Boolean(declineTarget)}
-        title="Decline Booking"
-        message="Please share a reason. Admin will be notified to arrange another Pandit Ji for the customer."
-        confirmLabel="Decline Booking"
+        title={tt("Decline Booking")}
+        message={tt("Please share a reason. Admin will be notified to arrange another Pandit Ji for the customer.")}
+        confirmLabel={tt("Decline Booking")}
         confirmClassName="bg-rose-600 hover:bg-rose-700"
         loading={actionLoading}
         onConfirm={handleDeclineConfirm}
@@ -350,7 +351,7 @@ export default function PanditBookingsPage() {
           value={declineReason}
           onChange={(e) => setDeclineReason(e.target.value)}
           rows={3}
-          placeholder="e.g. Not available at this time slot"
+          placeholder={tt("e.g. Not available at this time slot")}
           className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
         />
       </ConfirmDialog>

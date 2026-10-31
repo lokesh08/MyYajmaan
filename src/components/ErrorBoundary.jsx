@@ -1,5 +1,6 @@
 import React from "react";
 import { showError } from "../utils/toaster";
+import { t } from "../i18n";
 
 /**
  * Generic render-error boundary. Wraps a section of the page that can
@@ -20,7 +21,7 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     console.error("ErrorBoundary caught:", error, info);
-    showError(this.props.message || "Something went wrong loading this section.");
+    showError(this.props.message || t("Something went wrong loading this section."));
   }
 
   render() {
@@ -28,7 +29,7 @@ export default class ErrorBoundary extends React.Component {
       return (
         this.props.fallback ?? (
           <div style={{ padding: 24, textAlign: "center", color: "var(--color-rose-800)" }}>
-            {this.props.message || "Something went wrong loading this section."}
+            {this.props.message || t("Something went wrong loading this section.")}
           </div>
         )
       );

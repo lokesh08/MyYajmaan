@@ -13,6 +13,7 @@ import { authBackgrounds } from "../constants/visualAssets";
 import { ADMIN_DASHBOARD_PATH } from "../constants/adminRoutes";
 import { useAuth } from "../context/AuthContext";
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 const backgroundImage = authBackgrounds.login;
 
@@ -93,17 +94,17 @@ export default function LoginPage() {
       .trim();
 
     if (!cleanEmail) {
-      showError("Please enter your email address.");
+      showError(t("Please enter your email address."));
       return;
     }
 
     if (!isValidEmail(cleanEmail)) {
-      showError("Please enter a valid email address.");
+      showError(t("Please enter a valid email address."));
       return;
     }
 
     if (!password) {
-      showError("Please enter your password.");
+      showError(t("Please enter your password."));
       return;
     }
 
@@ -125,7 +126,7 @@ export default function LoginPage() {
       applyLogin(result.user);
 
       showSuccess(
-        "Login successful. Welcome back!",
+        t("Login successful. Welcome back!"),
       );
 
       // RoleRoute (e.g. the booking flow's login gate) sends visitors
@@ -166,7 +167,7 @@ export default function LoginPage() {
     <>
       <FullScreenLoader
         open={loading}
-        message="Signing you in..."
+        message={t("Signing you in...")}
       />
 
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
@@ -174,7 +175,7 @@ export default function LoginPage() {
           <div className="relative overflow-hidden bg-maroon-dark p-6 text-white sm:min-h-[320px] sm:p-8 lg:min-h-[560px]">
             <img
               src={backgroundImage}
-              alt="Festival background"
+              alt={t("Festival background")}
               className="absolute inset-0 h-full w-full object-cover opacity-30"
             />
 
@@ -183,33 +184,33 @@ export default function LoginPage() {
             <div className="relative flex h-full flex-col justify-between">
               <div>
                 <div className="h-12 w-12 overflow-hidden rounded-full border border-white/25">
-                  <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                  <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
                 </div>
 
                 <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-amber-100">
-                  MyYajmaan
+                  {t("MyYajmaan")}
                 </p>
 
                 <h1 className="mt-3 max-w-md font-serif text-3xl font-semibold leading-tight">
-                  Your spiritual booking account
+                  {t("Your spiritual booking account")}
                 </h1>
 
                 <p className="mt-3 max-w-md text-sm leading-6 text-amber-50">
-                  Track bookings, rewards, and trusted pandit services from one place.
+                  {t("Track bookings, rewards, and trusted pandit services from one place.")}
                 </p>
               </div>
 
               <div className="hidden gap-3 rounded-2xl sm:grid bg-white/10 p-4 backdrop-blur-sm">
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
-                  • Book verified pandits
+                  {t("• Book verified pandits")}
                 </div>
 
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
-                  • Manage upcoming pujas
+                  {t("• Manage upcoming pujas")}
                 </div>
 
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
-                  • View rewards and booking history
+                  {t("• View rewards and booking history")}
                 </div>
               </div>
             </div>
@@ -217,15 +218,15 @@ export default function LoginPage() {
 
           <div className="p-8 lg:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-marigold">
-              Account
+              {t("Account")}
             </p>
 
             <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon-dark">
-              Welcome back
+              {t("Welcome back")}
             </h2>
 
             <p className="mt-2 text-sm text-slate-600">
-              Sign in to manage your pujas, bookings, and rewards.
+              {t("Sign in to manage your pujas, bookings, and rewards.")}
             </p>
 
             <form
@@ -235,7 +236,7 @@ export default function LoginPage() {
             >
               <label className="block">
                 <span className="sr-only">
-                  Email address
+                  {t("Email address")}
                 </span>
 
                 <input
@@ -243,7 +244,7 @@ export default function LoginPage() {
                   onChange={handleEmailChange}
                   type="email"
                   autoComplete="email"
-                  placeholder="Email address"
+                  placeholder={t("Email address")}
                   disabled={loading}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 />
@@ -251,7 +252,7 @@ export default function LoginPage() {
 
               <label className="block">
                 <span className="sr-only">
-                  Password
+                  {t("Password")}
                 </span>
 
                 <input
@@ -259,7 +260,7 @@ export default function LoginPage() {
                   onChange={handlePasswordChange}
                   type="password"
                   autoComplete="current-password"
-                  placeholder="Password"
+                  placeholder={t("Password")}
                   disabled={loading}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400 disabled:bg-slate-50"
                 />
@@ -268,10 +269,10 @@ export default function LoginPage() {
               <div className="text-right">
                 <Link
                   to="/forgot-password"
-                  title="Reset your password"
+                  title={t("Reset your password")}
                   className="inline-flex min-h-[44px] items-center text-sm font-semibold text-maroon hover:text-saffron"
                 >
-                  Forgot password?
+                  {t("Forgot password?")}
                 </Link>
               </div>
 
@@ -281,15 +282,15 @@ export default function LoginPage() {
                   disabled={loading}
                   className="interactive-button rounded-full bg-maroon-dark px-6 py-3 font-semibold text-white hover:bg-maroon disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Login
+                  {t("Login")}
                 </button>
 
                 <Link
                   to="/register"
-                  title="Create a new account"
+                  title={t("Create a new account")}
                   className="rounded-full border border-amber-200 px-6 py-3 font-semibold text-slate-700"
                 >
-                  Create account
+                  {t("Create account")}
                 </Link>
               </div>
             </form>
@@ -299,7 +300,7 @@ export default function LoginPage() {
 
       {/* Form first, so it's what opens on screen; the benefits follow. */}
       <section className="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
-        <YajmaanBenefits ctaLabel="New to MyYajmaan? Register Now →" />
+        <YajmaanBenefits ctaLabel={t("New to MyYajmaan? Register Now →")} />
       </section>
     </>
   );

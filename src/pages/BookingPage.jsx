@@ -9,6 +9,7 @@ import Seo from '../components/Seo';
 import { getSiteUrl } from '../seo/seoHead';
 import { itemListSchema } from '../seo/structuredData';
 import { optimizedImage } from '../utils/image';
+import { t } from "../i18n";
 
 const categories = ['All Categories', 'Festival', 'Family', 'Housewarming', 'Temple', 'Path', 'Remedy'];
 const durations = ['All Durations', '1 - 2 Hours', '2 - 3 Hours', '3 - 5 Hours'];
@@ -55,7 +56,7 @@ export default function BookingPage() {
       .then((data) => setPujas(Array.isArray(data) ? data : []))
       .catch((err) => {
         if (err?.isCanceled || err?.name === 'CanceledError') return;
-        setError(err?.message || 'Failed to load pujas');
+        setError(err?.message || t("Failed to load pujas"));
       })
       .finally(() => setLoading(false));
 
@@ -111,10 +112,10 @@ export default function BookingPage() {
       <div className="mb-5 rounded-[1.4rem] bg-maroon-deep p-4 text-white shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-amber-100">Browse Pujas</p>
-            <h1 className="mt-1 font-serif text-3xl font-semibold">Choose your sacred ritual</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-amber-100">{t("Browse Pujas")}</p>
+            <h1 className="mt-1 font-serif text-3xl font-semibold">{t("Choose your sacred ritual")}</h1>
           </div>
-          <div className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm">Step 1 of 6</div>
+          <div className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm">{t("Step 1 of 6")}</div>
         </div>
       </div>
 
@@ -128,25 +129,24 @@ export default function BookingPage() {
               pujaType === tab.value ? 'bg-maroon text-white' : 'text-slate-600 hover:bg-amber-50'
             }`}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </div>
 
       {pujaType === 'package' && (
         <div className="mb-5 rounded-[1rem] border border-amber-200 bg-amber-50 p-4 text-sm text-slate-700">
-          Package pujas are custom-priced. Submit a request with your date, address, and requirements -- no
-          payment needed yet -- and our team will call you to confirm the details and share a final quote.
+          {t("Package pujas are custom-priced. Submit a request with your date, address, and requirements -- no payment needed yet -- and our team will call you to confirm the details and share a final quote.")}
         </div>
       )}
 
       <div className="mb-5 rounded-[1rem] border border-amber-100 bg-white p-3 shadow-sm">
         <input
           type="text"
-          aria-label="Search pujas"
+          aria-label={t("Search pujas")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search Pujas..."
+          placeholder={t("Search Pujas...")}
           className="w-full rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm outline-none"
         />
       </div>
@@ -154,7 +154,7 @@ export default function BookingPage() {
       {/* Phones: categories as one swipeable row of chips, instead of a
           dropdown card -- the stacked filter cards used to fill the whole
           first screen before any puja showed. */}
-      <div className="swipe-row -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 md:hidden" role="group" aria-label="Filter by category">
+      <div className="swipe-row -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 md:hidden" role="group" aria-label={t("Filter by category")}>
         {categories.map((item) => (
           <button
             key={item}
@@ -165,16 +165,16 @@ export default function BookingPage() {
               category === item ? 'border-maroon bg-maroon text-white' : 'border-amber-200 bg-white text-slate-700'
             }`}
           >
-            {item === 'All Categories' ? 'All' : item}
+            {item === 'All Categories' ? t("All") : item}
           </button>
         ))}
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3">
         <label className="hidden rounded-[0.9rem] border border-amber-100 bg-white p-3 shadow-sm md:block">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">All Categories</span>
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("All Categories")}</span>
           <select
-            aria-label="Filter by category"
+            aria-label={t("Filter by category")}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="w-full rounded-lg border border-amber-200 bg-amber-50 min-h-[44px] px-3 py-2 text-sm"
@@ -186,9 +186,9 @@ export default function BookingPage() {
         </label>
 
         <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-2 shadow-sm md:p-3">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:mb-2 md:tracking-[0.22em]">All Durations</span>
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:mb-2 md:tracking-[0.22em]">{t("All Durations")}</span>
           <select
-            aria-label="Filter by duration"
+            aria-label={t("Filter by duration")}
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
             className="w-full rounded-lg border border-amber-200 bg-amber-50 min-h-[44px] px-3 py-2 text-sm"
@@ -200,15 +200,15 @@ export default function BookingPage() {
         </label>
 
         <label className="block rounded-[0.9rem] border border-amber-100 bg-white p-2 shadow-sm md:p-3">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:mb-2 md:tracking-[0.22em]">Sort By</span>
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:mb-2 md:tracking-[0.22em]">{t("Sort By")}</span>
           <select
-            aria-label="Sort pujas"
+            aria-label={t("Sort pujas")}
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="w-full rounded-lg border border-amber-200 bg-amber-50 min-h-[44px] px-3 py-2 text-sm"
           >
             {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>{t(option.label)}</option>
             ))}
           </select>
         </label>
@@ -224,7 +224,7 @@ export default function BookingPage() {
 
       {!loading && !error && filteredPujas.length === 0 && (
         <p className="rounded-2xl border border-dashed border-amber-200 bg-white px-4 py-10 text-center text-sm text-slate-400">
-          No pujas match your filters right now.
+          {t("No pujas match your filters right now.")}
         </p>
       )}
 
@@ -286,9 +286,9 @@ function PujaCatalogCard({ puja, onOpen }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4 text-white">
-          <h2 className="font-serif text-xl font-semibold">{puja.title}</h2>
+          <h2 className="font-serif text-xl font-semibold">{t(puja.title)}</h2>
           {puja.duration_minutes ? (
-            <p className="mt-1 text-sm text-amber-100">Duration: {puja.duration_minutes} mins</p>
+            <p className="mt-1 text-sm text-amber-100">{t("Duration:")}{' '}{puja.duration_minutes}{' '}{t("mins")}</p>
           ) : null}
         </div>
       </div>
@@ -296,7 +296,7 @@ function PujaCatalogCard({ puja, onOpen }) {
       <div className="p-4">
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">
-            From {puja.base_price ? `₹${puja.base_price}` : '-'}
+            {t("From")}{' '}{puja.base_price ? `₹${puja.base_price}` : '-'}
           </p>
           {puja.category && (
             <p className="text-xs font-semibold uppercase tracking-wide text-saffron">{puja.category}</p>
@@ -305,10 +305,10 @@ function PujaCatalogCard({ puja, onOpen }) {
         <button
           type="button"
           onClick={() => onOpen(puja)}
-          aria-label={`View details for ${puja.title}`}
+          aria-label={t("View details for {title}", { title: puja.title })}
           className="mt-4 min-h-[44px] w-full rounded-full bg-maroon px-4 py-2.5 text-sm font-semibold text-white"
         >
-          View details
+          {t("View details")}
         </button>
       </div>
     </div>

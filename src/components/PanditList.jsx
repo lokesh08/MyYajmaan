@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { haversineDistance } from '../utils/geo';
 import { panditPlaceholderImage } from '../constants/visualAssets';
 import { optimizedImage } from "../utils/image";
+import { t } from "../i18n";
 
 function formatPrice(price) {
   if (price === null || price === undefined || price === '') return null;
@@ -24,13 +25,13 @@ export default function PanditList({ pandits, userLoc, query, selectedId, onSele
   }, [pandits, userLoc, query]);
 
   if (loading) {
-    return <div className="pandit-list">Loading nearby Pandit Ji...</div>;
+    return <div className="pandit-list">{t("Loading nearby Pandit Ji...")}</div>;
   }
 
   return (
     <div className="pandit-list" role="list">
       {filtered.length === 0 && (
-        <div className="no-results">No Pandit Ji found nearby yet.</div>
+        <div className="no-results">{t("No Pandit Ji found nearby yet.")}</div>
       )}
 
       {filtered.map(p => {
@@ -56,8 +57,8 @@ export default function PanditList({ pandits, userLoc, query, selectedId, onSele
             <div className="info">
               <div className="name">{p.name}</div>
               <div className="meta">
-                <span className="rating" aria-label={`Rating ${p.rating || 'not available'}`}>⭐ {p.rating ? Number(p.rating).toFixed(1) : '-'}</span>
-                <span className="distance">{p.distanceKm !== Infinity ? `${p.distanceKm.toFixed(1)} km away` : ''}</span>
+                <span className="rating" aria-label={t("Rating {v0}", { v0: p.rating || 'not available' })}>⭐ {p.rating ? Number(p.rating).toFixed(1) : '-'}</span>
+                <span className="distance">{p.distanceKm !== Infinity ? t("{v0} km away", { v0: p.distanceKm.toFixed(1) }) : ''}</span>
               </div>
               {p.address && <div className="address">{p.address}</div>}
               {price && <div className="price">{price}</div>}

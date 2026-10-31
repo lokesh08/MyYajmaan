@@ -10,6 +10,7 @@ import { payWithRazorpay } from '../services/razorpay';
 import { createBooking } from '../services/bookings';
 import { validateCoupon } from '../services/coupons';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
+import { t } from "../i18n";
 
 const PAYMENT_METHOD = 'razorpay';
 const DEFAULT_PRICING = { premium_package_fee: 500, gst_percentage: 0, platform_fee: 200 };
@@ -61,7 +62,7 @@ export default function BookPayment() {
   if (!date || !slot || !pandit || !address) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">Incomplete booking data. Go back and complete earlier steps.</p>
+        <p className="text-slate-600">{t("Incomplete booking data. Go back and complete earlier steps.")}</p>
       </section>
     );
   }
@@ -187,8 +188,8 @@ export default function BookPayment() {
       if (err?.isPaymentCancelled) {
         setDialog({
           open: true,
-          title: 'Payment cancelled',
-          message: 'You closed the payment window before completing the payment. No money was charged.',
+          title: t("Payment cancelled"),
+          message: t("You closed the payment window before completing the payment. No money was charged."),
         });
         return;
       }
@@ -201,16 +202,16 @@ export default function BookPayment() {
       if (paymentRef) {
         setDialog({
           open: true,
-          title: 'Payment received',
-          message: `Your payment (ref: ${paymentRef}) was received, but we could not complete your booking${err?.message ? ` (${err.message})` : ''}. Please do not pay again - contact support with this reference and we will sort it out.`,
+          title: t("Payment received"),
+          message: t("Your payment (ref: {paymentRef}) was received, but we could not complete your booking{v1}. Please do not pay again - contact support with this reference and we will sort it out.", { paymentRef: paymentRef, v1: err?.message ? ` (${err.message})` : '' }),
         });
         return;
       }
 
       setDialog({
         open: true,
-        title: 'Payment error',
-        message: err?.message || 'Something went wrong while processing your payment. Please try again.',
+        title: t("Payment error"),
+        message: err?.message || t("Something went wrong while processing your payment. Please try again."),
       });
     } finally {
       setLoading(false);
@@ -221,14 +222,14 @@ export default function BookPayment() {
 
   return (
     <BookingFrame
-      title="Payment"
-      description="Review your booking and pay securely."
+      title={t("Payment")}
+      description={t("Review your booking and pay securely.")}
       accentImage={puja?.image || undefined}
-      asideTitle="Booking review"
+      asideTitle={t("Booking review")}
       asideItems={[
-        { label: `Ritual: ${puja?.title || 'Selected puja'}` },
-        { label: `Pandit: ${pandit.name}` },
-        { label: `Total: ₹${payableAmount.toFixed(2)}` },
+        { label: t("Ritual: {value}", { value: puja?.title || t('Selected puja') }) },
+        { label: t("Pandit: {value}", { value: pandit.name }) },
+        { label: t("Total: ₹{value}", { value: payableAmount.toFixed(2) }) },
       ]}
     >
       <BookingStepper currentStep={5} />
@@ -242,17 +243,17 @@ export default function BookPayment() {
           <div className="text-right">
             {isPremium && (
               <span className="mb-1 inline-block rounded-full bg-gradient-to-r from-saffron to-gold px-2.5 py-0.5 text-xs font-bold text-white">
-                PREMIUM
+                {t("PREMIUM")}
               </span>
             )}
             <p className="font-semibold text-maroon">₹{panditPrice.toFixed(2)}</p>
-            <p className="text-xs text-slate-400">Puja price</p>
+            <p className="text-xs text-slate-400">{t("Puja price")}</p>
           </div>
         </div>
 
         <div className="mt-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="block text-sm font-medium text-slate-700" htmlFor="coupon-code">Coupon code</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor="coupon-code">{t("Coupon code")}</label>
             <CouponsShowcase variant="link" onSelectCode={selectCouponCode} />
           </div>
           <div className="mt-2 flex gap-2">
@@ -264,7 +265,7 @@ export default function BookPayment() {
                 setCoupon(null);
                 setCouponMessage('');
               }}
-              placeholder="Enter coupon code"
+              placeholder={t("Enter coupon code")}
               className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-amber-200 px-3 py-2 text-sm uppercase outline-none focus:border-maroon"
             />
             <button
@@ -273,7 +274,7 @@ export default function BookPayment() {
               disabled={!couponCode.trim() || couponLoading}
               className="interactive-button min-h-[44px] rounded-xl border border-amber-200 px-4 py-2 text-sm font-semibold text-maroon disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {couponLoading ? 'Checking...' : 'Apply'}
+              {couponLoading ? t("Checking...") : t("Apply")}
             </button>
           </div>
           {couponMessage && (
@@ -283,7 +284,7 @@ export default function BookPayment() {
           )}
           {coupon && (
             <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              <span>Coupon discount</span>
+              <span>{t("Coupon discount")}</span>
               <span>-₹{coupon.discount}</span>
             </div>
           )}
@@ -291,45 +292,45 @@ export default function BookPayment() {
 
         <div className="mt-4 flex items-center justify-between rounded-[1.25rem] border border-amber-100 bg-white p-4 shadow-sm">
           <div>
-            <p className="text-sm font-semibold text-slate-700">Payment</p>
-            <p className="text-xs text-slate-500">Pay securely with UPI, cards, net banking or wallets via Razorpay.</p>
+            <p className="text-sm font-semibold text-slate-700">{t("Payment")}</p>
+            <p className="text-xs text-slate-500">{t("Pay securely with UPI, cards, net banking or wallets via Razorpay.")}</p>
           </div>
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-maroon">Razorpay</span>
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-maroon">{t("Razorpay")}</span>
         </div>
 
         <div className="mt-4 rounded-[1.25rem] border border-amber-100 bg-white p-4 shadow-sm">
-          <p className="text-sm font-semibold text-slate-700">Price Breakdown</p>
+          <p className="text-sm font-semibold text-slate-700">{t("Price Breakdown")}</p>
           <div className="mt-3 space-y-2 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Puja price</span>
+              <span className="text-slate-600">{t("Puja price")}</span>
               <span className="font-medium text-slate-800">₹{panditPrice.toFixed(2)}</span>
             </div>
             {isPremium && (
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">Premium package fee</span>
+                <span className="text-slate-600">{t("Premium package fee")}</span>
                 <span className="font-medium text-slate-800">₹{premiumFee.toFixed(2)}</span>
               </div>
             )}
             {discount > 0 && (
               <div className="flex items-center justify-between text-emerald-700">
-                <span>Coupon discount</span>
+                <span>{t("Coupon discount")}</span>
                 <span>-₹{discount.toFixed(2)}</span>
               </div>
             )}
             {gstAmount > 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">GST ({gstPercent}%) on platform fee</span>
+                <span className="text-slate-600">{t("GST ({percent}%) on platform fee", { percent: gstPercent })}</span>
                 <span className="font-medium text-slate-800">₹{gstAmount.toFixed(2)}</span>
               </div>
             )}
             {platformFee > 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">Platform fee</span>
+                <span className="text-slate-600">{t("Platform fee")}</span>
                 <span className="font-medium text-slate-800">₹{platformFee.toFixed(2)}</span>
               </div>
             )}
             <div className="flex items-center justify-between border-t border-amber-100 pt-2 text-base font-bold text-maroon">
-              <span>Total</span>
+              <span>{t("Total")}</span>
               <span>₹{payableAmount.toFixed(2)}</span>
             </div>
           </div>
@@ -341,9 +342,9 @@ export default function BookPayment() {
             disabled={loading}
             className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? 'Processing…' : `Pay ₹${payableAmount.toFixed(2)}`}
+            {loading ? t("Processing…") : t("Pay ₹{v0}", { v0: payableAmount.toFixed(2) })}
           </button>
-          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
+          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">{t("Back")}</button>
         </div>
       </div>
 

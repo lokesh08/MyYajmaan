@@ -13,6 +13,7 @@ import Testimonials from "../components/Testimonials";
 import PanditJoinBanner from "../components/PanditJoinBanner";
 import { useAuth } from "../context/AuthContext";
 import { showInfo } from "../utils/toaster";
+import { t } from "../i18n";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function HomePage() {
   const handleBecomePandit = (event) => {
     if (profile) {
       event.preventDefault();
-      showInfo("Please log out first to register as a Pandit Ji with a separate account.");
+      showInfo(t("Please log out first to register as a Pandit Ji with a separate account."));
     }
   };
 
@@ -68,39 +69,38 @@ export default function HomePage() {
           <div className="relative flex min-h-[360px] flex-col justify-between gap-4 p-4 pb-9 sm:gap-6 sm:p-8 md:min-h-[440px] lg:p-9">
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-white/25 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50 backdrop-blur-sm sm:bg-white/10 sm:px-3 sm:text-sm">
-                Book Trusted Pandit Ji
+                {t("Book Trusted Pandit Ji")}
               </span>
               <span className="rounded-full border border-amber-100/30 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50 backdrop-blur-sm sm:bg-amber-100/15 sm:px-3 sm:text-sm">
-                Trusted by 10k+ families
+                {t("Trusted by 10k+ families")}
               </span>
             </div>
 
             <div className="max-w-[40rem]">
-              <h1 className="font-serif text-[1.7rem] font-semibold leading-[1.1] text-white drop-shadow-md sm:text-[2.9rem] sm:leading-[1.05]">Book Trusted Pandit Ji for every auspicious occasion</h1>
+              <h1 className="font-serif text-[1.7rem] font-semibold leading-[1.1] text-white drop-shadow-md sm:text-[2.9rem] sm:leading-[1.05]">{t("Book Trusted Pandit Ji for every auspicious occasion")}</h1>
               <p className="mt-2 max-w-lg text-[13px] leading-5 text-amber-50 drop-shadow sm:mt-3 sm:text-base sm:leading-6">
-                Experience divine blessings with verified pandits, guided
-                booking, and festive puja support.
+                {t("Experience divine blessings with verified pandits, guided booking, and festive puja support.")}
               </p>
 
               <div className="mt-3 flex flex-wrap gap-2 sm:mt-4 sm:gap-3">
                 <Link
                   to="/book"
-                  aria-label="Book a puja"
-                  title="Book a puja"
+                  aria-label={t("Book a puja")}
+                  title={t("Book a puja")}
                   onClick={clearBookingDraft}
                   className="interactive-button inline-flex min-h-[44px] items-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-maroon shadow-sm sm:px-5 sm:py-3"
                 >
-                  Book a Puja
+                  {t("Book a Puja")}
                 </Link>
                 {profile?.role !== "pandit" && (
                   <Link
                     to="/pandit/register"
                     onClick={handleBecomePandit}
-                    aria-label="Become a Pandit Ji - register as a pandit"
-                    title="Register as a Pandit Ji"
+                    aria-label={t("Become a Pandit Ji - register as a pandit")}
+                    title={t("Register as a Pandit Ji")}
                     className="interactive-button inline-flex min-h-[44px] items-center rounded-full border border-white/50 bg-black/20 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/15 sm:border-white/35 sm:bg-transparent sm:px-5 sm:py-3 sm:backdrop-blur-none"
                   >
-                    Become a Pandit Ji
+                    {t("Become a Pandit Ji")}
                   </Link>
                 )}
               </div>
@@ -118,22 +118,22 @@ export default function HomePage() {
 
       <div className="relative mt-8 overflow-hidden rounded-[1.8rem] border border-amber-200 bg-parchment-50 px-4 py-8 shadow-card sm:px-6 lg:px-8">
         <PujaSlider
-          title="Trending Pujas"
+          title={t("Trending Pujas")}
           viewAllLink="/book"
           fetchUrl="/pujas"
           fetchParams={{ listing_type: "trending" }}
-          emptyMessage="No trending pujas right now."
+          emptyMessage={t("No trending pujas right now.")}
           limit={8}
         />
       </div>
 
       <div className="relative mt-8 overflow-hidden rounded-[1.8rem] border border-amber-200 bg-parchment-50 px-4 py-8 shadow-card sm:px-6 lg:px-8">
         <PujaSlider
-          title="Featured Pujas"
+          title={t("Featured Pujas")}
           viewAllLink="/book"
           fetchUrl="/pujas"
           fetchParams={{ listing_type: "featured" }}
-          emptyMessage="No featured pujas right now."
+          emptyMessage={t("No featured pujas right now.")}
           limit={8}
         />
       </div>
@@ -146,7 +146,7 @@ export default function HomePage() {
         <div className="flex h-full min-w-0 flex-col rounded-[1.8rem] border border-amber-200 bg-parchment-50 p-4 shadow-card sm:min-h-[430px] sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-[1.6rem] font-semibold text-maroon">
-              Upcoming Festivals
+              {t("Upcoming Festivals")}
             </h2>
           </div>
           <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-3">
@@ -157,7 +157,7 @@ export default function HomePage() {
         <div className="flex h-full min-h-[430px] min-w-0 flex-col rounded-[1.8rem] border border-amber-200 bg-parchment-50 p-4 shadow-card sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-[1.6rem] font-semibold text-maroon">
-              Popular Pandit Ji
+              {t("Popular Pandit Ji")}
             </h2>
           </div>
           <div className="flex-1">

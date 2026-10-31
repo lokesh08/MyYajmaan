@@ -13,6 +13,7 @@ import FullScreenLoader from "../components/common/FullScreenLoader";
 import YajmaanBenefits from "../components/YajmaanBenefits";
 import { optimizedImage } from "../utils/image";
 import { clearStoredReferralCode, resolveReferralCode } from "../utils/referral";
+import { t } from "../i18n";
 
 const backgroundImage = authBackgrounds.register;
 
@@ -185,19 +186,19 @@ export default function RegisterPage() {
 
       showError(
         firstError ||
-          "Please check the entered information.",
+          t("Please check the entered information."),
       );
 
       return;
     }
 
     if (!isValidPhone(cleanPhone)) {
-      showError("Please enter a valid phone number.");
+      showError(t("Please enter a valid phone number."));
       return;
     }
 
     if (!agreedToTerms) {
-      showError("Please agree to the Privacy Policy and Terms and Conditions to continue.");
+      showError(t("Please agree to the Privacy Policy and Terms and Conditions to continue."));
       return;
     }
 
@@ -220,7 +221,7 @@ export default function RegisterPage() {
       clearStoredReferralCode(safeLocalStorage());
 
       showSuccess(
-        "Your account was created. Please verify your email and mobile number.",
+        t("Your account was created. Please verify your email and mobile number."),
       );
 
       // One-time email + phone OTP verification comes before the
@@ -248,7 +249,7 @@ export default function RegisterPage() {
     <>
       <FullScreenLoader
         open={loading}
-        message="Creating your account..."
+        message={t("Creating your account...")}
       />
 
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
@@ -256,7 +257,7 @@ export default function RegisterPage() {
           <div className="relative overflow-hidden bg-maroon-dark p-6 text-white sm:min-h-[320px] sm:p-8 lg:min-h-[600px]">
             <img
               src={backgroundImage}
-              alt="Festival background"
+              alt={t("Festival background")}
               className="absolute inset-0 h-full w-full object-cover opacity-30"
             />
 
@@ -265,33 +266,33 @@ export default function RegisterPage() {
             <div className="relative flex h-full flex-col justify-between">
               <div>
                 <div className="h-12 w-12 overflow-hidden rounded-full border border-white/25">
-                  <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                  <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
                 </div>
 
                 <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-amber-100">
-                  Join MyYajmaan
+                  {t("Join MyYajmaan")}
                 </p>
 
                 <h1 className="mt-3 max-w-md font-serif text-3xl font-semibold leading-tight">
-                  Create your spiritual booking profile
+                  {t("Create your spiritual booking profile")}
                 </h1>
 
                 <p className="mt-3 max-w-md text-sm leading-6 text-amber-50">
-                  Sign up to discover pujas, trusted pandits, and meaningful spiritual services.
+                  {t("Sign up to discover pujas, trusted pandits, and meaningful spiritual services.")}
                 </p>
               </div>
 
               <div className="hidden gap-3 rounded-2xl sm:grid bg-white/10 p-4 backdrop-blur-sm">
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
-                  • Find trusted pandits
+                  {t("• Find trusted pandits")}
                 </div>
 
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
-                  • Book pujas for your family
+                  {t("• Book pujas for your family")}
                 </div>
 
                 <div className="rounded-xl bg-white/10 px-3 py-2 text-sm">
-                  • Track bookings and rewards
+                  {t("• Track bookings and rewards")}
                 </div>
               </div>
             </div>
@@ -299,20 +300,20 @@ export default function RegisterPage() {
 
           <div className="p-8 lg:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-marigold">
-              Account
+              {t("Account")}
             </p>
 
             <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon-dark">
-              Create your account
+              {t("Create your account")}
             </h2>
 
             <p className="mt-2 text-sm text-slate-600">
-              Register as a customer to book trusted pandits and pujas.
+              {t("Register as a customer to book trusted pandits and pujas.")}
             </p>
 
             {referralCode && (
               <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm font-medium text-maroon">
-                🎉 Referred by a friend (code <span className="font-mono">{referralCode}</span>) — sign up to get your welcome bonus!
+                {t("🎉 Referred by a friend (code")}{' '}<span className="font-mono">{referralCode}</span>{t(") — sign up to get your welcome bonus!")}
               </p>
             )}
 
@@ -323,7 +324,7 @@ export default function RegisterPage() {
             >
               <label className="block">
                 <span className="sr-only">
-                  Full name
+                  {t("Full name")}
                 </span>
 
                 <input
@@ -331,14 +332,14 @@ export default function RegisterPage() {
                   onChange={handleFullNameChange}
                   type="text"
                   autoComplete="name"
-                  placeholder="Full name *"
+                  placeholder={t("Full name *")}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400"
                 />
               </label>
 
               <label className="block">
                 <span className="sr-only">
-                  Phone number
+                  {t("Phone number")}
                 </span>
 
                 <input
@@ -347,14 +348,14 @@ export default function RegisterPage() {
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
-                  placeholder="Mobile number *"
+                  placeholder={t("Mobile number *")}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400"
                 />
               </label>
 
               <label className="block md:col-span-2">
                 <span className="sr-only">
-                  Email address
+                  {t("Email address")}
                 </span>
 
                 <input
@@ -362,14 +363,14 @@ export default function RegisterPage() {
                   onChange={handleEmailChange}
                   type="email"
                   autoComplete="email"
-                  placeholder="Email address *"
+                  placeholder={t("Email address *")}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400"
                 />
               </label>
 
               <label className="block">
                 <span className="sr-only">
-                  Password
+                  {t("Password")}
                 </span>
 
                 <input
@@ -377,14 +378,14 @@ export default function RegisterPage() {
                   onChange={handlePasswordChange}
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Password *"
+                  placeholder={t("Password *")}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400"
                 />
               </label>
 
               <label className="block">
                 <span className="sr-only">
-                  Confirm password
+                  {t("Confirm password")}
                 </span>
 
                 <input
@@ -392,7 +393,7 @@ export default function RegisterPage() {
                   onChange={handleConfirmPasswordChange}
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Confirm password *"
+                  placeholder={t("Confirm password *")}
                   className="w-full rounded-xl border border-amber-100 px-4 py-3 outline-none focus:border-amber-400"
                 />
               </label>
@@ -405,13 +406,13 @@ export default function RegisterPage() {
                   className="mt-0.5 h-4 w-4 rounded border-amber-300 text-maroon focus:ring-amber-200"
                 />
                 <span>
-                  I agree to the{" "}
-                  <Link to="/privacy-policy" title="Read the Privacy Policy" target="_blank" className="font-semibold text-maroon hover:underline">
-                    Privacy Policy
+                  {t("I agree to the")}{" "}
+                  <Link to="/privacy-policy" title={t("Read the Privacy Policy")} target="_blank" className="font-semibold text-maroon hover:underline">
+                    {t("Privacy Policy")}
                   </Link>{" "}
-                  and{" "}
-                  <Link to="/terms-and-conditions" title="Read the Terms and Conditions" target="_blank" className="font-semibold text-maroon hover:underline">
-                    Terms and Conditions
+                  {t("and")}{" "}
+                  <Link to="/terms-and-conditions" title={t("Read the Terms and Conditions")} target="_blank" className="font-semibold text-maroon hover:underline">
+                    {t("Terms and Conditions")}
                   </Link>
                   . *
                 </span>
@@ -421,18 +422,18 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={loading || !agreedToTerms}
-                  title={!agreedToTerms ? "Please agree to the Privacy Policy and Terms and Conditions first" : "Create your account"}
+                  title={!agreedToTerms ? t("Please agree to the Privacy Policy and Terms and Conditions first") : t("Create your account")}
                   className="interactive-button rounded-full bg-maroon-dark px-6 py-3 font-semibold text-white hover:bg-maroon disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Register
+                  {t("Register")}
                 </button>
 
                 <Link
                   to="/login"
-                  title="Go to login"
+                  title={t("Go to login")}
                   className="rounded-full border border-amber-200 px-6 py-3 font-semibold text-slate-700"
                 >
-                  Already have an account?
+                  {t("Already have an account?")}
                 </Link>
               </div>
             </form>
@@ -444,7 +445,7 @@ export default function RegisterPage() {
           with a button back up to the form. */}
       <section className="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
         <YajmaanBenefits
-          ctaLabel="Create Your Account ↑"
+          ctaLabel={t("Create Your Account ↑")}
           onCtaClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
         />
       </section>

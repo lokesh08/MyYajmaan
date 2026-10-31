@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { withAbortGet } from "../api";
 import Modal from "./Modal";
 import Loader from "./common/Loader";
+import { t } from "../i18n";
 
 const ACCENTS = [
   "from-parchment-350 to-clay",
@@ -23,7 +24,7 @@ function initials(name) {
 
 function Stars({ rating }) {
   return (
-    <div className="flex gap-1 text-lg leading-none text-saffron" aria-label={`${rating} out of 5 stars`}>
+    <div className="flex gap-1 text-lg leading-none text-saffron" aria-label={t("{rating} out of 5 stars", { rating: rating })}>
       {Array.from({ length: 5 }, (_, index) => (
         <span key={index} aria-hidden="true">★</span>
       ))}
@@ -57,12 +58,12 @@ function TestimonialCard({ item, accent, onPreviewImage }) {
           <button
             type="button"
             onClick={() => onPreviewImage(item)}
-            aria-label={`View puja photo shared by ${item.customer_name}`}
+            aria-label={t("View puja photo shared by {customer_name}", { customer_name: item.customer_name })}
             className="interactive-button h-20 w-20 shrink-0 overflow-hidden rounded-xl shadow-sm ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon"
           >
             <img loading="lazy" decoding="async"
               src={item.cover_photo_url}
-              alt={`Puja photo shared by ${item.customer_name}`}
+              alt={t("Puja photo shared by {customer_name}", { customer_name: item.customer_name })}
               className="h-full w-full object-cover transition duration-200 hover:scale-105"
             />
           </button>
@@ -141,20 +142,20 @@ export default function Testimonials() {
       <div className="relative flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">
-            Blessings from our families
+            {t("Blessings from our families")}
           </p>
           <h2 className="mt-2 font-serif text-3xl font-semibold text-maroon sm:text-4xl">
-            What our customers say
+            {t("What our customers say")}
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-            Genuine experiences from families who invited MyYajmaan into their special occasions.
+            {t("Genuine experiences from families who invited MyYajmaan into their special occasions.")}
           </p>
         </div>
 
         {totalSlides > 1 && (
           <div className="hidden items-center gap-2 sm:flex">
-            <button type="button" onClick={() => goTo(activeIndex - 1)} aria-label="Previous testimonial" className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white text-lg text-maroon transition hover:bg-maroon hover:text-white">‹</button>
-            <button type="button" onClick={() => goTo(activeIndex + 1)} aria-label="Next testimonial" className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white text-lg text-maroon transition hover:bg-maroon hover:text-white">›</button>
+            <button type="button" onClick={() => goTo(activeIndex - 1)} aria-label={t("Previous testimonial")} className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white text-lg text-maroon transition hover:bg-maroon hover:text-white">‹</button>
+            <button type="button" onClick={() => goTo(activeIndex + 1)} aria-label={t("Next testimonial")} className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white text-lg text-maroon transition hover:bg-maroon hover:text-white">›</button>
           </div>
         )}
       </div>
@@ -180,7 +181,7 @@ export default function Testimonials() {
           {totalSlides > 1 && (
             <div className="relative mt-7 flex items-center justify-center gap-2">
               {testimonials.map((item, index) => (
-                <button key={item.id} type="button" onClick={() => goTo(index)} aria-label={`Show testimonial ${index + 1}`} className={`h-2.5 rounded-full transition-all duration-300 ${index === activeIndex ? "w-7 bg-saffron" : "w-2.5 bg-amber-200 hover:bg-amber-400"}`} />
+                <button key={item.id} type="button" onClick={() => goTo(index)} aria-label={t("Show testimonial {v0}", { v0: index + 1 })} className={`h-2.5 rounded-full transition-all duration-300 ${index === activeIndex ? "w-7 bg-saffron" : "w-2.5 bg-amber-200 hover:bg-amber-400"}`} />
               ))}
             </div>
           )}
@@ -190,13 +191,13 @@ export default function Testimonials() {
       <Modal
         open={Boolean(previewItem)}
         onClose={() => setPreviewItem(null)}
-        title={`Puja photo from ${previewItem?.customer_name || "a customer"}`}
+        title={t("Puja photo from {v0}", { v0: previewItem?.customer_name || "a customer" })}
         size="lg"
       >
         {previewItem?.cover_photo_url && (
           <img loading="lazy" decoding="async"
             src={previewItem.cover_photo_url}
-            alt={`Puja photo shared by ${previewItem.customer_name}`}
+            alt={t("Puja photo shared by {customer_name}", { customer_name: previewItem.customer_name })}
             className="max-h-[70vh] w-full rounded-lg object-contain"
           />
         )}

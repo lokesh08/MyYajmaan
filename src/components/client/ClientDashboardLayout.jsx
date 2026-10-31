@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { ClientPortalProvider } from "../../context/ClientPortalContext";
 import { showSuccess } from "../../utils/toaster";
 import ClientSidebar from "./ClientSidebar";
+import { t } from "../../i18n";
 
 function LayoutBody({ children }) {
   const { logout } = useAuth();
@@ -18,7 +19,7 @@ function LayoutBody({ children }) {
 
   async function handleLogout() {
     await logout();
-    showSuccess("Logged out successfully.");
+    showSuccess(t("Logged out successfully."));
     navigate("/login");
   }
 
@@ -31,14 +32,14 @@ function LayoutBody({ children }) {
           <button
             type="button"
             onClick={() => setSidebarOpen((current) => !current)}
-            aria-label="Toggle menu"
+            aria-label={t("Toggle menu")}
             className="interactive-button rounded-lg border border-amber-200 p-2 text-maroon"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
             </svg>
           </button>
-          <p className="font-serif text-lg font-semibold text-maroon">My Account</p>
+          <p className="font-serif text-lg font-semibold text-maroon">{t("My Account")}</p>
         </div>
 
         <main className="space-y-4 p-4 sm:p-6">{children}</main>

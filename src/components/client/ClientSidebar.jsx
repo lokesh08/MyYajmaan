@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { optimizedImage } from "../../utils/image";
+import { t } from "../../i18n";
 
 const MENU_ITEMS = [
   { label: "Dashboard", to: "/dashboard", icon: "🏠" },
@@ -27,17 +28,17 @@ export default function ClientSidebar({ open = false, onClose, onLogout }) {
         <div className="flex items-center justify-between border-b border-amber-100 px-5 py-5">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 overflow-hidden rounded-full shadow-sm">
-              <img src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+              <img src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
             </div>
             <div>
-              <p className="font-serif text-lg font-semibold text-maroon">My Account</p>
+              <p className="font-serif text-lg font-semibold text-maroon">{t("My Account")}</p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={t("Close menu")}
             className="rounded-lg p-1.5 text-slate-400 hover:bg-amber-50 hover:text-maroon md:hidden"
           >
             ✕
@@ -58,7 +59,7 @@ export default function ClientSidebar({ open = false, onClose, onLogout }) {
               }
             >
               <span aria-hidden="true">{item.icon}</span>
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
         </nav>
@@ -70,7 +71,7 @@ export default function ClientSidebar({ open = false, onClose, onLogout }) {
             className="interactive-button flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50"
           >
             <span aria-hidden="true">🚪</span>
-            Logout
+            {t("Logout")}
           </button>
         </div>
       </aside>

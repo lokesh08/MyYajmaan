@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import { t } from "../i18n";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -60,7 +61,7 @@ export default function PanditMap({ pandits, userLoc, selectedId, onMarkerClick 
 
       {userLoc && (
         <Marker position={[userLoc.lat, userLoc.lng]}>
-          <Popup>You are here</Popup>
+          <Popup>{t("You are here")}</Popup>
         </Marker>
       )}
 

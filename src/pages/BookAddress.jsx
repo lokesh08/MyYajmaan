@@ -10,6 +10,7 @@ import { BOOKING_PATHS, isPackagePuja, nextStepLabel, nextStepPath, resolveBooki
 import { useAuth } from '../context/AuthContext';
 import { addMyAddress, listCities, listMyAddresses } from '../services/clientApi';
 import { showError, showSuccess } from '../utils/toaster';
+import { t } from "../i18n";
 
 const emptyNewAddress = { label: '', address_line: '', state: '', city: '', pincode: '' };
 
@@ -88,9 +89,9 @@ export default function BookAddress() {
   if (!puja?.id) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-slate-600">Please choose a puja first to start your booking.</p>
+        <p className="text-slate-600">{t("Please choose a puja first to start your booking.")}</p>
         <Link to={BOOKING_PATHS.choosePuja} className="mt-4 inline-flex min-h-[44px] items-center rounded-full bg-saffron px-5 py-2 font-semibold text-white">
-          Choose a Puja
+          {t("Choose a Puja")}
         </Link>
       </section>
     );
@@ -104,14 +105,14 @@ export default function BookAddress() {
   async function handleAddAddress(event) {
     event.preventDefault();
     if (!newAddress.label || !newAddress.address_line || !newAddress.state || !newAddress.city || !newAddress.pincode) {
-      showError('Please fill in every field to save this address.');
+      showError(t("Please fill in every field to save this address."));
       return;
     }
 
     setSavingAddress(true);
     try {
       const result = await addMyAddress(newAddress);
-      showSuccess('Address saved.');
+      showSuccess(t("Address saved."));
       setAddModalOpen(false);
       setNewAddress(emptyNewAddress);
       const addresses = await loadAddresses();
@@ -123,7 +124,7 @@ export default function BookAddress() {
         if (latest) setSelectedAddressId(latest.id);
       }
     } catch (error) {
-      showError(error?.data?.detail?.message || error?.message || 'Could not save this address. Please try again.');
+      showError(error?.data?.detail?.message || error?.message || t("Could not save this address. Please try again."));
     } finally {
       setSavingAddress(false);
     }
@@ -131,7 +132,7 @@ export default function BookAddress() {
 
   function handleNext() {
     if (!contact.name || !contact.phone) {
-      setNotice('Please enter your name and mobile number before continuing.');
+      setNotice(t("Please enter your name and mobile number before continuing."));
       return;
     }
 
@@ -139,7 +140,7 @@ export default function BookAddress() {
     if (savedAddresses.length > 0) {
       const selected = savedAddresses.find((a) => a.id === selectedAddressId);
       if (!selected) {
-        setNotice('Please select an address to continue.');
+        setNotice(t("Please select an address to continue."));
         return;
       }
       bookingAddress = {
@@ -153,7 +154,7 @@ export default function BookAddress() {
       };
     } else {
       if (!fallbackForm.address || !fallbackForm.city || !fallbackForm.pin) {
-        setNotice('Please fill in your address, city, and pin code before continuing.');
+        setNotice(t("Please fill in your address, city, and pin code before continuing."));
         return;
       }
       bookingAddress = { ...contact, note, ...fallbackForm };
@@ -169,32 +170,32 @@ export default function BookAddress() {
 
   return (
     <BookingFrame
-      title="Address & Contact"
-      description="Enter the address and contact details for your puja."
+      title={t("Address & Contact")}
+      description={t("Enter the address and contact details for your puja.")}
       accentImage={puja?.image || undefined}
-      asideTitle="Service summary"
+      asideTitle={t("Service summary")}
       asideItems={[
-        { label: `Ritual: ${puja?.title || 'Selected puja'}` },
-        ...(puja?.packageName ? [{ label: `Package: ${puja.packageName}` }] : []),
+        { label: t("Ritual: {value}", { value: puja?.title || t('Selected puja') }) },
+        ...(puja?.packageName ? [{ label: t("Package: {value}", { value: t(puja.packageName) }) }] : []),
         { label: 'Next: pick a date & time' },
       ]}
     >
       <BookingStepper currentStep={stepNumber('address', puja)} steps={isPackagePuja(puja) ? PACKAGE_STEPS : undefined} />
-      <p className="mt-2 text-sm text-slate-600">Ritual: <strong>{puja?.title || 'Selected puja'}</strong></p>
+      <p className="mt-2 text-sm text-slate-600">{t("Ritual:")}{' '}<strong>{puja?.title || t("Selected puja")}</strong></p>
 
       <div className="mt-6">
         <div className="grid gap-4 md:grid-cols-2">
-          <input value={contact.name} onChange={(e) => updateContact('name', e.target.value)} placeholder="Full name" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
-          <input value={contact.phone} onChange={(e) => updateContact('phone', e.target.value)} placeholder="Mobile number" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+          <input value={contact.name} onChange={(e) => updateContact('name', e.target.value)} placeholder={t("Full name")} className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+          <input value={contact.phone} onChange={(e) => updateContact('phone', e.target.value)} placeholder={t("Mobile number")} className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
         </div>
 
         <div className="mt-6">
-          <p className="mb-2 text-sm font-semibold text-slate-700">Delivery Address</p>
+          <p className="mb-2 text-sm font-semibold text-slate-700">{t("Delivery Address")}</p>
 
-          {loadingAddresses && <p className="text-sm text-slate-500">Loading your saved addresses…</p>}
+          {loadingAddresses && <p className="text-sm text-slate-500">{t("Loading your saved addresses…")}</p>}
 
           {!loadingAddresses && savedAddresses.length > 0 && (
-            <div role="radiogroup" aria-label="Choose an address" className="grid gap-3 sm:grid-cols-2">
+            <div role="radiogroup" aria-label={t("Choose an address")} className="grid gap-3 sm:grid-cols-2">
               {savedAddresses.map((addr) => (
                 <label
                   key={addr.id}
@@ -213,7 +214,7 @@ export default function BookAddress() {
                     className="mt-1 h-4 w-4 shrink-0 text-maroon focus:ring-amber-200"
                   />
                   <span>
-                    <span className="block font-semibold text-maroon">{addr.label}{addr.is_default ? ' (Default)' : ''}</span>
+                    <span className="block font-semibold text-maroon">{t(addr.label)}{addr.is_default ? t(" (Default)") : ''}</span>
                     <span className="mt-1 block text-slate-600">{addr.address_line}</span>
                     <span className="block text-slate-500">{addr.city}, {addr.state} - {addr.pincode}</span>
                   </span>
@@ -223,7 +224,7 @@ export default function BookAddress() {
           )}
 
           {!loadingAddresses && savedAddresses.length === 0 && !addressesFailed && (
-            <p className="mb-3 text-sm text-slate-500">You don't have any saved addresses yet -- add one below.</p>
+            <p className="mb-3 text-sm text-slate-500">{t("You don't have any saved addresses yet -- add one below.")}</p>
           )}
 
           {!loadingAddresses && (
@@ -232,22 +233,22 @@ export default function BookAddress() {
               onClick={() => setAddModalOpen(true)}
               className="interactive-button mt-3 rounded-[1.1rem] border border-dashed border-amber-200 bg-white px-4 py-3 text-left text-sm font-semibold text-maroon hover:border-maroon"
             >
-              + Add new address
+              {t("+ Add new address")}
             </button>
           )}
 
           {!loadingAddresses && addressesFailed && savedAddresses.length === 0 && (
             <div className="mt-4 grid gap-4">
-              <p className="text-sm text-slate-500">We couldn't load your saved addresses -- enter one below for this booking.</p>
+              <p className="text-sm text-slate-500">{t("We couldn't load your saved addresses -- enter one below for this booking.")}</p>
               <textarea
                 value={fallbackForm.address}
                 onChange={(e) => setFallbackForm((prev) => ({ ...prev, address: e.target.value }))}
-                placeholder="House/Flat number, street, locality"
+                placeholder={t("House/Flat number, street, locality")}
                 className="min-h-28 w-full rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none"
               />
               <div className="grid gap-4 md:grid-cols-2">
-                <input value={fallbackForm.city} onChange={(e) => setFallbackForm((prev) => ({ ...prev, city: e.target.value }))} placeholder="City" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
-                <input value={fallbackForm.pin} onChange={(e) => setFallbackForm((prev) => ({ ...prev, pin: e.target.value }))} placeholder="Pin code" className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+                <input value={fallbackForm.city} onChange={(e) => setFallbackForm((prev) => ({ ...prev, city: e.target.value }))} placeholder={t("City")} className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
+                <input value={fallbackForm.pin} onChange={(e) => setFallbackForm((prev) => ({ ...prev, pin: e.target.value }))} placeholder={t("Pin code")} className="rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none" />
               </div>
             </div>
           )}
@@ -256,59 +257,59 @@ export default function BookAddress() {
         <textarea
           value={note}
           onChange={(e) => { setNote(e.target.value); setNotice(''); }}
-          placeholder="Special instructions for the priest / puja timing"
+          placeholder={t("Special instructions for the priest / puja timing")}
           className="mt-4 min-h-24 w-full rounded-[1.1rem] border border-amber-100 bg-gradient-to-r from-amber-50/70 to-white px-3 py-2 shadow-sm transition focus:border-maroon focus:outline-none"
         />
 
-        {notice && <ThemeNotice type="error" title="Need a quick check" message={notice} />}
+        {notice && <ThemeNotice type="error" title={t("Need a quick check")} message={notice} />}
 
         <div className="mt-6 flex gap-3">
           <button onClick={handleNext} className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500">
-            {nextStepLabel('address', puja)}
+            {t(nextStepLabel('address', puja))}
           </button>
-          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">Back</button>
+          <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">{t("Back")}</button>
         </div>
       </div>
 
-      <Modal open={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add a new address">
+      <Modal open={addModalOpen} onClose={() => setAddModalOpen(false)} title={t("Add a new address")}>
         <form onSubmit={handleAddAddress} className="grid gap-3">
           <input
             value={newAddress.label}
             onChange={(e) => setNewAddress((prev) => ({ ...prev, label: e.target.value }))}
-            placeholder="Label (e.g. Home, Office)"
+            placeholder={t("Label (e.g. Home, Office)")}
             className="rounded-xl border border-amber-100 px-3 py-2 text-sm outline-none focus:border-maroon"
           />
           <textarea
             value={newAddress.address_line}
             onChange={(e) => setNewAddress((prev) => ({ ...prev, address_line: e.target.value }))}
-            placeholder="House/Flat number, street, locality"
+            placeholder={t("House/Flat number, street, locality")}
             className="min-h-20 rounded-xl border border-amber-100 px-3 py-2 text-sm outline-none focus:border-maroon"
           />
           <div className="grid gap-3 sm:grid-cols-2">
             <select
               value={newAddress.state}
               onChange={(e) => setNewAddress((prev) => ({ ...prev, state: e.target.value, city: '' }))}
-              title="Select state"
+              title={t("Select state")}
               className="rounded-xl border border-amber-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-maroon"
             >
-              <option value="">Select State</option>
+              <option value="">{t("Select State")}</option>
               {states.map((st) => <option key={st} value={st}>{st}</option>)}
             </select>
             <select
               value={newAddress.city}
               onChange={(e) => setNewAddress((prev) => ({ ...prev, city: e.target.value }))}
               disabled={!newAddress.state}
-              title={newAddress.state ? 'Select city' : 'Select a state first'}
+              title={newAddress.state ? t("Select city") : t("Select a state first")}
               className="rounded-xl border border-amber-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-maroon disabled:bg-slate-50"
             >
-              <option value="">{newAddress.state ? 'Select City' : 'Select a state first'}</option>
+              <option value="">{newAddress.state ? t("Select City") : t("Select a state first")}</option>
               {citiesForState.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
           </div>
           <input
             value={newAddress.pincode}
             onChange={(e) => setNewAddress((prev) => ({ ...prev, pincode: e.target.value }))}
-            placeholder="Pin code"
+            placeholder={t("Pin code")}
             className="rounded-xl border border-amber-100 px-3 py-2 text-sm outline-none focus:border-maroon"
           />
 
@@ -318,14 +319,14 @@ export default function BookAddress() {
               disabled={savingAddress}
               className="min-h-[44px] interactive-button rounded-full bg-maroon px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {savingAddress ? 'Saving...' : 'Save address'}
+              {savingAddress ? t("Saving...") : t("Save address")}
             </button>
             <button
               type="button"
               onClick={() => setAddModalOpen(false)}
               className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700"
             >
-              Cancel
+              {t("Cancel")}
             </button>
           </div>
         </form>

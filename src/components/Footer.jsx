@@ -4,6 +4,7 @@ import MandalaMotif from "./common/MandalaMotif";
 import { optimizedImage } from "../utils/image";
 import { get } from "../api";
 import { SOCIAL_ICONS } from "../constants/socialIcons";
+import { t } from "../i18n";
 
 const mainLinks = [
   { label: "Home", to: "/" },
@@ -78,26 +79,26 @@ export default function Footer() {
           <div>
             <Link
               to="/"
-              title="MyYajmaan home"
+              title={t("MyYajmaan home")}
               className="inline-flex items-center gap-3"
             >
               <span className="block h-14 w-14 overflow-hidden rounded-full shadow-lg">
-                <img loading="lazy" decoding="async" src={optimizedImage("/images/logo-mark.png")} alt="MyYajmaan" className="h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" src={optimizedImage("/images/logo-mark.png")} alt={t("MyYajmaan")} className="h-full w-full object-cover" />
               </span>
 
               <span>
                 <span className="block font-serif text-2xl font-semibold">
-                  MyYajmaan
+                  {t("MyYajmaan")}
                 </span>
 
                 <span className="block text-xs uppercase tracking-[0.24em] text-amber-200">
-                  Divine puja booking
+                  {t("Divine puja booking")}
                 </span>
               </span>
             </Link>
 
             <p className="mt-6 max-w-md text-sm leading-7 text-amber-50/85">
-              Bringing trusted pandits, meaningful rituals, and peaceful booking experiences closer to every family.
+              {t("Bringing trusted pandits, meaningful rituals, and peaceful booking experiences closer to every family.")}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
@@ -126,7 +127,7 @@ export default function Footer() {
 
           <div>
             <h2 className="font-serif text-xl font-semibold text-white">
-              Explore MyYajmaan
+              {t("Explore MyYajmaan")}
             </h2>
 
             <div className="mt-5 grid gap-3">
@@ -141,7 +142,7 @@ export default function Footer() {
                     ›
                   </span>
 
-                  {link.label}
+                  {t(link.label)}
                 </Link>
               ))}
             </div>
@@ -149,28 +150,28 @@ export default function Footer() {
 
           <div>
             <h2 className="font-serif text-xl font-semibold text-white">
-              Need assistance?
+              {t("Need assistance?")}
             </h2>
 
             <p className="mt-5 text-sm leading-6 text-amber-50/85">
-              Our support team is here to help you choose a puja and complete your booking.
+              {t("Our support team is here to help you choose a puja and complete your booking.")}
             </p>
 
             <div className="mt-5 grid gap-3 text-sm">
               <a
                 href="mailto:support@myyajmaan.com"
-                title="Email MyYajmaan support"
+                title={t("Email MyYajmaan support")}
                 className="text-amber-100 transition hover:text-white"
               >
-                support@myyajmaan.com
+                {t("support@myyajmaan.com")}
               </a>
 
               <Link
                 to="/book"
-                title="Start a puja booking"
+                title={t("Start a puja booking")}
                 className="interactive-button inline-flex w-fit rounded-full bg-saffron px-5 py-2.5 font-semibold text-maroon hover:bg-amber-200 hover:shadow-lg"
               >
-                Start a booking
+                {t("Start a booking")}
               </Link>
             </div>
           </div>
@@ -178,7 +179,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/15 px-6 py-5 text-center text-sm text-amber-100/80">
-        © {new Date().getFullYear()} MyYajmaan. All rights reserved.
+        © {new Date().getFullYear()}{' '}{t("MyYajmaan. All rights reserved.")}
       </div>
     </footer>
   );

@@ -13,6 +13,7 @@ import NotFound from "./components/common/NotFound";
 import { ADMIN_BASE_PATH } from "./constants/adminRoutes";
 
 import { ToastContainer } from "react-toastify";
+import { t } from "./i18n";
 import "react-toastify/dist/ReactToastify.css";
 import "./styles/toaster.css";
 
@@ -86,7 +87,7 @@ const AdminComingSoon = lazy(() => import("./components/admin/AdminComingSoon"))
 function RouteFallback() {
   return (
     <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-live="polite">
-      <p className="text-sm text-slate-500">Loading...</p>
+      <p className="text-sm text-slate-500">{t("Loading...")}</p>
     </div>
   );
 }
@@ -138,7 +139,7 @@ function App() {
         <Route
           path="/book"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <BookingPage />
             </BlockRoleRoute>
           }
@@ -146,7 +147,7 @@ function App() {
         <Route
           path="/book/:id"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <PujaDetailPage />
             </BlockRoleRoute>
           }
@@ -161,7 +162,7 @@ function App() {
         <Route
           path="/book/datetime"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <BookDateTime />
               </RoleRoute>
@@ -171,7 +172,7 @@ function App() {
         <Route
           path="/book/select-pandit"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <SelectPandit />
               </RoleRoute>
@@ -181,7 +182,7 @@ function App() {
         <Route
           path="/book/address"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <BookAddress />
               </RoleRoute>
@@ -191,7 +192,7 @@ function App() {
         <Route
           path="/book/payment"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <BookPayment />
               </RoleRoute>
@@ -201,7 +202,7 @@ function App() {
         <Route
           path="/book/confirmation"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <BookingConfirmation />
             </BlockRoleRoute>
           }
@@ -209,7 +210,7 @@ function App() {
         <Route
           path="/book/package/details"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <BookPackageDetails />
               </RoleRoute>
@@ -219,7 +220,7 @@ function App() {
         <Route
           path="/book/package/confirmation"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <BookPackageConfirmation />
               </RoleRoute>
@@ -229,7 +230,7 @@ function App() {
         <Route
           path="/book/package/payment/:id"
           element={
-            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message="Pandit Ji accounts can't book pujas.">
+            <BlockRoleRoute blockedRoles={["pandit"]} redirectTo="/pandit" message={t("Pandit Ji accounts can't book pujas.")}>
               <RoleRoute allowedRoles={["user", "admin"]}>
                 <BookPackagePayment />
               </RoleRoute>

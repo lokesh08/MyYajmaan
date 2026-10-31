@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal';
+import { t } from "../i18n";
 import './modals.css';
 
 function formatDateTime(iso) {
@@ -79,7 +80,7 @@ export default function MuhratModal({ open, onClose, muhrat }) {
       setTimeout(() => setCopied(false), 2000);
       if (window.sendAnalytics) window.sendAnalytics('muhrat_copy_link', { title });
     } catch {
-      window.prompt('Copy link', shareUrl);
+      window.prompt(t("Copy link"), shareUrl);
     }
   };
 
@@ -106,10 +107,10 @@ export default function MuhratModal({ open, onClose, muhrat }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-100">
-              {active ? 'Live Now' : 'Upcoming Offer'}
+              {active ? t("Live Now") : t("Upcoming Offer")}
             </p>
             <p className="truncate text-sm text-amber-50/90">
-              Auspicious puja bookings, blessed with a special discount.
+              {t("Auspicious puja bookings, blessed with a special discount.")}
             </p>
           </div>
         </div>
@@ -118,7 +119,7 @@ export default function MuhratModal({ open, onClose, muhrat }) {
           <div className="-mt-3 flex items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-parchment-200 to-parchment-300 px-4 py-3">
             <span className="text-xl">⏳</span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-maroon/70">Offer ends in</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-maroon/70">{t("Offer ends in")}</p>
               <p className="font-mono text-xl font-bold tracking-wider text-maroon">{countdown}</p>
             </div>
           </div>
@@ -126,27 +127,27 @@ export default function MuhratModal({ open, onClose, muhrat }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-amber-200 bg-cream p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">📅 Date &amp; Time</p>
-            <p className="mt-1.5 font-semibold text-maroon">{startAt ? formatDateTime(startAt) : 'To be announced'}</p>
-            {endAt && <p className="mt-0.5 text-xs text-slate-500">Until {formatDateTime(endAt)}</p>}
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("📅 Date & Time")}</p>
+            <p className="mt-1.5 font-semibold text-maroon">{startAt ? formatDateTime(startAt) : t("To be announced")}</p>
+            {endAt && <p className="mt-0.5 text-xs text-slate-500">{t("Until")}{' '}{formatDateTime(endAt)}</p>}
           </div>
 
           <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-parchment-200 to-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">🎁 Discount</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("🎁 Discount")}</p>
             <p className="mt-1.5 font-serif text-3xl font-bold text-saffron">{discountLabel}</p>
           </div>
         </div>
 
         <div className="rounded-2xl bg-amber-50/70 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Details</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Details")}</p>
           <p className="mt-1.5 leading-6 text-slate-700">
-            {m.description || 'Special discounted puja bookings during the shubh muhrat. Admin will set the schedule.'}
+            {m.description || t("Special discounted puja bookings during the shubh muhrat. Admin will set the schedule.")}
           </p>
         </div>
 
         {pujaDiscounts.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">✨ Puja-wise Offers</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{t("✨ Puja-wise Offers")}</p>
             <div className="grid gap-2">
               {pujaDiscounts.map((row, index) => {
                 const { title: pujaTitle, amount } = formatPujaDiscount(row);
@@ -157,7 +158,7 @@ export default function MuhratModal({ open, onClose, muhrat }) {
                   >
                     <span className="font-medium text-slate-700">{pujaTitle}</span>
                     <span className="rounded-full bg-gradient-to-r from-saffron to-sand px-3 py-1 text-xs font-bold text-maroon">
-                      {amount} OFF
+                      {amount}{' '}{t("OFF")}
                     </span>
                   </div>
                 );
@@ -179,14 +180,14 @@ export default function MuhratModal({ open, onClose, muhrat }) {
           <button
             type="button"
             onClick={onNativeShare}
-            aria-label="Share this Shubh Muhurat"
-            title="Share"
+            aria-label={t("Share this Shubh Muhurat")}
+            title={t("Share")}
             className="interactive-button flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200 px-4 py-3 text-sm font-semibold text-maroon hover:bg-amber-50"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a3.7 3.7 0 000-1.4l7.02-4.11A2.99 2.99 0 1014 5c0 .12.01.24.03.36L7.03 9.47A3 3 0 107 15a3 3 0 00.97-1.79l7.05 4.12c-.02.12-.02.24-.02.36a2.99 2.99 0 103 3z" />
             </svg>
-            {copied ? 'Copied' : 'Share'}
+            {copied ? t("Copied") : t("Share")}
           </button>
         </div>
       </div>
