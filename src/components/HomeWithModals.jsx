@@ -6,30 +6,23 @@ import "./modals.css";
 import { withAbortGet } from "../api"; // use the withAbortGet helper
 import { useAuth } from "../context/AuthContext";
 import { showInfo } from "../utils/toaster";
-import { getLanguage, t } from "../i18n";
+import { t } from "../i18n";
+import { clearBookingDraft } from "../utils/bookingFlowStorage";
 
-// "Why families choose us" -- icon, title, one line of detail.
-const PROMISES = [
-  { icon: "🕉️", title: "On-time puja service", detail: "Pandit Ji reaches before the muhurat, every time." },
-  { icon: "🛡️", title: "Verified Pandit Ji", detail: "Aadhaar-checked and approved by our team." },
-  { icon: "💰", title: "Transparent pricing", detail: "Full price breakup before you pay – no surprises." },
-  { icon: "🤝", title: "Easy booking and support", detail: "Book in a few taps, help whenever you need it." },
+// "Search & Book Pujas Easily" -- the booking steps, each opens Book Puja.
+const BOOKING_STEPS = [
+  { icon: "🛕", label: "Choose a Puja or Occasion" },
+  { icon: "🗓️", label: "Select Date & Time" },
+  { icon: "✅", label: "Complete Your Payment & Get Confirmed" },
 ];
 
-// Whole days from today (local) to a YYYY-MM-DD date.
-function daysUntil(dateStr) {
-  const [y, m, d] = String(dateStr || "").split("-").map(Number);
-  if (!y || !m || !d) return null;
-  const today = new Date();
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return Math.round((new Date(y, m - 1, d) - start) / 86400000);
-}
-
-function whenLabel(days) {
-  if (days === 0) return t("today");
-  if (days === 1) return t("tomorrow");
-  return t("in {days} days", { days });
-}
+// "Why Choose Our Pandit Ji" -- icon, title, one line of detail.
+const PROMISES = [
+  { icon: "🛡️", title: "Verified & Experienced", detail: "Our Pandit Ji are profile verified and experienced." },
+  { icon: "₹", title: "Fair & Transparent Pricing", detail: "No hidden charges, clear dakshina and puja cost." },
+  { icon: "📱", title: "Convenient Booking", detail: "Book online anytime, from anywhere." },
+  { icon: "🎧", title: "Easy Booking & Support", detail: "Get help from our support team whenever you need." },
+];
 
 function formatCountdown(ms) {
   if (ms <= 0) return "00:00:00";
@@ -52,8 +45,6 @@ export default function HomeWithModals() {
   const [countdown, setCountdown] = useState(null);
   // Admin-configured referral amounts (public); fallbacks until loaded.
   const [rewards, setRewards] = useState({ signupReward: "₹25", bookingReward: "₹51" });
-  // Next few festivals for the muhurat card's "Coming up" list.
-  const [festivals, setFestivals] = useState([]);
 
   // keep refs to controllers so we can abort on unmount
   const muhratControllerRef = useRef(null);
@@ -80,18 +71,6 @@ export default function HomeWithModals() {
         }));
       })
       .catch(() => {});
-    return () => {
-      try {
-        controller?.abort();
-      } catch {
-        /* ignore */
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const { promise, controller } = withAbortGet("/festivals", { params: { limit: 2 } });
-    promise.then((data) => setFestivals(Array.isArray(data) ? data.slice(0, 2) : [])).catch(() => {});
     return () => {
       try {
         controller?.abort();
@@ -161,139 +140,117 @@ export default function HomeWithModals() {
   const muhratActive = muhrat && muhrat.active;
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr_1fr]">
-      <div className="flex flex-col rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
-          {t("Today's Shubh Muhurat")}
-        </p>
-        {muhratActive ? (
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-2xl font-bold text-maroon">
-                {countdown != null ? formatCountdown(countdown) : "--:--:--"}
-              </p>
-              <p className="text-sm text-slate-500">{t("Offer ends soon — {title}", { title: muhrat.title })}</p>
-            </div>
-            <button
-              type="button"
-              aria-label={t("View today muhurat offer")}
-              className="interactive-button min-h-[44px] rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white"
-              onClick={() => setMuhratOpen(true)}
-            >
-              {t("View Muhurat")}
-            </button>
+    <div className="grid gap-3 lg:grid-cols-3">
+      {/* 1. Search & Book Pujas Easily (+ the Shubh Muhurat offer when one is live) */}
+      <div className="flex flex-col rounded-[1.1rem] border border-amber-200 bg-white p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="font-serif text-lg font-semibold text-maroon">{t("Search & Book Pujas Easily")}</h2>
+            <p className="mt-1 text-sm leading-5 text-slate-500">{t("Find popular poojas for home, family, career, health and more in a few clicks.")}</p>
           </div>
-        ) : (
-          // No offer running: say so plainly and keep the card useful,
-          // instead of a blank "--:--:--" timer and a disabled button.
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <p className="text-sm text-slate-600">
-              {muhrat ? t("No special muhurat offer today. Every day is auspicious for a puja.") : t("Checking today's muhurat…")}
-            </p>
-            {muhrat && (
-              <button
-                type="button"
-                className="interactive-button min-h-[44px] shrink-0 rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-white"
-                onClick={() => navigate("/book")}
-              >
-                {t("Book a Puja")}
-              </button>
-            )}
-          </div>
+          <Link
+            to="/book"
+            onClick={clearBookingDraft}
+            className="interactive-button inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-full bg-maroon px-4 text-sm font-semibold text-white shadow-sm"
+          >
+            {t("Book a Puja")} <span aria-hidden="true">›</span>
+          </Link>
+        </div>
+
+        {muhratActive && (
+          <button
+            type="button"
+            onClick={() => setMuhratOpen(true)}
+            aria-label={t("View today muhurat offer")}
+            className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-white px-3 py-2 text-left"
+          >
+            <span className="min-w-0">
+              <span className="block text-xs font-semibold text-saffron">🪔 {t("Shubh Muhurat offer live")}</span>
+              <span className="block truncate text-sm font-semibold text-maroon">{muhrat.title}</span>
+            </span>
+            <span className="shrink-0 text-right">
+              <span className="block font-mono text-sm font-bold text-maroon">{countdown != null ? formatCountdown(countdown) : ""}</span>
+              <span className="text-xs font-semibold text-saffron">{t("View Muhurat")} ›</span>
+            </span>
+          </button>
         )}
 
-        {/* Coming up: the next festivals, each a shortcut into booking. */}
-        {festivals.length > 0 && (
-          <div className="mt-4 border-t border-amber-100 pt-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t("Coming up")}</p>
-            <ul className="mt-2 space-y-2">
-              {festivals.map((festival) => {
-                const days = daysUntil(festival.start_date);
-                const date = festival.start_date ? new Date(`${festival.start_date}T00:00:00`) : null;
-                const locale = getLanguage() === "hi" ? "hi-IN" : "en-IN";
-                return (
-                  <li key={festival.id || festival.title}>
-                    <Link
-                      to="/book"
-                      title={t("Book for this festival")}
-                      className="group flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50/40 p-2 transition hover:border-saffron hover:bg-amber-50"
-                    >
-                      {date && (
-                        <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-b from-maroon to-maroon-deep text-white shadow-sm">
-                          <span className="text-base font-bold leading-none">{date.getDate()}</span>
-                          <span className="text-[10px] uppercase leading-tight text-amber-100">
-                            {date.toLocaleDateString(locale, { month: "short" })}
-                          </span>
-                        </span>
-                      )}
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-maroon">{festival.title}</span>
-                        {days != null && days >= 0 && (
-                          <span className="text-xs font-medium text-saffron">{whenLabel(days)}</span>
-                        )}
-                      </span>
-                      <span aria-hidden="true" className="text-saffron transition group-hover:translate-x-0.5">→</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+        <ol className="mt-3 space-y-2">
+          {BOOKING_STEPS.map((step) => (
+            <li key={step.label}>
+              <Link
+                to="/book"
+                onClick={clearBookingDraft}
+                className="group flex min-h-[48px] items-center gap-3 rounded-xl border border-amber-100 bg-white px-2.5 py-2 transition hover:border-saffron hover:bg-amber-50/60"
+              >
+                <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-maroon to-maroon-deep text-base text-white shadow-sm">
+                  {step.icon}
+                </span>
+                <span className="flex-1 text-sm font-semibold text-slate-700">{t(step.label)}</span>
+                <span aria-hidden="true" className="text-saffron transition group-hover:translate-x-0.5">›</span>
+              </Link>
+            </li>
+          ))}
+        </ol>
       </div>
 
-      {/* Refer & Earn is a headline feature, so this card stands out from
-          its two neighbours: brand gradient, gold CTA, both rewards. */}
-      <div className="relative overflow-hidden rounded-[1rem] bg-gradient-to-br from-maroon-deep via-maroon to-marigold p-4 text-white shadow-lg ring-1 ring-gold/50">
-        <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-gold/25 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-12 -left-6 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
-        <span aria-hidden="true" className="pointer-events-none absolute right-3 top-2 text-5xl opacity-90 drop-shadow-lg">
+      {/* 2. Refer & Earn -- a headline feature, so it stands out: brand
+          gradient, gold button, both reward amounts. */}
+      <div className="relative flex flex-col overflow-hidden rounded-[1.1rem] bg-gradient-to-br from-maroon-deep via-maroon to-maroon-dark p-4 text-white shadow-lg ring-1 ring-gold/40">
+        <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-gold/20 blur-2xl" />
+        <span aria-hidden="true" className="pointer-events-none absolute right-3 top-2 text-5xl drop-shadow-lg">
           🎁
         </span>
 
-        <div className="relative">
-          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-gold">
+        <div className="relative flex flex-1 flex-col">
+          <p className="flex items-center gap-2 text-sm font-semibold text-gold">
             {t("Refer & Earn")}
-            <span className="rounded-full bg-gold px-2 py-0.5 text-[11px] font-bold tracking-normal text-maroon-dark">{t("BONUS")}</span>
+            <span className="rounded-full bg-gold px-2 py-0.5 text-[11px] font-bold text-maroon-dark">{t("New")}</span>
           </p>
           <p className="mt-1 pr-14 font-serif text-xl font-semibold leading-snug">{t("Invite friends, earn wallet cash")}</p>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
-              <p className="text-lg font-bold text-gold">{rewards.signupReward}</p>
-              <p className="text-xs leading-4 text-amber-50">{t("when your friend signs up")}</p>
+            <div className="flex items-start gap-2 rounded-xl border border-white/20 bg-white/10 px-2.5 py-2 backdrop-blur-sm">
+              <span aria-hidden="true" className="text-lg">🔗</span>
+              <span className="min-w-0">
+                <span className="block text-xs font-semibold leading-4 text-amber-50">{t("Share your unique referral")}</span>
+                <span className="block text-sm font-bold text-gold">{t("{amount} on sign-up", { amount: rewards.signupReward })}</span>
+              </span>
             </div>
-            <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
-              <p className="text-lg font-bold text-gold">{rewards.bookingReward}</p>
-              <p className="text-xs leading-4 text-amber-50">{t("on their first puja booking")}</p>
+            <div className="flex items-start gap-2 rounded-xl border border-white/20 bg-white/10 px-2.5 py-2 backdrop-blur-sm">
+              <span aria-hidden="true" className="text-lg">💰</span>
+              <span className="min-w-0">
+                <span className="block text-xs font-semibold leading-4 text-amber-50">{t("Get rewards on bookings")}</span>
+                <span className="block text-sm font-bold text-gold">{t("{amount} on first booking", { amount: rewards.bookingReward })}</span>
+              </span>
             </div>
           </div>
 
           <button
             type="button"
             aria-label={t("Refer and earn rewards")}
-            className="interactive-button mt-3 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gold to-sand px-4 py-2 text-sm font-bold text-maroon-dark shadow-md transition hover:shadow-lg"
+            className="interactive-button mt-auto inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gold to-sand px-4 py-2 text-sm font-bold text-maroon-dark shadow-md transition hover:shadow-lg"
+            style={{ marginTop: "0.9rem" }}
             onClick={handleReferNow}
           >
-            {t("Refer Now & Earn")}
+            {t("Invite Now & Earn")}
             <span aria-hidden="true">→</span>
           </button>
-          <p className="mt-2 text-center text-xs text-amber-100/90">{t("Share your link · Friend joins · You both earn")}</p>
+          <p className="mt-2 text-center text-xs text-amber-100/90">{t("More puja bookings by your friends = more rewards")}</p>
         </div>
       </div>
 
-      <div className="rounded-[1rem] border border-amber-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-saffron">
-          {t("Why families choose us")}
-        </p>
+      {/* 3. Why Choose Our Pandit Ji */}
+      <div className="rounded-[1.1rem] border border-amber-200 bg-white p-4 shadow-sm">
+        <h2 className="font-serif text-lg font-semibold text-maroon">{t("Why Choose Our Pandit Ji")}</h2>
         <ul className="mt-3 space-y-3">
           {PROMISES.map((item) => (
             <li key={item.title} className="flex items-start gap-3">
-              <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-50 to-amber-100 text-lg ring-1 ring-amber-200">
+              <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-50 to-amber-100 text-lg font-bold text-maroon ring-1 ring-amber-200">
                 {item.icon}
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold text-maroon">{t(item.title)}</span>
+                <span className="block text-sm font-semibold text-slate-800">{t(item.title)}</span>
                 <span className="block text-xs leading-5 text-slate-500">{t(item.detail)}</span>
               </span>
             </li>

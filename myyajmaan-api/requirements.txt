@@ -12,3 +12,5 @@ openpyxl
 bleach
 reportlab
 Pillow
+# Panchang (sun/moon positions); ephemeris file fetched in the Dockerfile
+skyfield==1.55

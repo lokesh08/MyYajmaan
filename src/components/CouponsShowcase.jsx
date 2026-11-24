@@ -92,7 +92,7 @@ export default function CouponsShowcase({ variant = "banner", onSelectCode }) {
               <span>
                 <span className="block font-serif text-xl font-semibold">{t("Available Coupons")}</span>
                 <span className="mt-0.5 block text-sm text-amber-50">
-                  {t("Tap to see live discount codes for your next puja.")}
+                  {t("Use special coupon codes to get more on your puja.")}
                 </span>
               </span>
             </span>

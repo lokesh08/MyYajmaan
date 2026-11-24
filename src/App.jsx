@@ -72,6 +72,7 @@ const AdminWalletPage = lazy(() => import("./pages/admin/AdminWalletPage"));
 const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
 const AdminCmsPage = lazy(() => import("./pages/admin/AdminCmsPage"));
 const AdminMuhuratPage = lazy(() => import("./pages/admin/AdminMuhuratPage"));
+const AdminFestivalsPage = lazy(() => import("./pages/admin/AdminFestivalsPage"));
 const AdminTestimonialsPage = lazy(() => import("./pages/admin/AdminTestimonialsPage"));
 const AdminSupportPage = lazy(() => import("./pages/admin/AdminSupportPage"));
 const AdminComplaintsPage = lazy(() => import("./pages/admin/AdminComplaintsPage"));
@@ -486,6 +487,7 @@ function App() {
         <Route path={`${ADMIN_BASE_PATH}/package-pujas`} element={<AdminLayout><AdminPackagePujaBookingsPage /></AdminLayout>} />
         <Route path={`${ADMIN_BASE_PATH}/testimonials`} element={<AdminLayout><AdminTestimonialsPage /></AdminLayout>} />
         <Route path={`${ADMIN_BASE_PATH}/muhurat`} element={<AdminLayout><AdminMuhuratPage /></AdminLayout>} />
+        <Route path={`${ADMIN_BASE_PATH}/festivals`} element={<AdminLayout><AdminFestivalsPage /></AdminLayout>} />
         <Route path={`${ADMIN_BASE_PATH}/coupons`} element={<AdminLayout><AdminCouponsPage /></AdminLayout>} />
         <Route path={`${ADMIN_BASE_PATH}/cms`} element={<AdminLayout><AdminCmsPage /></AdminLayout>} />
         <Route path={`${ADMIN_BASE_PATH}/messages`} element={<AdminLayout><MessagingCenterPage portal="admin" /></AdminLayout>} />

@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Panchang: NASA JPL DE421 ephemeris (~17 MB, years 1900-2053), downloaded
+# once at build time instead of being committed to git (see panchang.py).
+RUN python -c "from skyfield.api import Loader; Loader('/app/.ephemeris', verbose=False)('de421.bsp')"
+
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
     && chown -R appuser:appuser /app
 USER appuser

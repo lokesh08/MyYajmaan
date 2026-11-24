@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import Modal from "../Modal";
-import { createPuja, updatePuja } from "../../services/adminApi";
+import { createPuja, listFestivalNames, updatePuja } from "../../services/adminApi";
 import { showError, showSuccess } from "../../utils/toaster";
 
 const CATEGORIES = ["Festival", "Family", "Housewarming", "Temple", "Path", "Remedy"];
@@ -27,7 +27,12 @@ const EMPTY_FORM = {
   listingType: "normal",
   pujaType: "normal",
   isActive: true,
+  festivalName: "",
 };
+
+// Sent when no festival is chosen: multipart forms drop empty values, so
+// "" could never clear an existing link (see admin_pujas.NO_FESTIVAL).
+const NO_FESTIVAL = "none";
 
 export default function PujaFormModal({ puja, open, onClose, onSaved }) {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -36,8 +41,16 @@ export default function PujaFormModal({ puja, open, onClose, onSaved }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [festivalNames, setFestivalNames] = useState([]);
 
   const isEdit = Boolean(puja);
+
+  useEffect(() => {
+    if (!open) return;
+    listFestivalNames()
+      .then((data) => setFestivalNames(data?.names || []))
+      .catch(() => setFestivalNames([]));
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -53,6 +66,7 @@ export default function PujaFormModal({ puja, open, onClose, onSaved }) {
         listingType: puja.listing_type || "normal",
         pujaType: puja.puja_type || "normal",
         isActive: puja.is_active ?? true,
+        festivalName: puja.festival_name || "",
       });
       setImagePreview(puja.image_url || null);
       setThumbnailPreview(puja.thumbnail_url || null);
@@ -100,6 +114,7 @@ export default function PujaFormModal({ puja, open, onClose, onSaved }) {
       listing_type: form.listingType,
       puja_type: form.pujaType,
       is_active: form.isActive,
+      festival_name: form.festivalName || NO_FESTIVAL,
       image: imageFile || undefined,
       thumbnail: thumbnailFile || undefined,
     };
@@ -192,6 +207,29 @@ export default function PujaFormModal({ puja, open, onClose, onSaved }) {
               </button>
             ))}
           </div>
+        </label>
+
+        <label className="block md:col-span-2">
+          <span className="mb-1 block text-xs font-semibold uppercase text-slate-500">Linked Festival</span>
+          <select
+            value={form.festivalName}
+            onChange={(event) => updateField("festivalName", event.target.value)}
+            className="w-full rounded-xl border border-amber-200 px-3 py-2 text-sm outline-none focus:border-maroon focus:ring-2 focus:ring-amber-100"
+          >
+            <option value="">Not a festival puja</option>
+            {/* keep a saved link visible even if that festival was renamed/removed */}
+            {form.festivalName && !festivalNames.includes(form.festivalName) && (
+              <option value={form.festivalName}>{form.festivalName} (not in calendar)</option>
+            )}
+            {festivalNames.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-xs text-slate-400">
+            Customers booking this puja on a different date see a warning with the festival date from Admin → Festivals.
+          </span>
         </label>
 
         <label className="block md:col-span-2">

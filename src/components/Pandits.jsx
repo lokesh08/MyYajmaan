@@ -31,7 +31,7 @@ function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-slate-900">{p.name}</p>
-              <p className="text-sm text-slate-500">{t("Vedic rituals •")}{' '}{p.languages?.join(", ") || t("Hindi, English")}</p>
+              <p className="text-sm text-slate-500">{[p.city, p.languages?.join(", ") || t("Hindi, English")].filter(Boolean).join(" · ")}</p>
             </div>
             <div className="text-right">
               {p.starting_price ? (
@@ -42,7 +42,7 @@ function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
           </div>
           <div className="mt-3 flex gap-2">
             <button onClick={() => onView(p)} className="interactive-button rounded-full border border-amber-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-maroon hover:text-maroon">{t("View")}</button>
-            <button onClick={() => onSelect(p)} className="interactive-button ml-auto rounded-full bg-saffron px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-500">{t("Select")}</button>
+            <button onClick={() => onSelect(p)} className="interactive-button ml-auto rounded-full bg-saffron px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-500">{t("Book")}</button>
           </div>
         </div>
       </div>
