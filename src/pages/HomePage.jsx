@@ -3,6 +3,7 @@ import { bannerImages } from "../constants/visualAssets";
 import { clearBookingDraft } from "../utils/bookingFlowStorage";
 import HeroBannerSlider from "../components/HeroBannerSlider";
 import HomeWithModals from "../components/HomeWithModals";
+import PanchangCard from "../components/PanchangCard";
 import Festivals from "../components/Festivals";
 import PujaSlider from "../components/PujaSlider";
 import Pandits from "../components/Pandits";
@@ -69,17 +70,17 @@ export default function HomePage() {
           <div className="relative flex min-h-[360px] flex-col justify-between gap-4 p-4 pb-9 sm:gap-6 sm:p-8 md:min-h-[440px] lg:p-9">
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-white/25 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50 backdrop-blur-sm sm:bg-white/10 sm:px-3 sm:text-sm">
-                {t("Book Trusted Pandit Ji")}
+                {t("Vedic Puja Specialists")}
               </span>
               <span className="rounded-full border border-amber-100/30 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50 backdrop-blur-sm sm:bg-amber-100/15 sm:px-3 sm:text-sm">
-                {t("Trusted by 10k+ families")}
+                {t("Verified Pandit Network")}
               </span>
             </div>
 
             <div className="max-w-[40rem]">
-              <h1 className="font-serif text-[1.7rem] font-semibold leading-[1.1] text-white drop-shadow-md sm:text-[2.9rem] sm:leading-[1.05]">{t("Book Trusted Pandit Ji for every auspicious occasion")}</h1>
+              <h1 className="font-serif text-[1.7rem] font-semibold leading-[1.1] text-white drop-shadow-md sm:text-[2.9rem] sm:leading-[1.05]">{t("Book Trusted Pandit Ji for every Auspicious Occasion")}</h1>
               <p className="mt-2 max-w-lg text-[13px] leading-5 text-amber-50 drop-shadow sm:mt-3 sm:text-base sm:leading-6">
-                {t("Experience divine blessings with verified pandits, guided booking, and festive puja support.")}
+                {t("Find experienced and verified pandits, book auspicious poojas, homas and rituals easily and securely.")}
               </p>
 
               <div className="mt-3 flex flex-wrap gap-2 sm:mt-4 sm:gap-3">
@@ -100,7 +101,7 @@ export default function HomePage() {
                     title={t("Register as a Pandit Ji")}
                     className="interactive-button inline-flex min-h-[44px] items-center rounded-full border border-white/50 bg-black/20 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/15 sm:border-white/35 sm:bg-transparent sm:px-5 sm:py-3 sm:backdrop-blur-none"
                   >
-                    {t("Become a Pandit Ji")}
+                    {t("Become a Pandit Ji")}<span aria-hidden="true" className="ml-1.5">›</span>
                   </Link>
                 )}
               </div>
@@ -112,6 +113,8 @@ export default function HomePage() {
           <HomeWithModals />
         </div>
       </div>
+
+      <PanchangCard />
 
         <OffersBanner />
         <CouponsShowcase />

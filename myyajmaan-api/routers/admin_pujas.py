@@ -1,6 +1,7 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from postgrest.exceptions import APIError
 from pydantic import BaseModel
 
 from audit import write_audit_log
@@ -139,6 +140,44 @@ async def get_puja_admin_detail(
     return {"puja": puja}
 
 
+# Multipart forms drop empty fields, so the admin form sends this value
+# to mean "not linked to any festival".
+NO_FESTIVAL = "none"
+
+
+def _is_missing_festival_column(error: APIError) -> bool:
+    # PGRST204 = column not in PostgREST's schema cache, i.e. the
+    # 20261124000000_puja_festival_link.sql migration hasn't run yet.
+    return getattr(error, "code", None) == "PGRST204" and "festival_name" in (getattr(error, "message", "") or "")
+
+
+def _write_puja(run, payload: dict):
+    """
+    Runs an insert/update; if the database doesn't have pujas.festival_name
+    yet, saves everything else instead of failing the whole edit -- unless
+    the admin actually chose a festival, which then needs the migration.
+    """
+    try:
+        return run(payload)
+    except APIError as error:
+        if not _is_missing_festival_column(error) or "festival_name" not in payload:
+            raise
+        if payload.get("festival_name"):
+            raise HTTPException(
+                status_code=400,
+                detail="Festival linking needs a database update (migration 20261124000000_puja_festival_link.sql). Save without a festival, or run the migration first.",
+            )
+        return run({k: v for k, v in payload.items() if k != "festival_name"})
+
+
+def _clean_festival_name(value: Optional[str]) -> Optional[str]:
+    """Festival-specific pujas are linked to festivals.title (see admin_festivals.py)."""
+    clean = " ".join((value or "").split())
+    if not clean or clean.lower() == NO_FESTIVAL:
+        return None
+    return clean[:120]
+
+
 @router.post("", status_code=201)
 async def create_puja(
     title: str = Form(...),
@@ -150,6 +189,7 @@ async def create_puja(
     listing_type: str = Form(default="normal"),
     puja_type: str = Form(default="normal"),
     is_active: bool = Form(default=True),
+    festival_name: Optional[str] = Form(default=None),
     image: Optional[UploadFile] = File(default=None),
     thumbnail: Optional[UploadFile] = File(default=None),
     current_user: dict = Depends(require_admin_roles()),
@@ -180,7 +220,10 @@ async def create_puja(
         "updated_by": current_user["id"],
     }
 
-    resp = client.table("pujas").insert(insert_payload).select("*").execute()
+    if _clean_festival_name(festival_name):
+        insert_payload["festival_name"] = _clean_festival_name(festival_name)
+
+    resp = _write_puja(lambda payload: client.table("pujas").insert(payload).select("*").execute(), insert_payload)
     rows = getattr(resp, "data", None) or []
     if not rows:
         raise HTTPException(status_code=500, detail="Could not create the puja.")
@@ -224,6 +267,7 @@ async def update_puja(
     listing_type: Optional[str] = Form(default=None),
     puja_type: Optional[str] = Form(default=None),
     is_active: Optional[bool] = Form(default=None),
+    festival_name: Optional[str] = Form(default=None),
     image: Optional[UploadFile] = File(default=None),
     thumbnail: Optional[UploadFile] = File(default=None),
     current_user: dict = Depends(require_admin_roles()),
@@ -267,6 +311,8 @@ async def update_puja(
         update_payload["puja_type"] = puja_type
     if is_active is not None:
         update_payload["is_active"] = is_active
+    if festival_name is not None:
+        update_payload["festival_name"] = _clean_festival_name(festival_name)
 
     image_key, thumb_key = await _upload_puja_images(image, thumbnail, puja_id)
     if image_key:
@@ -274,7 +320,7 @@ async def update_puja(
     if thumb_key:
         update_payload["thumbnail_url"] = thumb_key
 
-    resp = client.table("pujas").update(update_payload).eq("id", puja_id).select("*").execute()
+    resp = _write_puja(lambda payload: client.table("pujas").update(payload).eq("id", puja_id).select("*").execute(), update_payload)
     rows = getattr(resp, "data", None) or []
     if not rows:
         raise HTTPException(status_code=500, detail="Could not update the puja.")

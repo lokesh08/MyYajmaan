@@ -93,6 +93,8 @@ class PujaOut(BaseModel):
     image_url: Optional[str] = None       # big image for detail
     metadata: Optional[dict] = None
     is_active: Optional[bool] = None
+    # Festival this puja belongs to (matches festivals.title), if any.
+    festival_name: Optional[str] = None
     created_at: Optional[datetime] = None
 
 class FestivalOut(BaseModel):

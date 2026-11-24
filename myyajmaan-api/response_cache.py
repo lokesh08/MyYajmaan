@@ -48,6 +48,7 @@ _CACHEABLE = [
         r"^/muhrat/next$",
         r"^/referral/rewards$",
         r"^/cities$",
+        r"^/panchang$",
         r"^/pandits$",
         r"^/pandits/[^/]+$",
         r"^/pandits/[^/]+/pujas$",

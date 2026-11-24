@@ -274,6 +274,28 @@ export function deleteCoupon(couponId) {
   return del(`/admin/coupons/${couponId}`);
 }
 
+// --- Festival calendar ---
+
+export function listAdminFestivals(when = "upcoming") {
+  return get("/admin/festivals", { params: { when } });
+}
+
+export function listFestivalNames() {
+  return get("/admin/festivals/names");
+}
+
+export function createFestival(payload) {
+  return post("/admin/festivals", payload);
+}
+
+export function updateFestival(festivalId, payload) {
+  return patch(`/admin/festivals/${festivalId}`, payload);
+}
+
+export function deleteFestival(festivalId) {
+  return del(`/admin/festivals/${festivalId}`);
+}
+
 // --- Shubh Muhurat management ---
 
 export function listMuhrats({ search = "", page = 1, pageSize = 10 }) {

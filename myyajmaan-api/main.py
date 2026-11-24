@@ -20,6 +20,7 @@ from routers import (
     admin_complaints,
     admin_coupons,
     admin_dashboard,
+    admin_festivals,
     admin_muhrats,
     admin_package_bookings,
     admin_pandit_feedback,
@@ -48,6 +49,7 @@ from routers import (
     muhrats,
     notifications,
     offers,
+    panchang,
     otp,
     package_bookings,
     pandit_aadhar,
@@ -168,6 +170,7 @@ app.include_router(admin_package_bookings.router)
 app.include_router(admin_complaints.router)
 app.include_router(admin_coupons.router)
 app.include_router(admin_dashboard.router)
+app.include_router(admin_festivals.router)
 app.include_router(admin_muhrats.router)
 app.include_router(admin_pandit_feedback.router)
 app.include_router(admin_pandits.router)
@@ -196,6 +199,7 @@ app.include_router(muhrats.router)
 app.include_router(notifications.router)
 app.include_router(messaging.router)
 app.include_router(offers.router)
+app.include_router(panchang.router)
 app.include_router(otp.router)
 app.include_router(pandit_aadhar.router)
 app.include_router(pandit_bookings.router)

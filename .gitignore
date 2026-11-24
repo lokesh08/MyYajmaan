@@ -2,3 +2,6 @@ node_modules
 .DS_Store
 dist
 .env
+
+# Panchang ephemeris (downloaded at build / first use, ~17 MB)
+myyajmaan-api/.ephemeris/

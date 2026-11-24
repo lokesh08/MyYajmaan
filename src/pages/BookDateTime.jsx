@@ -7,6 +7,9 @@ import { getAvailability } from '../services/availability';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 import { isPackagePuja, missingStepPath, nextStepLabel, nextStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
 import { t } from "../i18n";
+import FestivalDateWarning, { formatFestivalDate } from '../components/FestivalDateWarning';
+import useFestivalDates from '../hooks/useFestivalDates';
+import { checkFestivalDate, localToday, nextFestival } from '../utils/festivalDates';
 
 const DEFAULT_MIN_LEAD_HOURS = 6;
 
@@ -45,6 +48,13 @@ export default function BookDateTime() {
   const [selectedSlot, setSelectedSlot] = useState(() => preserved?.slot || null);
   const [minLeadHours, setMinLeadHours] = useState(DEFAULT_MIN_LEAD_HOURS);
   const navigate = useNavigate();
+
+  // Festival-specific pujas: suggest the festival date and warn before
+  // going on with a different one (utils/festivalDates.js).
+  const { festivalName, festivals } = useFestivalDates(puja?.id, puja?.festival_name);
+  const [festivalWarning, setFestivalWarning] = useState(null);
+  const today = localToday();
+  const upcomingFestival = nextFestival(festivals, festivalName, today);
 
   // Admin-configured minimum notice before a puja can be booked (see
   // Admin Settings -> Booking Lead Time). Fails open to the documented
@@ -124,6 +134,30 @@ export default function BookDateTime() {
     return <Navigate to={missingPath} replace state={puja ? { puja } : undefined} />;
   }
 
+  function goNext() {
+    saveBookingDraft({ puja, address, date, slot: selectedSlot });
+    navigate(nextStepPath('datetime', puja), { state: { puja, address, date, slot: selectedSlot } });
+  }
+
+  function handleNext() {
+    const warning = checkFestivalDate({ festivalName, festivals, selectedDate: date, today });
+    if (warning) {
+      setFestivalWarning(warning);
+      return;
+    }
+    goNext();
+  }
+
+  // "Change Date": move to the festival date; the customer then picks a
+  // slot that is open on that day.
+  function applyFestivalDate(festivalDate) {
+    setFestivalWarning(null);
+    if (festivalDate && festivalDate !== date) {
+      setDate(festivalDate);
+      setSelectedSlot(null);
+    }
+  }
+
   function isPast(selectedDate) {
     const today = new Date();
     const d = new Date(selectedDate + 'T00:00:00');
@@ -156,6 +190,29 @@ export default function BookDateTime() {
           />
         </div>
         {isPast(date) && <p className="mt-2 text-sm text-red-600">{t("Please select a future date.")}</p>}
+        {upcomingFestival && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+            <span className="text-slate-700">
+              🪔 {t("Recommended date for {festival}", { festival: upcomingFestival.title })}:{' '}
+              <strong className="text-maroon">
+                {upcomingFestival.end_date
+                  ? t("{start} to {end}", { start: formatFestivalDate(upcomingFestival.start_date), end: formatFestivalDate(upcomingFestival.end_date) })
+                  : formatFestivalDate(upcomingFestival.start_date)}
+              </strong>
+            </span>
+            {!checkFestivalDate({ festivalName, festivals, selectedDate: date, today }) ? (
+              <span className="text-xs font-semibold text-emerald-700">✓ {t("Festival date selected")}</span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => applyFestivalDate(upcomingFestival.start_date >= today ? upcomingFestival.start_date : today)}
+                className="interactive-button min-h-[36px] rounded-full border border-maroon/30 bg-white px-3 text-xs font-semibold text-maroon hover:bg-maroon hover:text-white"
+              >
+                {t("Use this date")}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="mt-6">
           <h3 className="font-semibold text-slate-700">{t("Available Time Slots")}</h3>
@@ -205,10 +262,7 @@ export default function BookDateTime() {
         <div className="mt-6 flex items-center gap-3">
           <button
             disabled={!selectedSlot || isPast(date)}
-            onClick={() => {
-              saveBookingDraft({ puja, address, date, slot: selectedSlot });
-              navigate(nextStepPath('datetime', puja), { state: { puja, address, date, slot: selectedSlot } });
-            }}
+            onClick={handleNext}
             className={`min-h-[44px] rounded-full px-5 py-2 font-semibold text-white shadow-sm transition ${!selectedSlot || isPast(date) ? 'bg-gray-300' : 'bg-saffron hover:opacity-90'}`}
           >
             {t(nextStepLabel('datetime', puja))}
@@ -216,6 +270,16 @@ export default function BookDateTime() {
           <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">{t("Back")}</button>
         </div>
       </div>
+
+      <FestivalDateWarning
+        warning={festivalWarning}
+        onChangeDate={() => applyFestivalDate(festivalWarning?.recommendedDate)}
+        onContinue={() => {
+          setFestivalWarning(null);
+          goNext();
+        }}
+        onClose={() => setFestivalWarning(null)}
+      />
     </BookingFrame>
   );
 }

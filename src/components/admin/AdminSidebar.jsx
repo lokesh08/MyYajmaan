@@ -12,6 +12,7 @@ const MENU_ITEMS = [
   { label: "Package Pujas", to: `${ADMIN_BASE_PATH}/package-pujas` },
   { label: "Testimonials", to: `${ADMIN_BASE_PATH}/testimonials` },
   { label: "Shubh Muhurat", to: `${ADMIN_BASE_PATH}/muhurat` },
+  { label: "Festivals", to: `${ADMIN_BASE_PATH}/festivals` },
   { label: "Coupons & Offers", to: `${ADMIN_BASE_PATH}/coupons` },
   { label: "CMS", to: `${ADMIN_BASE_PATH}/cms` },
   { label: "Wallet & Transactions", to: `${ADMIN_BASE_PATH}/wallet` },

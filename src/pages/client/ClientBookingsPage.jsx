@@ -18,6 +18,9 @@ import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import Modal from "../../components/Modal";
 import BookingDetailModal from "../../components/client/BookingDetailModal";
 import { t as tt } from "../../i18n";
+import FestivalDateWarning from "../../components/FestivalDateWarning";
+import useFestivalDates from "../../hooks/useFestivalDates";
+import { checkFestivalDate, localToday } from "../../utils/festivalDates";
 
 const PACKAGE_STATUS_STYLES = {
   pending_review: "bg-amber-50 text-amber-700",
@@ -86,7 +89,7 @@ function StatusPill({ status }) {
   };
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${styles[status] || "bg-slate-100 text-slate-500"}`}>
-      {labels[status] || status}
+      {tt(labels[status] || status)}
     </span>
   );
 }
@@ -104,18 +107,30 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [saving, setSaving] = useState(false);
+  // Festival-specific puja: same "different from the festival date"
+  // check as the booking page before rescheduling to another day.
+  const { festivalName, festivals } = useFestivalDates(open ? booking?.catalog_puja_id : null);
+  const [festivalWarning, setFestivalWarning] = useState(null);
 
   useEffect(() => {
     if (open) {
       setDate("");
       setTime("");
+      setFestivalWarning(null);
     }
   }, [open]);
 
-  async function handleSave() {
+  async function handleSave({ skipFestivalCheck = false } = {}) {
     if (!date || !time) {
       showError(tt("Please choose a new date and time."));
       return;
+    }
+    if (!skipFestivalCheck) {
+      const warning = checkFestivalDate({ festivalName, festivals, selectedDate: date, today: localToday() });
+      if (warning) {
+        setFestivalWarning(warning);
+        return;
+      }
     }
     setSaving(true);
     try {
@@ -133,7 +148,8 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <Modal open={open} onClose={onClose} title={tt("Reschedule Booking")} size="sm">
+    <>
+    <Modal open={open && !festivalWarning} onClose={onClose} title={tt("Reschedule Booking")} size="sm">
       <div className="space-y-4">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           {tt("Rescheduling costs Rs.")}{' '}{RESCHEDULE_FEE}{' '}{tt("(deducted from your wallet). Your Pandit Ji will need to reconfirm the new slot.")}
@@ -169,7 +185,7 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
         </button>
         <button
           type="button"
-          onClick={handleSave}
+          onClick={() => handleSave()}
           disabled={saving}
           className="interactive-button rounded-full bg-maroon px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -177,6 +193,20 @@ function RescheduleModal({ booking, open, onClose, onDone }) {
         </button>
       </div>
     </Modal>
+
+      <FestivalDateWarning
+        warning={festivalWarning}
+        onChangeDate={() => {
+          setDate(festivalWarning?.recommendedDate || date);
+          setFestivalWarning(null);
+        }}
+        onContinue={() => {
+          setFestivalWarning(null);
+          handleSave({ skipFestivalCheck: true });
+        }}
+        onClose={() => setFestivalWarning(null)}
+      />
+    </>
   );
 }
 
