@@ -32,6 +32,15 @@ export const PUBLIC_ROUTES = [
     priority: 0.9,
   },
   {
+    path: '/pandits',
+    title: 'Find Pandit Ji Near You – Verified Pandits | MyYajmaan',
+    description:
+      'Browse verified Pandit Ji by name and PIN code, compare starting prices for pujas and book the right Pandit Ji for your puja at home.',
+    heading: 'Find a verified Pandit Ji',
+    changefreq: 'daily',
+    priority: 0.8,
+  },
+  {
     path: '/pandit/register',
     title: 'Join as Pandit Ji – Get Puja Bookings | MyYajmaan',
     description:

@@ -51,6 +51,43 @@ async def list_my_addresses(current_user: dict = Depends(require_roles("user")))
     return {"items": getattr(resp, "data", None) or []}
 
 
+@router.get("/default-pincode")
+async def get_default_pincode(current_user: dict = Depends(require_roles("user", "pandit", "admin"))):
+    """
+    PIN code the "Find Pandit Ji" page pre-fills for a logged-in visitor:
+    their default saved address's, or -- for a Pandit Ji with no saved
+    addresses -- the PIN on their own Pandit Ji profile. None when
+    there's nothing to go on, and the page then shows everyone.
+    Lives under /me (not /pandits) so the public response cache never
+    stores one person's answer for another.
+    """
+    client = _client()
+    resp = (
+        client.table("client_addresses")
+        .select("pincode")
+        .eq("client_id", current_user["id"])
+        .order("is_default", desc=True)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    rows = getattr(resp, "data", None) or []
+    pincode = (rows[0].get("pincode") or "").strip() if rows else ""
+
+    if not pincode and current_user.get("role") == "pandit":
+        pandit_resp = (
+            client.table("pandits")
+            .select("pin")
+            .eq("user_id", current_user["id"])
+            .limit(1)
+            .execute()
+        )
+        pandit_rows = getattr(pandit_resp, "data", None) or []
+        pincode = str(pandit_rows[0].get("pin") or "").strip() if pandit_rows else ""
+
+    return {"pincode": pincode or None}
+
+
 class AddressIn(BaseModel):
     label: str = Field(min_length=1, max_length=50)
     address_line: str = Field(min_length=1, max_length=500)

@@ -14,7 +14,7 @@ import { t } from "../i18n";
  *  - onView: (pandit) => void
  *  - onSelect: (pandit) => void
  */
-function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
+export function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
   return (
     <div className="h-full rounded-[1.25rem] border border-amber-200 bg-white p-4 shadow-card-sm">
       <div className="flex items-center gap-4">
@@ -31,7 +31,7 @@ function PanditCard({ p, onView = () => {}, onSelect = () => {} }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-slate-900">{p.name}</p>
-              <p className="text-sm text-slate-500">{[p.city, p.languages?.join(", ") || t("Hindi, English")].filter(Boolean).join(" · ")}</p>
+              <p className="text-sm text-slate-500">{[[p.city, p.pin].filter(Boolean).join(" "), p.languages?.join(", ") || t("Hindi, English")].filter(Boolean).join(" · ")}</p>
             </div>
             <div className="text-right">
               {p.starting_price ? (

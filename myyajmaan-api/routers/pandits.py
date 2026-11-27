@@ -1,8 +1,8 @@
 import re
-from datetime import date as date_cls
+from datetime import date as date_cls, timedelta
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from audit import write_audit_log
 from db import (
@@ -10,8 +10,9 @@ from db import (
     SUPABASE_ANON_KEY,
     convert_record_image_fields,
     convert_records_image_fields,
+    service_supabase,
 )
-from models import PanditOut, PujaOut
+from models import PanditBrowseOut, PanditOut, PujaOut
 from permissions import optional_current_user
 
 router = APIRouter(prefix="/pandits", tags=["pandits"])
@@ -144,16 +145,13 @@ def _resolve_pandit_prices(supabase, pandit_ids: List[str], puja_id: Optional[st
     return prices_by_pandit
 
 
-@router.get("", response_model=List[PanditOut])
-def list_pandits(
-    limit: int = 50,
-    offset: int = 0,
-    city: Optional[str] = None,
-    date: Optional[str] = None,
-    timeslot: Optional[str] = None,
-    puja_id: Optional[str] = None,
-):
-    supabase = _anon_client()
+def _attach_starting_prices(data: List[dict], prices_by_pandit: dict):
+    for rec in data:
+        puja_prices = prices_by_pandit.get(rec["id"])
+        rec["starting_price"] = min(puja_prices.values()) if puja_prices else None
+
+
+def _fetch_approved_pandits(supabase) -> List[dict]:
     resp = (
         supabase.table("pandits")
         .select("*")
@@ -164,7 +162,20 @@ def list_pandits(
         .order("created_at", desc=False)
         .execute()
     )
-    data = _extract_data_or_raise(resp, single=False)
+    return _extract_data_or_raise(resp, single=False)
+
+
+@router.get("", response_model=List[PanditOut])
+def list_pandits(
+    limit: int = 50,
+    offset: int = 0,
+    city: Optional[str] = None,
+    date: Optional[str] = None,
+    timeslot: Optional[str] = None,
+    puja_id: Optional[str] = None,
+):
+    supabase = _anon_client()
+    data = _fetch_approved_pandits(supabase)
 
     # City/availability filtering happens here (not via .offset/.limit
     # above) since it needs the full approved set to filter first --
@@ -194,9 +205,7 @@ def list_pandits(
     else:
         # Browse/homepage context: "starting from" the cheapest puja
         # they offer, or nothing shown if they haven't added any yet.
-        for rec in data:
-            puja_prices = prices_by_pandit.get(rec["id"])
-            rec["starting_price"] = min(puja_prices.values()) if puja_prices else None
+        _attach_starting_prices(data, prices_by_pandit)
 
     data = data[offset : offset + limit]
 
@@ -207,6 +216,68 @@ def list_pandits(
         _apply_avatar_fallback(rec)
 
     return data
+
+
+BROWSE_SORTS = ("recommended", "price_asc", "price_desc")
+
+
+@router.get("/browse", response_model=PanditBrowseOut)
+def browse_pandits(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(12, ge=1, le=48),
+    name: Optional[str] = None,
+    pincode: Optional[str] = None,
+    sort: str = "recommended",
+):
+    """
+    The yajmaan-facing "Find Pandit Ji" page: every approved Pandit Ji,
+    filtered by name / PIN code, optionally sorted by their cheapest
+    puja price, one page at a time with the total for the pager.
+    Declared before /{pandit_id} so "browse" isn't read as an id.
+    """
+    if sort not in BROWSE_SORTS:
+        raise HTTPException(status_code=422, detail=f"sort must be one of: {', '.join(BROWSE_SORTS)}")
+
+    supabase = _anon_client()
+    data = _fetch_approved_pandits(supabase)
+
+    # Filtered here rather than in PostgREST: sorting by price needs
+    # the whole filtered set priced anyway, and it keeps user input out
+    # of hand-built or_() filter strings.
+    name_q = (name or "").strip().lower()
+    if name_q:
+        data = [
+            rec for rec in data
+            if name_q in (rec.get("display_name") or "").lower()
+            or name_q in (rec.get("name") or "").lower()
+        ]
+
+    # Prefix match, so a partly typed PIN ("3050") already narrows the
+    # list and a full 6-digit one is an exact match.
+    pin_q = "".join((pincode or "").split())
+    if pin_q:
+        data = [rec for rec in data if str(rec.get("pin") or "").replace(" ", "").startswith(pin_q)]
+
+    _attach_starting_prices(data, _resolve_pandit_prices(supabase, [rec["id"] for rec in data]))
+
+    if sort in ("price_asc", "price_desc"):
+        # Pandit Ji who haven't added any puja yet have no price -- they
+        # go last either way. sorted() is stable, so equal prices keep
+        # the default (oldest approved first) order.
+        priced = [rec for rec in data if rec["starting_price"] is not None]
+        unpriced = [rec for rec in data if rec["starting_price"] is None]
+        priced.sort(key=lambda rec: rec["starting_price"], reverse=(sort == "price_desc"))
+        data = priced + unpriced
+
+    total = len(data)
+    start = (page - 1) * page_size
+    items = data[start : start + page_size]
+
+    convert_records_image_fields(items, fields=["avatar_url", "image", "portrait_url"])
+    for rec in items:
+        _apply_avatar_fallback(rec)
+
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
 
 
 @router.get("/{pandit_id}", response_model=PanditOut)
@@ -284,3 +355,67 @@ def get_pandit_pujas(pandit_id: str):
 
     convert_records_image_fields(pujas, fields=["thumbnail_url", "image_url"])
     return pujas
+
+
+# A booking in one of these holds the Pandit Ji's slot; declined /
+# cancelled / completed ones don't.
+SLOT_HOLDING_STATUSES = ("pending_pandit", "confirmed")
+SCHEDULE_MAX_DAYS = 120
+
+
+@router.get("/{pandit_id}/schedule")
+def get_pandit_schedule(pandit_id: str, from_date: Optional[str] = None, days: int = 60):
+    """
+    When a Pandit Ji can take a booking: their weekly availability
+    pattern plus the (date, timeslot) pairs already held by bookings in
+    the window. The booking wizard combines this with its own slot list
+    to pre-pick the next free date & time when a yajmaan books from the
+    Pandit Ji's page (see src/utils/panditAvailability.js). Only dates
+    and times -- nothing about who booked.
+    Not in response_cache's whitelist: it must reflect new bookings.
+    """
+    try:
+        start = date_cls.fromisoformat(from_date) if from_date else date_cls.today()
+    except ValueError:
+        raise HTTPException(status_code=422, detail="from_date must be YYYY-MM-DD")
+    days = max(1, min(days, SCHEDULE_MAX_DAYS))
+    end = start + timedelta(days=days)
+
+    supabase = _anon_client()
+    resp = (
+        supabase.table("pandits")
+        .select("id, availability_pattern, pin, city")
+        .eq("id", pandit_id)
+        .eq("is_active", True)
+        .eq("verification_status", "approved")
+        .single()
+        .execute()
+    )
+    pandit = _extract_data_or_raise(resp, single=True)
+
+    booked = []
+    # Bookings are private to their customer under RLS -- read with the
+    # service client, and hand back only date + time.
+    if service_supabase is not None:
+        bookings_resp = (
+            service_supabase.table("bookings")
+            .select("booking_date, timeslot")
+            .eq("pandit_id", pandit_id)
+            .in_("status", list(SLOT_HOLDING_STATUSES))
+            .gte("booking_date", start.isoformat())
+            .lt("booking_date", end.isoformat())
+            .execute()
+        )
+        for row in _extract_data_or_raise(bookings_resp, single=False):
+            if row.get("booking_date") and row.get("timeslot"):
+                booked.append({"date": str(row["booking_date"])[:10], "timeslot": row["timeslot"]})
+
+    return {
+        "pandit_id": pandit_id,
+        "availability_pattern": pandit.get("availability_pattern") or {},
+        "pin": pandit.get("pin"),
+        "city": pandit.get("city"),
+        "from_date": start.isoformat(),
+        "to_date": end.isoformat(),
+        "booked": booked,
+    }

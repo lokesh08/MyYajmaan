@@ -22,6 +22,7 @@ class PanditOut(BaseModel):
     address: Optional[str] = None  # street-level text, no phone/email — for the map card only
     city: Optional[str] = None
     state: Optional[str] = None
+    pin: Optional[str] = None  # registered PIN code -- the "Find Pandit Ji" page filters on it
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     verification_status: Optional[str] = None
@@ -30,6 +31,13 @@ class PanditOut(BaseModel):
     image: Optional[str] = None  # normalized image property used by frontend
     portrait_url: Optional[str] = None
     created_at: Optional[datetime] = None
+
+class PanditBrowseOut(BaseModel):
+    items: List[PanditOut]
+    total: int
+    page: int
+    page_size: int
+
 
 class BookingIn(BaseModel):
     pandit_id: str

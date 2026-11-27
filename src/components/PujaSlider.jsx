@@ -7,10 +7,27 @@ import Loader from "./common/Loader";
 import SwipeRow from "./common/SwipeRow";
 import { optimizedImage } from "../utils/image";
 import { startBookingDraft } from "../utils/bookingFlowStorage";
-import { BOOKING_START_PATH } from "../utils/bookingSteps";
+import { BOOKING_START_PATH, isPackagePuja } from "../utils/bookingSteps";
 import { t } from "../i18n";
 
 const DESKTOP_WINDOW = 4;
+
+// The bits of a Pandit Ji the booking steps need, in the same shape as
+// a row from GET /pandits (what the Pandit Ji step lists). `price` is
+// what they charge for this puja -- /pandits/{id}/pujas already applies
+// their price_override to base_price.
+function toPreferredPandit(pandit, puja) {
+  return {
+    id: pandit.id,
+    name: pandit.display_name || pandit.name || "Pandit Ji",
+    languages: pandit.languages_spoken?.length ? pandit.languages_spoken : pandit.languages || [],
+    experience: pandit.experience_years ?? pandit.experience ?? null,
+    rating: pandit.rating_avg ?? pandit.rating ?? null,
+    city: pandit.city || "",
+    pin: pandit.pin || "",
+    price: puja.base_price ?? null,
+  };
+}
 
 function PujaCard({ puja, selectedPandit }) {
   const navigate = useNavigate();
@@ -20,13 +37,15 @@ function PujaCard({ puja, selectedPandit }) {
     // pujaType decides the flow (package pujas go to Requirements, not
     // Pandit/Payment); saved first so it survives a trip through /login.
     const bookingPuja = { id: puja.id, title: puja.title, image, pujaType: puja.puja_type || "normal" };
-    startBookingDraft(bookingPuja);
-    navigate(BOOKING_START_PATH, {
-      state: {
-        puja: bookingPuja,
-        selectedPandit: selectedPandit || undefined,
-      },
-    });
+    // Booked from a Pandit Ji's page: the wizard keeps that Pandit Ji in
+    // mind -- warns if the address isn't in their PIN code, pre-picks
+    // their next free date & time, and offers only them at the Pandit
+    // step (see utils/panditAvailability.js). Package pujas get their
+    // Pandit Ji from admin, so they don't carry one. Draft only, not
+    // router state, so dropping them for "a different Pandit Ji" sticks.
+    const preferredPandit = selectedPandit && !isPackagePuja(bookingPuja) ? toPreferredPandit(selectedPandit, puja) : null;
+    startBookingDraft(bookingPuja, preferredPandit ? { preferredPandit } : {});
+    navigate(BOOKING_START_PATH, { state: { puja: bookingPuja } });
   }
 
   return (

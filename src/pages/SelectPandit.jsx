@@ -20,10 +20,15 @@ export default function SelectPandit() {
   const puja = preserved.puja;
   const missingPath = missingStepPath('pandit', preserved);
 
+  // Booked from a Pandit Ji's page and kept through Date & Time (see
+  // BookDateTime): only that Pandit Ji is offered, already selected.
+  // "Choose a different Pandit Ji" drops them and lists everyone free.
+  const [preferredPandit, setPreferredPandit] = useState(() => preserved.preferredPandit || null);
+
   const [pandits, setPandits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selected, setSelected] = useState(() => draft.pandit || null);
+  const [selected, setSelected] = useState(() => preserved.preferredPandit || draft.pandit || null);
 
   // Load available pandits for date & slot (with cancellation)
   useEffect(() => {
@@ -37,6 +42,14 @@ export default function SelectPandit() {
           setPandits([]);
           setLoading(false);
         }
+        return;
+      }
+
+      if (preferredPandit) {
+        setPandits([preferredPandit]);
+        setSelected(preferredPandit);
+        setError(null);
+        setLoading(false);
         return;
       }
 
@@ -84,7 +97,13 @@ export default function SelectPandit() {
     };
     // Note: selected intentionally not in deps to avoid clearing selection while user interacts
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, slot?.time, puja?.id, address?.city]);
+  }, [date, slot?.time, puja?.id, address?.city, preferredPandit]);
+
+  function choosePanditFromList() {
+    setPreferredPandit(null);
+    setSelected(null);
+    saveBookingDraft({ preferredPandit: null, pandit: null });
+  }
 
   useEffect(() => {
     if (missingPath) return;
@@ -110,6 +129,15 @@ export default function SelectPandit() {
       <BookingStepper currentStep={stepNumber('pandit', puja)} />
       <p className="mt-2 text-sm text-slate-600">{t("Ritual:")}{' '}<strong>{t(puja.title)}</strong></p>
       <p className="mt-1 text-sm text-slate-600">{t("Selected:")}{' '}<strong>{date}</strong> • <strong>{slot.time}</strong></p>
+
+      {preferredPandit && (
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-slate-700">
+          <span>{t("You're booking with {name}, available at your selected date & time.", { name: preferredPandit.name })}</span>
+          <button type="button" onClick={choosePanditFromList} className="font-semibold text-maroon underline">
+            {t("Choose a different Pandit Ji")}
+          </button>
+        </div>
+      )}
 
       <div className="mt-6 space-y-4">
         {loading && <p className="text-sm text-slate-500">{t("Loading available pandits…")}</p>}
@@ -140,13 +168,15 @@ export default function SelectPandit() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-maroon to-saffron text-xl font-semibold text-white">👳</div>
                 <div>
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-sm text-slate-500">{(p.languages || []).join(', ')} • {p.experience}{' '}{t("yrs")}{p.city ? ` • ${p.city}` : ''}</p>
+                  <p className="text-sm text-slate-500">
+                    {[(p.languages || []).join(', '), p.experience != null ? `${p.experience} ${t("yrs")}` : '', p.city].filter(Boolean).join(' • ')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="font-semibold text-maroon">₹{p.price}</p>
-                  <p className="text-sm text-amber-500">⭐ {p.rating}</p>
+                  {p.price != null ? <p className="font-semibold text-maroon">₹{p.price}</p> : null}
+                  <p className="text-sm text-amber-500">⭐ {p.rating ?? '-'}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${selected?.id === p.id ? 'bg-maroon text-white shadow-sm' : 'bg-amber-50 text-slate-700 group-hover:bg-maroon group-hover:text-white'}`}>
                   {selected?.id === p.id ? t("Selected") : t("Select")}

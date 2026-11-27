@@ -5,11 +5,13 @@ import BookingFrame from '../components/BookingFrame';
 import Modal from '../components/Modal';
 import ThemeDialog from '../components/ThemeDialog';
 import ThemeNotice from '../components/ThemeNotice';
+import { PanditPincodeWarning } from '../components/PreferredPanditDialogs';
 import { getBookingDraft, saveBookingDraft } from '../utils/bookingFlowStorage';
 import { BOOKING_PATHS, isPackagePuja, nextStepLabel, nextStepPath, resolveBookingData, stepNumber } from '../utils/bookingSteps';
 import { useAuth } from '../context/AuthContext';
 import { addMyAddress, listCities, listMyAddresses } from '../services/clientApi';
 import { showError, showSuccess } from '../utils/toaster';
+import { samePincode } from '../utils/panditAvailability';
 import { t } from "../i18n";
 
 const emptyNewAddress = { label: '', address_line: '', state: '', city: '', pincode: '' };
@@ -50,6 +52,15 @@ export default function BookAddress() {
   const [cities, setCities] = useState([]);
   const [savingAddress, setSavingAddress] = useState(false);
 
+  // Booked from a Pandit Ji's page: they only serve their own PIN code,
+  // so an address outside it gets a popup -- on landing (for the
+  // pre-selected address) and again on Next. `pinWarning.fromNext`
+  // means "Keep this address" should carry straight on to Date & Time.
+  const [preferredPandit, setPreferredPandit] = useState(() => preserved?.preferredPandit || null);
+  const [pinWarning, setPinWarning] = useState(null);
+  const panditPin = preferredPandit?.pin || '';
+  const servesAddress = (addr) => !panditPin || samePincode(addr?.pincode, panditPin);
+
   function loadAddresses() {
     setLoadingAddresses(true);
     setAddressesFailed(false);
@@ -71,6 +82,7 @@ export default function BookAddress() {
       const preselected = addresses.find((a) => a.id === selectedAddressId);
       const defaultAddress = preselected || addresses.find((a) => a.is_default) || addresses[0];
       if (defaultAddress) setSelectedAddressId(defaultAddress.id);
+      if (defaultAddress && !servesAddress(defaultAddress)) setPinWarning({ fromNext: false });
     });
     listCities()
       .then((data) => setCities(Array.isArray(data) ? data : []))
@@ -95,6 +107,31 @@ export default function BookAddress() {
         </Link>
       </section>
     );
+  }
+
+  const matchingAddresses = panditPin ? savedAddresses.filter((a) => samePincode(a.pincode, panditPin)) : [];
+  const selectedSaved = savedAddresses.find((a) => a.id === selectedAddressId);
+
+  function selectMatchingAddress(addr) {
+    setSelectedAddressId(addr.id);
+    setPinWarning(null);
+    setNotice('');
+  }
+
+  function addAddressInPanditPin() {
+    setPinWarning(null);
+    setNewAddress({ ...emptyNewAddress, pincode: panditPin });
+    setAddModalOpen(true);
+  }
+
+  // "Select a different Pandit Ji later": the booking goes on as a normal
+  // one, choosing from the Pandit Ji who serve the address.
+  function dropPreferredPandit() {
+    const fromNext = pinWarning?.fromNext;
+    setPinWarning(null);
+    setPreferredPandit(null);
+    saveBookingDraft({ preferredPandit: null });
+    if (fromNext) handleNext({ skipPanditCheck: true });
   }
 
   function updateContact(key, value) {
@@ -130,7 +167,7 @@ export default function BookAddress() {
     }
   }
 
-  function handleNext() {
+  function handleNext({ skipPanditCheck = false } = {}) {
     if (!contact.name || !contact.phone) {
       setNotice(t("Please enter your name and mobile number before continuing."));
       return;
@@ -160,6 +197,11 @@ export default function BookAddress() {
       bookingAddress = { ...contact, note, ...fallbackForm };
     }
 
+    if (!skipPanditCheck && panditPin && !samePincode(bookingAddress.pin, panditPin)) {
+      setPinWarning({ fromNext: true });
+      return;
+    }
+
     // Merged into the draft, so a date/slot picked earlier (user came
     // Back to change the address) is kept for the next step.
     saveBookingDraft({ puja, address: bookingAddress });
@@ -182,6 +224,12 @@ export default function BookAddress() {
     >
       <BookingStepper currentStep={stepNumber('address', puja)} steps={isPackagePuja(puja) ? PACKAGE_STEPS : undefined} />
       <p className="mt-2 text-sm text-slate-600">{t("Ritual:")}{' '}<strong>{puja?.title || t("Selected puja")}</strong></p>
+      {preferredPandit && (
+        <p className="mt-1 text-sm text-slate-600">
+          {t("Pandit Ji:")}{' '}<strong>{preferredPandit.name}</strong>
+          {panditPin ? <span className="text-slate-500"> · {t("serves PIN code {pin}", { pin: panditPin })}</span> : null}
+        </p>
+      )}
 
       <div className="mt-6">
         <div className="grid gap-4 md:grid-cols-2">
@@ -217,10 +265,22 @@ export default function BookAddress() {
                     <span className="block font-semibold text-maroon">{t(addr.label)}{addr.is_default ? t(" (Default)") : ''}</span>
                     <span className="mt-1 block text-slate-600">{addr.address_line}</span>
                     <span className="block text-slate-500">{addr.city}, {addr.state} - {addr.pincode}</span>
+                    {panditPin && servesAddress(addr) ? (
+                      <span className="mt-1 block text-xs font-semibold text-emerald-700">✓ {t("{name} serves here", { name: preferredPandit.name })}</span>
+                    ) : null}
                   </span>
                 </label>
               ))}
             </div>
+          )}
+
+          {panditPin && selectedSaved && !servesAddress(selectedSaved) && (
+            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              {t("{name} doesn't serve PIN code {pin}.", { name: preferredPandit.name, pin: selectedSaved.pincode })}{' '}
+              <button type="button" onClick={() => setPinWarning({ fromNext: false })} className="font-semibold text-maroon underline">
+                {t("See options")}
+              </button>
+            </p>
           )}
 
           {!loadingAddresses && savedAddresses.length === 0 && !addressesFailed && (
@@ -264,7 +324,7 @@ export default function BookAddress() {
         {notice && <ThemeNotice type="error" title={t("Need a quick check")} message={notice} />}
 
         <div className="mt-6 flex gap-3">
-          <button onClick={handleNext} className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500">
+          <button onClick={() => handleNext()} className="min-h-[44px] interactive-button rounded-full bg-saffron px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-500">
             {t(nextStepLabel('address', puja))}
           </button>
           <button onClick={() => navigate(-1)} className="min-h-[44px] interactive-button rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700 hover:border-maroon hover:text-maroon">{t("Back")}</button>
@@ -331,6 +391,17 @@ export default function BookAddress() {
           </div>
         </form>
       </Modal>
+
+      <PanditPincodeWarning
+        open={Boolean(pinWarning)}
+        pandit={preferredPandit}
+        address={selectedSaved || (fallbackForm.pin ? { pincode: fallbackForm.pin } : null)}
+        matchingAddresses={matchingAddresses}
+        onUseAddress={selectMatchingAddress}
+        onAddAddress={addAddressInPanditPin}
+        onChooseAnother={() => setPinWarning(null)}
+        onChangePandit={dropPreferredPandit}
+      />
 
       <ThemeDialog
         open={dialog.open}
