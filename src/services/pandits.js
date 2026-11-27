@@ -1,5 +1,27 @@
 import { isConfigured, fetchPandits as fetchPanditsFromSupabase } from './supabaseClient';
 import { getServiceMode, requestJson } from './apiClient';
+import { get } from '../api';
+
+// "Find Pandit Ji" page: one page of approved Pandit Ji plus the total.
+// sort: 'recommended' | 'price_asc' | 'price_desc'.
+export function browsePandits({ page = 1, pageSize = 12, name, pincode, sort } = {}, { signal } = {}) {
+  return get('/pandits/browse', {
+    params: {
+      page,
+      page_size: pageSize,
+      name: name || undefined,
+      pincode: pincode || undefined,
+      sort: sort || undefined,
+    },
+    signal,
+  });
+}
+
+// PIN code of the logged-in visitor's default address (or a Pandit Ji's
+// own profile PIN) -- { pincode: string | null }.
+export function getMyDefaultPincode({ signal } = {}) {
+  return get('/me/addresses/default-pincode', { signal });
+}
 
 // pincode isn't used as a filter -- a pandit's registered pincode is a
 // single point, not a service radius, so exact matching would almost

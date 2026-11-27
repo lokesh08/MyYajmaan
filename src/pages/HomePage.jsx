@@ -162,6 +162,9 @@ export default function HomePage() {
             <h2 className="font-serif text-[1.6rem] font-semibold text-maroon">
               {t("Popular Pandit Ji")}
             </h2>
+            <Link to="/pandits" title={t("View all Pandit Ji")} className="text-sm font-semibold text-saffron">
+              {t("View All")}
+            </Link>
           </div>
           <div className="flex-1">
             {" "}

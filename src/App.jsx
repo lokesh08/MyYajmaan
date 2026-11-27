@@ -40,6 +40,7 @@ const ClientAddressesPage = lazy(() => import("./pages/client/ClientAddressesPag
 const ClientSettingsPage = lazy(() => import("./pages/client/ClientSettingsPage"));
 const PanditPage = lazy(() => import("./pages/PanditPage"));
 const PanditDetailPage = lazy(() => import("./pages/PanditDetailPage"));
+const PanditsListPage = lazy(() => import("./pages/PanditsListPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -411,6 +412,7 @@ function App() {
         />
 
         <Route path="/pandit/:id" element={<PanditDetailPage />} />
+        <Route path="/pandits" element={<PanditsListPage />} />
         <Route
           path="/pandit/register"
           element={

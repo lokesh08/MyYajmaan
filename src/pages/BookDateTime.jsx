@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { get } from '../api';
 import BookingStepper, { PACKAGE_STEPS } from '../components/BookingStepper';
@@ -10,6 +10,8 @@ import { t } from "../i18n";
 import FestivalDateWarning, { formatFestivalDate } from '../components/FestivalDateWarning';
 import useFestivalDates from '../hooks/useFestivalDates';
 import { checkFestivalDate, localToday, nextFestival } from '../utils/festivalDates';
+import { PanditTimeWarning } from '../components/PreferredPanditDialogs';
+import { findNextAvailableSlot, isPanditAvailable } from '../utils/panditAvailability';
 
 const DEFAULT_MIN_LEAD_HOURS = 6;
 
@@ -47,7 +49,25 @@ export default function BookDateTime() {
 
   const [selectedSlot, setSelectedSlot] = useState(() => preserved?.slot || null);
   const [minLeadHours, setMinLeadHours] = useState(DEFAULT_MIN_LEAD_HOURS);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const navigate = useNavigate();
+
+  // Booked from a Pandit Ji's page (see PujaSlider): pre-pick their next
+  // free date & time, mark the slots that don't suit them, and if the
+  // yajmaan picks one of those anyway, ask whether to keep this Pandit
+  // Ji (back to `panditPick`) or take that time and choose another
+  // Pandit Ji on the next step. Without their schedule (failed to load)
+  // this all switches off and the step works as usual.
+  const [preferredPandit, setPreferredPandit] = useState(() => preserved?.preferredPandit || null);
+  const [schedule, setSchedule] = useState(null);
+  const [panditPick, setPanditPick] = useState(() => (preserved?.date && preserved?.slot ? { date: preserved.date, slot: preserved.slot } : null));
+  const [autoPicked, setAutoPicked] = useState(null);
+  const [noPanditSlot, setNoPanditSlot] = useState(false);
+  const [timeWarning, setTimeWarning] = useState(null);
+  // Only a fresh visit is auto-picked -- coming Back keeps their choice.
+  const autoPickPending = useRef(!(preserved?.date && preserved?.slot));
+  const panditLock = Boolean(preferredPandit && schedule);
+  const suitsPandit = (d, slot) => !panditLock || isPanditAvailable(schedule, d, slot?.time);
 
   // Festival-specific pujas: suggest the festival date and warn before
   // going on with a different one (utils/festivalDates.js).
@@ -69,6 +89,9 @@ export default function BookDateTime() {
       })
       .catch(() => {
         /* keep the default */
+      })
+      .finally(() => {
+        if (mounted) setSettingsLoaded(true);
       });
     return () => {
       mounted = false;
@@ -126,6 +149,32 @@ export default function BookDateTime() {
   }, [date, puja?.id]);
 
   useEffect(() => {
+    if (missingPath || !preferredPandit?.id) return undefined;
+    const controller = new AbortController();
+    get(`/pandits/${preferredPandit.id}/schedule`, { params: { from_date: localToday(), days: 60 }, signal: controller.signal })
+      .then((data) => setSchedule(data))
+      .catch((err) => {
+        if (err?.name === 'CanceledError' || err?.isCanceled) return;
+        console.warn('Pandit Ji schedule unavailable; booking without it', err);
+      });
+    return () => controller.abort();
+  }, [missingPath, preferredPandit?.id]);
+
+  useEffect(() => {
+    if (!autoPickPending.current || !panditLock || !availability || !settingsLoaded) return;
+    autoPickPending.current = false;
+    const next = findNextAvailableSlot(schedule, availability, { fromDate: localToday(), minLeadHours, maxDays: 60 });
+    if (!next) {
+      setNoPanditSlot(true);
+      return;
+    }
+    setDate(next.date);
+    setSelectedSlot(next.slot);
+    setPanditPick(next);
+    setAutoPicked(next);
+  }, [panditLock, schedule, availability, settingsLoaded, minLeadHours]);
+
+  useEffect(() => {
     if (missingPath) return;
     saveBookingDraft({ puja, date, slot: selectedSlot });
   }, [puja, date, selectedSlot, missingPath]);
@@ -134,12 +183,69 @@ export default function BookDateTime() {
     return <Navigate to={missingPath} replace state={puja ? { puja } : undefined} />;
   }
 
+  // A choice made before the schedule arrives wins over the auto-pick
+  // (it's still checked against the Pandit Ji on Next).
+  function changeDate(newDate) {
+    autoPickPending.current = false;
+    if (selectedSlot && !suitsPandit(newDate, selectedSlot)) {
+      setTimeWarning({ date: newDate, slot: selectedSlot });
+      return;
+    }
+    setDate(newDate);
+    if (selectedSlot && panditLock) setPanditPick({ date: newDate, slot: selectedSlot });
+  }
+
+  function chooseSlot(slot) {
+    autoPickPending.current = false;
+    if (!suitsPandit(date, slot)) {
+      setTimeWarning({ date, slot });
+      return;
+    }
+    setSelectedSlot(slot);
+    if (panditLock) setPanditPick({ date, slot });
+  }
+
+  // What "Continue with this Pandit Ji" goes back to: their last date &
+  // time that suited them, else their next free one.
+  const keepPick = timeWarning
+    ? panditPick || (panditLock && availability ? findNextAvailableSlot(schedule, availability, { fromDate: localToday(), minLeadHours, maxDays: 60 }) : null)
+    : null;
+
+  function keepPandit() {
+    setTimeWarning(null);
+    if (keepPick) {
+      setDate(keepPick.date);
+      setSelectedSlot(keepPick.slot);
+      setPanditPick(keepPick);
+    }
+  }
+
+  // Take the yajmaan's date & time; the Pandit Ji step then lists
+  // everyone free then instead of just this Pandit Ji.
+  function dropPreferredPandit() {
+    const chosen = timeWarning;
+    setTimeWarning(null);
+    setPreferredPandit(null);
+    setSchedule(null);
+    setAutoPicked(null);
+    setNoPanditSlot(false);
+    saveBookingDraft({ preferredPandit: null });
+    if (chosen) {
+      setDate(chosen.date);
+      setSelectedSlot(chosen.slot);
+    }
+  }
+
   function goNext() {
     saveBookingDraft({ puja, address, date, slot: selectedSlot });
     navigate(nextStepPath('datetime', puja), { state: { puja, address, date, slot: selectedSlot } });
   }
 
   function handleNext() {
+    if (!suitsPandit(date, selectedSlot)) {
+      setTimeWarning({ date, slot: selectedSlot });
+      return;
+    }
     const warning = checkFestivalDate({ festivalName, festivals, selectedDate: date, today });
     if (warning) {
       setFestivalWarning(warning);
@@ -178,6 +284,23 @@ export default function BookDateTime() {
     >
       <BookingStepper currentStep={stepNumber('datetime', puja)} steps={isPackagePuja(puja) ? PACKAGE_STEPS : undefined} />
       <p className="mt-2 text-sm text-slate-600">{t("Selected ritual:")}{' '}<strong>{t(puja.title)}</strong></p>
+      {preferredPandit && (
+        <p className="mt-1 text-sm text-slate-600">{t("Pandit Ji:")}{' '}<strong>{preferredPandit.name}</strong></p>
+      )}
+      {panditLock && autoPicked && autoPicked.date === date && autoPicked.slot.id === selectedSlot?.id && (
+        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          ✓ {t("{name} is next available on {date} at {time}. We've selected it for you.", {
+            name: preferredPandit.name,
+            date: formatFestivalDate(autoPicked.date),
+            time: autoPicked.slot.time,
+          })}
+        </div>
+      )}
+      {panditLock && noPanditSlot && (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {t("{name} has no free time in the next 60 days. Pick a date & time and select a different Pandit Ji on the next step.", { name: preferredPandit.name })}
+        </div>
+      )}
 
       <div className="mt-6">
         <label className="block text-sm font-medium text-slate-700">{t("Select Date")}</label>
@@ -185,7 +308,7 @@ export default function BookDateTime() {
           <input
             type="date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => changeDate(e.target.value)}
             className="w-full rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm"
           />
         </div>
@@ -220,6 +343,12 @@ export default function BookDateTime() {
             {t(minLeadHours === 1 ? "Bookings need at least {hours} hour's notice so we can arrange your Pandit Ji." : "Bookings need at least {hours} hours' notice so we can arrange your Pandit Ji.", { hours: minLeadHours })}
           </p>
 
+          {panditLock && (
+            <p className="mt-1 text-sm text-slate-500">
+              {t("Times with a dashed border don't suit {name}.", { name: preferredPandit.name })}
+            </p>
+          )}
+
           {loadingAvailability && <p className="mt-2 text-sm text-slate-500">{t("Loading availability…")}</p>}
 
           {!loadingAvailability && availabilityError && (
@@ -236,13 +365,14 @@ export default function BookDateTime() {
                       const slotDT = parseSlotDateTime(date, s.time);
                       const tooSoon = Boolean(slotDT) && slotDT < new Date(Date.now() + minLeadHours * 3600 * 1000);
                       const selectable = s.available && !tooSoon;
+                      const panditBusy = panditLock && !suitsPandit(date, s);
                       return (
                         <button
                           key={s.id}
                           disabled={!selectable}
-                          title={tooSoon ? t("Needs at least {minLeadHours} hours' notice", { minLeadHours: minLeadHours }) : undefined}
-                          onClick={() => setSelectedSlot(s)}
-                          className={`min-h-[44px] rounded-full px-3 py-2 text-sm font-medium transition ${selectable ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
+                          title={tooSoon ? t("Needs at least {minLeadHours} hours' notice", { minLeadHours: minLeadHours }) : panditBusy ? t("{name} is not available at this time", { name: preferredPandit.name }) : undefined}
+                          onClick={() => chooseSlot(s)}
+                          className={`min-h-[44px] rounded-full px-3 py-2 text-sm font-medium transition ${selectable ? (selectedSlot?.id === s.id ? 'bg-maroon text-white shadow-sm' : panditBusy ? 'border border-dashed border-slate-300 bg-white text-slate-400 hover:border-maroon hover:text-maroon' : 'border border-amber-200 bg-white text-slate-700 hover:border-maroon hover:text-maroon') : 'cursor-not-allowed bg-gray-100 text-gray-400'}`}
                         >
                           {s.time} {s.shubh ? '✨' : ''}
                         </button>
@@ -270,6 +400,15 @@ export default function BookDateTime() {
           <button onClick={() => navigate(-1)} className="min-h-[44px] rounded-full border border-amber-200 bg-white px-5 py-2 text-slate-700">{t("Back")}</button>
         </div>
       </div>
+
+      <PanditTimeWarning
+        warning={timeWarning}
+        pandit={preferredPandit}
+        keep={keepPick}
+        onKeepPandit={keepPandit}
+        onChangePandit={dropPreferredPandit}
+        onClose={() => setTimeWarning(null)}
+      />
 
       <FestivalDateWarning
         warning={festivalWarning}

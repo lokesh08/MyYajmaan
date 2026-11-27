@@ -15,6 +15,7 @@ import LanguageToggle from "../i18n/LanguageToggle";
 const commonLinks = [
   { label: "Home", to: "/" },
   { label: "Book Puja", to: "/book" },
+  { label: "Find Pandit Ji", to: "/pandits" },
   { label: "Contact Us", to: "/contact-us" },
 ];
 
